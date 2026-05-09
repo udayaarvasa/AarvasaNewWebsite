@@ -1,36 +1,78 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Aarvasa PropTech Platform
 
-## Getting Started
+A premium Next.js App Router application for AI-assisted real estate investing, ROI analytics, protected investor dashboards, and JWT-backed authentication.
 
-First, run the development server:
+## Folder Structure
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+```txt
+src/
+  app/
+    api/                  Route handlers for auth, chat, blockchain, properties, and AI recommendations
+    about/ contact/       Company and lead-capture pages
+    ai-chat/              Full-screen AI advisor experience
+    blockchain/           Secure transaction flow and simulation
+    dashboard/            Protected investor dashboard
+    login/ signup/        Auth screens
+    listings/             Property marketplace
+    property/[id]/        Property detail pages
+    properties/           Legacy redirects
+  components/
+    blockchain/           Blockchain flow UI
+    chatbot/              ChatGPT-style AI advisor
+    layout/               Navbar, theme provider, animation helpers
+    property/             Listing filters, property cards, hero search
+    ui/                   shadcn-style primitives
+    roi-chart.tsx
+  lib/
+    auth.ts               JWT helpers
+    blockchain.ts         Simulated transaction utilities
+    db.ts                 Lazy Mongoose connection
+    properties.ts         Seed data and simulated AI ranking
+  models/
+    User.ts
+    Property.ts
+    Transaction.ts
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## Environment
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+Create `.env.local` from `.env.example`.
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+```bash
+MONGODB_URI=mongodb+srv://USER:PASSWORD@cluster.mongodb.net/aarvasa
+JWT_SECRET=replace-with-a-long-random-secret
+NEXT_PUBLIC_MAPBOX_TOKEN=
+OPENAI_API_KEY=
+OPENAI_MODEL=gpt-5.2
+```
 
-## Learn More
+Without MongoDB configured, auth and blockchain transactions fall back to demo mode so the UI can be reviewed locally. Without `OPENAI_API_KEY`, `/api/chat` returns intelligent mock property suggestions.
 
-To learn more about Next.js, take a look at the following resources:
+## Run
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+```bash
+npm install
+npm run dev
+npm run build
+```
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## API
 
-## Deploy on Vercel
+- `POST /api/auth/signup`
+- `POST /api/auth/login`
+- `POST /api/auth/logout`
+- `GET /api/auth/me`
+- `GET /api/properties`
+- `GET /api/properties/:id`
+- `GET /api/ai/recommendations?budget=50000000&risk=Balanced&type=Villa`
+- `POST /api/chat`
+- `POST /api/blockchain/transaction`
+- `GET /api/blockchain/status?hash=0x...`
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## Production Notes
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- Auth uses an HTTP-only `aarvasa_token` cookie and dashboard verification happens in both `src/proxy.ts` and the dashboard Server Component.
+- MongoDB is initialized lazily to keep builds safe when environment variables are absent.
+- Property APIs include cache headers for edge-friendly reads.
+- Remote property imagery is configured for `images.unsplash.com` in `next.config.ts`.
+- The app uses `tailwind.config.js` plus CSS variables for a unified maroon, gold, cream, and black theme with a dark/light toggle.

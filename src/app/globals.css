@@ -1,26 +1,176 @@
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Playfair+Display:wght@400;500;600;700;800;900&display=swap");
+@config "../../tailwind.config.js";
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  /* New brand-aligned palette */
+  --background: #F2F1ED;
+  --foreground: #50080E;
+  --card: rgba(245, 244, 241, 0.85);
+  --card-foreground: #50080E;
+  --primary: #50080E;
+  --primary-foreground: #F2F1ED;
+  --secondary: rgba(80, 8, 14, 0.06);
+  --secondary-foreground: #72383D;
+  --muted: rgba(80, 8, 14, 0.05);
+  --muted-foreground: #72383D;
+  --accent: #D4AF37;
+  --accent-foreground: #50080E;
+  --border: rgba(220, 205, 206, 0.6);
+  --input: rgba(220, 205, 206, 0.5);
+  --ring: rgba(212, 175, 55, 0.72);
+  --glass: rgba(245, 244, 241, 0.6);
+  --glass-strong: rgba(245, 244, 241, 0.88);
+  --gold-gradient: linear-gradient(135deg, #d4af37 0%, #f5d27a 52%, #b9872f 100%);
+  --maroon-gradient: linear-gradient(135deg, #50080E 0%, #72383D 48%, #2a0815 100%);
+  --cream-gradient: linear-gradient(135deg, #F5F4F1 0%, #F2F1ED 52%, #DCCDCE 100%);
+  --hero-gradient: linear-gradient(135deg, rgba(80, 8, 14, 0.93), rgba(72, 17, 35, 0.72) 42%, rgba(245, 210, 122, 0.18));
+  --footer-bg: #50080E;
+  --footer-text: #F2F1ED;
+}
+
+[data-theme="dark"] {
+  --background: #0b0b0b;
+  --foreground: #F2F1ED;
+  --card: rgba(22, 18, 18, 0.72);
+  --card-foreground: #F2F1ED;
+  --primary: #72383D;
+  --primary-foreground: #F2F1ED;
+  --secondary: rgba(114, 56, 61, 0.28);
+  --secondary-foreground: #F2F1ED;
+  --muted: rgba(255, 255, 255, 0.07);
+  --muted-foreground: #DCCDCE;
+  --accent: #d4af37;
+  --accent-foreground: #160b0f;
+  --border: rgba(220, 205, 206, 0.14);
+  --input: rgba(220, 205, 206, 0.16);
+  --ring: rgba(245, 210, 122, 0.7);
+  --glass: rgba(255, 255, 255, 0.075);
+  --glass-strong: rgba(22, 18, 18, 0.82);
+  --hero-gradient: linear-gradient(135deg, rgba(72, 17, 35, 0.92), rgba(11, 11, 11, 0.8) 50%, rgba(11, 11, 11, 0.28));
+  --footer-bg: #0b0b0b;
+  --footer-text: #DCCDCE;
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --font-sans: "Inter", "Geist", "Geist Fallback", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: "Geist Mono", "Geist Mono Fallback", ui-monospace, monospace;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+* {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+  background: var(--background);
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: Inter, Poppins, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+}
+
+body::before {
+  position: fixed;
+  inset: 0;
+  z-index: -2;
+  pointer-events: none;
+  content: "";
+  background:
+    radial-gradient(circle at 15% 8%, rgba(80, 8, 14, 0.12), transparent 32%),
+    radial-gradient(circle at 82% 10%, rgba(220, 205, 206, 0.24), transparent 30%),
+    linear-gradient(180deg, var(--background) 0%, var(--background) 100%);
+}
+
+body::after {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  content: "";
+  opacity: 0.10;
+  background-image:
+    linear-gradient(rgba(80, 8, 14, 0.06) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(80, 8, 14, 0.04) 1px, transparent 1px);
+  background-size: 72px 72px;
+  mask-image: linear-gradient(to bottom, black, transparent 75%);
+}
+
+::selection {
+  background: rgba(212, 175, 55, 0.38);
+  color: var(--foreground);
+}
+
+/* ── Utility classes ── */
+
+.glass-card {
+  border: 1px solid var(--border);
+  background: var(--glass);
+  box-shadow: 0 8px 32px rgba(80, 8, 14, 0.08);
+  backdrop-filter: blur(24px);
+}
+
+.gold-gradient {
+  background: var(--gold-gradient);
+}
+
+.maroon-gradient {
+  background: var(--maroon-gradient);
+}
+
+.cream-gradient {
+  background: var(--cream-gradient);
+}
+
+.gold-text {
+  background: var(--gold-gradient);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+/* Premium dark footer background */
+.footer-dark {
+  background: linear-gradient(180deg, #50080E 0%, #2A0815 100%);
+  color: #F2F1ED;
+}
+
+/* Luxury heading style for property names */
+.heading-serif {
+  font-family: "Playfair Display", Georgia, serif;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+}
+
+/* Smooth entrance animation */
+@keyframes fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fade-up {
+  animation: fade-up 0.6s ease-out both;
 }
