@@ -1,152 +1,541 @@
-import Image from "next/image";
-import { Award, Star, Users } from "lucide-react";
+"use client";
 
-const milestones = [
-  { month: "May", text: "Team Formation and Initial Planning" },
-  { month: "June", text: "MVP Development Kickoff" },
-  { month: "July", text: "Strategic Partnerships" },
-  { month: "August", text: "MVP Testing Phase" },
-  { month: "September", text: "Beta Launch with Core Features" },
-];
+import { motion, useScroll, useTransform } from "framer-motion";
+import Image from "next/image";
+import { useRef } from "react";
+import {
+  ArrowRight,
+  BrainCircuit,
+  ShieldCheck,
+  BarChart4,
+  Cpu,
+  Building2,
+  TrendingUp,
+  Globe,
+  MapPin,
+  Lock,
+  Search,
+  CheckCircle2,
+} from "lucide-react";
+
+// ─── Data Arrays ─────────────────────────────────────────────────────────────
 
 const team = [
   {
-    name: "Aarav Mehta",
-    role: "Founder and Product Strategy",
-    image: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=700&q=85",
+    name: "Uday Prakash Sahu",
+    role: "Founder & CEO",
+    subtitle: "Expert in Networking & Sales | External Affairs Lead",
+    bio: "Uday Sahu leads Aarvasa as CEO, driving growth, partnerships, and market expansion. With expertise in business networking and real estate sales, he strengthens stakeholder relations and positions Aarvasa as a key player in property investment.",
+    image: "/images/team/uday.png",
   },
   {
-    name: "Rohan Kapoor",
-    role: "Real Estate Partnerships",
-    image: "https://images.unsplash.com/photo-1560250097-0b93528c311a?auto=format&fit=crop&w=700&q=85",
+    name: "Ansh Dubey",
+    role: "Co-Founder & COO",
+    subtitle: "Operations Strategist | Product & Process Leader",
+    bio: "Ansh Dubey, COO of Aarvasa, oversees operations, workflow optimization, and product delivery. Focused on efficiency, he ensures smooth platform functionality, from listings to customer experience, translating ideas into scalable, real-world execution.",
+    image: "/images/team/ansh.png",
   },
   {
-    name: "Vikram Shah",
-    role: "Investment Operations",
-    image: "https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?auto=format&fit=crop&w=700&q=85",
+    name: "Anirudh Saxena",
+    role: "Co-Founder & CTO",
+    subtitle: "Tech Architect | Innovation & Engineering Lead",
+    bio: "Anirudh Saxena, CTO of Aarvasa, drives AI tools, smart contracts, and infrastructure development. He ensures a secure, scalable tech foundation, shaping the digital systems that power Aarvasa’s platform and future growth.",
+    image: "/images/team/anirudh.png",
   },
   {
-    name: "Karan Iyer",
-    role: "AI and Data Systems",
-    image: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=700&q=85",
-  },
-  {
-    name: "Dev Patel",
-    role: "Blockchain Engineering",
-    image: "https://images.unsplash.com/photo-1531891437562-4301cf35b7e4?auto=format&fit=crop&w=700&q=85",
+    name: "Sriaditya S",
+    role: "VP of IT Operations",
+    subtitle: "Technology Strategist | System Architect | Cybersecurity Advocate",
+    bio: "Sriaditya S leads IT Operations at Aarvasa, managing the company’s digital infrastructure, cloud systems, and cybersecurity. He ensures platform stability, secure workflows, and drives Aarvasa’s tech innovations for scalable business growth.",
+    image: "/images/team/sriaditya.png",
   },
 ];
 
-const stats = [
-  { value: "12,000+", label: "Active Investors", icon: Users },
-  { value: "₹12B+", label: "Portfolio Value", icon: Award },
-  { value: "50+", label: "Cities Covered", icon: Star },
+const technologies = [
+  { icon: BrainCircuit, title: "AI Investment Advisor", desc: "Dynamic recommendations blending proprietary data with market signals." },
+  { icon: BarChart4, title: "Predictive Analytics", desc: "Forecasting yield and appreciation across micro-markets." },
+  { icon: ShieldCheck, title: "Blockchain Verification", desc: "Immutable title checks and transparent transaction histories." },
+  { icon: Lock, title: "Smart Escrow Systems", desc: "Automated, secure capital deployment via smart contracts." },
+  { icon: TrendingUp, title: "ROI Intelligence Engine", desc: "Real-time risk-adjusted return calculations." },
+  { icon: Search, title: "Market Sentiment Analysis", desc: "Aggregating infrastructure, news, and demand indicators." },
 ];
+
+const nodes = [
+  { city: "Bengaluru AI Hub", purpose: "Technology & Core Data", growth: "Active HQ", image: "https://images.unsplash.com/photo-1596176530529-78163a4f7af2?auto=format&fit=crop&w=800&q=80" },
+  { city: "Dubai Expansion", purpose: "Global Capital Inflow", growth: "Q3 2025", image: "https://images.unsplash.com/photo-1512453979798-5ea266f8880c?auto=format&fit=crop&w=800&q=80" },
+  { city: "London Node", purpose: "Institutional Partnerships", growth: "Q1 2026", image: "https://images.unsplash.com/photo-1529655683826-aba9b3e77383?auto=format&fit=crop&w=800&q=80" },
+  { city: "New York Nexus", purpose: "PropTech Innovation", growth: "2026+", image: "https://images.unsplash.com/photo-1496442226666-8d4d0e62e6e9?auto=format&fit=crop&w=800&q=80" },
+];
+
+const milestones = [
+  { year: "2024", items: ["Team Formation and Initial Planning", "MVP Development Kickoff", "Strategic Partnerships", "MVP Testing Phase", "Beta Launch with Core Features"] },
+  { year: "2025", items: ["AI Investment Advisor Launch", "Fractional Investment Module", "Blockchain Escrow Integration", "Multi-City Expansion", "Investor Dashboard Rollout"] },
+  { year: "2026+", items: ["International Expansion", "AI Market Prediction Engine", "Institutional Partnerships", "Smart Contract Automation"] },
+];
+
+const partners = ["TimeSlotter Pvt Ltd", "PS Associates", "Paramjyoti Pvt Ltd", "Ealth Technologies", "Softwave Solutions"];
+
+// ─── Animation Variants ──────────────────────────────────────────────────────
+
+const fadeIn = {
+  hidden: { opacity: 0, y: 30 },
+  visible: { opacity: 1, y: 0, transition: { duration: 0.8, ease: "easeOut" } }
+};
+
+const staggerContainer = {
+  hidden: { opacity: 0 },
+  visible: {
+    opacity: 1,
+    transition: { staggerChildren: 0.15 }
+  }
+};
+
+// ─── Main Page Component ─────────────────────────────────────────────────────
 
 export default function AboutPage() {
+  const heroRef = useRef(null);
+  const { scrollYProgress: heroScroll } = useScroll({ target: heroRef, offset: ["start start", "end start"] });
+  const yHero = useTransform(heroScroll, [0, 1], [0, 300]);
+  const opacityHero = useTransform(heroScroll, [0, 1], [1, 0]);
+
   return (
-    <div className="min-h-screen bg-[#F2F1ED]">
-      {/* Hero */}
-      <section className="mx-auto max-w-7xl px-4 pb-10 pt-32 sm:px-6 lg:px-8">
-        <div className="max-w-3xl">
-          <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-[#DCCDCE]/60 bg-[#F5F4F1] px-4 py-1.5 text-xs font-semibold uppercase tracking-[0.14em] text-[#72383D]">
-            About Aarvasa
-          </div>
-          <h1 className="heading-serif text-4xl tracking-tight text-[#50080E] sm:text-5xl">
-            Building the Future of Property Investment
-          </h1>
-          <p className="mt-5 text-lg leading-relaxed text-[#72383D]/70">
-            Aarvasa is building a premium AI-powered real estate platform where property discovery, investment insights, agent support, and secure transaction workflows come together in one elegant experience.
-          </p>
-        </div>
-      </section>
+    <div className="min-h-screen bg-[#F2F1ED] overflow-x-hidden">
+      
+      {/* 1. HERO SECTION */}
+      <section ref={heroRef} className="relative h-[100vh] min-h-[700px] w-full overflow-hidden flex items-center justify-center pt-20">
+        <motion.div style={{ y: yHero, opacity: opacityHero }} className="absolute inset-0 z-0">
+          <Image
+            src="https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?auto=format&fit=crop&w=2000&q=85"
+            alt="Luxury Architecture"
+            fill
+            className="object-cover"
+            priority
+          />
+          <div className="absolute inset-0 about-hero-gradient backdrop-blur-[2px]" />
+        </motion.div>
 
-      {/* Stats bar */}
-      <section className="border-y border-[#DCCDCE]/40 bg-white">
-        <div className="mx-auto grid max-w-7xl grid-cols-3 divide-x divide-[#DCCDCE]/30 px-4 sm:px-6 lg:px-8">
-          {stats.map((stat) => {
-            const Icon = stat.icon;
-            return (
-              <div key={stat.label} className="flex items-center justify-center gap-3 py-8">
-                <Icon className="h-5 w-5 text-[#D4AF37]" />
-                <div>
-                  <p className="text-2xl font-bold text-[#50080E]">{stat.value}</p>
-                  <p className="text-xs text-[#72383D]/60">{stat.label}</p>
-                </div>
-              </div>
-            );
-          })}
-        </div>
-      </section>
-
-      {/* Milestones */}
-      <section className="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8">
-        <h2 className="heading-serif text-3xl text-[#50080E]">
-          Milestones &amp; Future Plans
-        </h2>
-        <p className="mt-2 text-sm text-[#72383D]/60">2024 — Our founding year</p>
-
-        <div className="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
-          {milestones.map((item, i) => (
+        {/* Animated Particles */}
+        <div className="absolute inset-0 z-0 overflow-hidden pointer-events-none">
+          {[...Array(15)].map((_, i) => (
             <div
-              key={item.month}
-              className="rounded-2xl border border-[#DCCDCE]/40 bg-white p-5 shadow-luxury-sm transition hover:shadow-luxury"
+              key={i}
+              className="absolute w-1.5 h-1.5 bg-[#D4AF37]/40 rounded-full animate-particle-drift"
+              style={{
+                left: `${Math.random() * 100}%`,
+                bottom: `-${Math.random() * 20}%`,
+                animationDelay: `${Math.random() * 8}s`,
+                animationDuration: `${10 + Math.random() * 15}s`
+              }}
+            />
+          ))}
+        </div>
+
+        <div className="relative z-10 mx-auto max-w-6xl px-6 text-center flex flex-col items-center justify-center w-full">
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 1, ease: "easeOut" }}
+            className="inline-flex items-center gap-2 rounded-full border border-[#D4AF37]/30 bg-[#0b0b0b]/60 px-5 py-2 text-xs font-bold uppercase tracking-[0.2em] text-[#D4AF37] backdrop-blur-md mb-8"
+          >
+            <BrainCircuit className="w-4 h-4" /> The Future of PropTech
+          </motion.div>
+          
+          <motion.h1 
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 1, delay: 0.2 }}
+            className="heading-serif text-5xl sm:text-6xl md:text-7xl lg:text-8xl text-white tracking-tight mb-6"
+          >
+            The Architecture of <span className="gold-shimmer-text">Intelligence</span>
+          </motion.h1>
+          
+          <motion.p 
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 1, delay: 0.4 }}
+            className="mx-auto max-w-3xl text-lg sm:text-xl text-[#DCCDCE] leading-relaxed mb-10 font-light"
+          >
+            Where AI, blockchain, and strategic real estate intelligence converge to redefine modern property investment.
+          </motion.p>
+          
+          <motion.div 
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 1, delay: 0.6 }}
+            className="flex flex-col sm:flex-row items-center justify-center gap-5 mb-16 lg:mb-24"
+          >
+            <button className="w-full sm:w-auto px-8 py-4 rounded-xl bg-gradient-to-r from-[#D4AF37] to-[#b9872f] text-[#50080E] font-bold tracking-wide transition-all hover:scale-105 hover:shadow-glow flex items-center justify-center gap-2">
+              Explore Vision <ArrowRight className="w-4 h-4" />
+            </button>
+            <button className="w-full sm:w-auto px-8 py-4 rounded-xl border border-[#DCCDCE]/30 bg-white/5 text-white backdrop-blur-md font-semibold tracking-wide transition-all hover:bg-white/10 flex items-center justify-center gap-2">
+              Meet The Team
+            </button>
+          </motion.div>
+
+          {/* Floating Metrics */}
+          <div className="hidden md:flex justify-center gap-6 px-6 w-full">
+            {[
+              { v: "₹70+ Crores", l: "Property Value" },
+              { v: "AI-Driven", l: "Analytics" },
+              { v: "Smart", l: "Advisory" },
+              { v: "Verified", l: "Network" }
+            ].map((metric, i) => (
+              <motion.div 
+                key={i}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.8, delay: 0.8 + (i * 0.1) }}
+                className="glass-card !bg-black/40 !border-white/10 px-6 py-4 rounded-2xl flex flex-col items-center animate-float"
+                style={{ animationDelay: `${i * 0.5}s` }}
+              >
+                <span className="text-xl font-bold text-[#D4AF37]">{metric.v}</span>
+                <span className="text-xs uppercase tracking-widest text-[#DCCDCE]">{metric.l}</span>
+              </motion.div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* 2. VISION + MISSION SECTION */}
+      <section className="relative z-20 py-32 bg-[#F2F1ED]">
+        <div className="mx-auto max-w-7xl px-6">
+          <div className="grid lg:grid-cols-2 gap-16 items-center">
+            <motion.div 
+              initial="hidden"
+              whileInView="visible"
+              viewport={{ once: true, margin: "-100px" }}
+              variants={fadeIn}
+              className="relative aspect-[4/5] rounded-3xl overflow-hidden shadow-luxury-xl group"
             >
-              <div className="mb-3 flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-[#D4AF37] to-[#b9872f] text-sm font-bold text-white">
-                {i + 1}
+              <Image
+                src="https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?auto=format&fit=crop&w=1200&q=85"
+                alt="Corporate Vision"
+                fill
+                className="object-cover transition-transform duration-[1.5s] group-hover:scale-105"
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-[#50080E]/80 via-transparent to-transparent" />
+              <div className="absolute bottom-10 left-10 right-10">
+                <div className="w-16 h-1 bg-[#D4AF37] mb-6 rounded-full" />
+                <h3 className="heading-serif text-3xl text-white leading-tight">Elevating<br/>The Asset Class</h3>
               </div>
-              <h3 className="text-lg font-bold text-[#50080E]">{item.month}</h3>
-              <p className="mt-2 text-sm leading-relaxed text-[#72383D]/70">
-                {item.text}
-              </p>
+            </motion.div>
+
+            <motion.div 
+              initial="hidden"
+              whileInView="visible"
+              viewport={{ once: true, margin: "-100px" }}
+              variants={staggerContainer}
+              className="space-y-10"
+            >
+              <motion.div variants={fadeIn} className="glass-card p-10 rounded-3xl border-[#DCCDCE]/60 relative overflow-hidden">
+                <div className="absolute top-0 right-0 w-32 h-32 bg-[#D4AF37]/10 rounded-full blur-3xl" />
+                <h2 className="text-sm font-bold uppercase tracking-[0.2em] text-[#D4AF37] mb-4">Our Vision</h2>
+                <p className="text-2xl text-[#50080E] font-medium leading-relaxed heading-serif">
+                  Aarvasa was built to transform how modern investors discover, analyze, and secure real estate opportunities using artificial intelligence, predictive analytics, and strategic market intelligence.
+                </p>
+              </motion.div>
+
+              <motion.div variants={fadeIn} className="space-y-6">
+                <h2 className="text-sm font-bold uppercase tracking-[0.2em] text-[#72383D]">Our Mission</h2>
+                <div className="grid sm:grid-cols-2 gap-4">
+                  {[
+                    "AI-powered property discovery",
+                    "Blockchain-backed transparency",
+                    "Luxury real estate curation",
+                    "Predictive ROI intelligence",
+                    "Fractional investment innovation"
+                  ].map((item, i) => (
+                    <div key={i} className="flex items-start gap-3 p-4 rounded-2xl bg-white border border-[#DCCDCE]/40 shadow-luxury-sm hover:shadow-luxury transition-all">
+                      <div className="mt-0.5 rounded-full bg-[#50080E]/5 p-1">
+                        <CheckCircle2 className="w-4 h-4 text-[#D4AF37]" />
+                      </div>
+                      <span className="text-sm font-medium text-[#72383D]">{item}</span>
+                    </div>
+                  ))}
+                </div>
+              </motion.div>
+            </motion.div>
+          </div>
+        </div>
+      </section>
+
+      {/* 3. STRATEGIC EXPANSION */}
+      <section className="py-32 bg-white relative overflow-hidden">
+        <div className="absolute -top-40 -right-40 w-96 h-96 bg-[#D4AF37]/5 rounded-full blur-3xl pointer-events-none" />
+        
+        <div className="mx-auto max-w-7xl px-6">
+          <motion.div 
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true }}
+            variants={fadeIn}
+            className="text-center max-w-3xl mx-auto mb-20"
+          >
+            <h2 className="heading-serif text-4xl md:text-5xl text-[#50080E] mb-6">Strategic Expansion</h2>
+            <p className="text-lg text-[#72383D]/80">The next generation of investment infrastructure across global growth corridors.</p>
+          </motion.div>
+
+          <div className="grid md:grid-cols-2 gap-8 lg:gap-12">
+            {nodes.map((node, i) => (
+              <motion.div
+                key={node.city}
+                initial={{ opacity: 0, y: 30 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true, margin: "-50px" }}
+                transition={{ duration: 0.6, delay: i * 0.1 }}
+                className="group relative rounded-3xl overflow-hidden aspect-[16/10] shadow-luxury"
+              >
+                <Image src={node.image} alt={node.city} fill className="object-cover transition-transform duration-1000 group-hover:scale-110" />
+                <div className="absolute inset-0 bg-gradient-to-t from-[#0b0b0b] via-[#0b0b0b]/40 to-transparent opacity-80 group-hover:opacity-90 transition-opacity" />
+                
+                <div className="absolute inset-0 p-8 flex flex-col justify-end">
+                  <div className="flex justify-between items-end">
+                    <div>
+                      <div className="flex items-center gap-2 mb-3">
+                        <MapPin className="w-4 h-4 text-[#D4AF37]" />
+                        <span className="text-xs font-bold tracking-widest text-[#D4AF37] uppercase">{node.growth}</span>
+                      </div>
+                      <h3 className="heading-serif text-3xl text-white mb-2">{node.city}</h3>
+                      <p className="text-sm text-[#DCCDCE]">{node.purpose}</p>
+                    </div>
+                    <div className="w-12 h-12 rounded-full border border-white/20 flex items-center justify-center backdrop-blur-md transition-transform group-hover:bg-[#D4AF37] group-hover:border-transparent group-hover:scale-110">
+                      <ArrowRight className="w-5 h-5 text-white" />
+                    </div>
+                  </div>
+                </div>
+              </motion.div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* 4. COMPANY PARTNERS */}
+      <section className="py-24 bg-[#50080E] relative overflow-hidden">
+        <div className="absolute inset-0 opacity-10 bg-[radial-gradient(circle_at_center,rgba(212,175,55,0.4)_0%,transparent_70%)]" />
+        
+        <div className="mx-auto max-w-7xl px-6 relative z-10">
+          <motion.div 
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true }}
+            variants={fadeIn}
+            className="text-center max-w-3xl mx-auto mb-16"
+          >
+            <h2 className="heading-serif text-3xl md:text-4xl text-white mb-4">Strategic Industry Partnerships</h2>
+            <p className="text-[#DCCDCE]/80">Collaborating with innovators shaping the future of technology, infrastructure, and intelligent investment ecosystems.</p>
+          </motion.div>
+
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-6">
+            {partners.map((partner, i) => (
+              <motion.div
+                key={partner}
+                initial={{ opacity: 0, scale: 0.9 }}
+                whileInView={{ opacity: 1, scale: 1 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.5, delay: i * 0.1 }}
+                className="glass-card !bg-white/5 !border-white/10 rounded-2xl p-6 flex items-center justify-center text-center group hover:!bg-white/10 transition-colors"
+              >
+                <span className="font-bold text-[#DCCDCE] group-hover:text-white transition-colors">{partner}</span>
+              </motion.div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* 5. TEAM SECTION */}
+      <section id="team" className="py-32 bg-[#F2F1ED]">
+        <div className="mx-auto max-w-7xl px-6">
+          <motion.div 
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true }}
+            variants={fadeIn}
+            className="text-center mb-20"
+          >
+            <h2 className="heading-serif text-4xl md:text-5xl text-[#50080E] mb-4">Meet The Leadership</h2>
+            <div className="w-24 h-1 bg-gradient-to-r from-[#D4AF37] to-[#b9872f] mx-auto rounded-full" />
+          </motion.div>
+
+          {/* Premium Alternating Team Cards */}
+          <div className="space-y-12 max-w-5xl mx-auto">
+            {team.map((member, i) => (
+              <TeamCard key={member.name} member={member} index={i} />
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* 6. MILESTONES & FUTURE ROADMAP */}
+      <section className="py-32 bg-white">
+        <div className="mx-auto max-w-5xl px-6">
+          <motion.div 
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true }}
+            variants={fadeIn}
+            className="text-center mb-24"
+          >
+            <h2 className="heading-serif text-4xl md:text-5xl text-[#50080E] mb-6">Milestones & Future Plans</h2>
+          </motion.div>
+
+          <div className="relative">
+            <div className="absolute left-8 md:left-1/2 top-0 bottom-0 w-0.5 bg-gradient-to-b from-[#D4AF37]/10 via-[#D4AF37] to-[#D4AF37]/10 md:-translate-x-1/2" />
+            
+            <div className="space-y-20">
+              {milestones.map((milestone, i) => (
+                <motion.div 
+                  key={milestone.year}
+                  initial={{ opacity: 0, y: 50 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true, margin: "-100px" }}
+                  transition={{ duration: 0.7 }}
+                  className={`relative flex flex-col md:flex-row gap-8 md:gap-0 ${i % 2 === 0 ? 'md:flex-row-reverse' : ''}`}
+                >
+                  <div className="md:w-1/2" />
+                  
+                  {/* Glowing Node */}
+                  <div className="absolute left-8 md:left-1/2 w-6 h-6 rounded-full bg-[#50080E] border-4 border-[#D4AF37] -translate-x-[11px] md:-translate-x-3 mt-1.5 shadow-[0_0_15px_rgba(212,175,55,0.5)] z-10" />
+                  
+                  <div className={`md:w-1/2 pl-16 md:pl-0 ${i % 2 === 0 ? 'md:pr-16 text-left md:text-right' : 'md:pl-16 text-left'}`}>
+                    <h3 className="heading-serif text-3xl text-[#50080E] mb-6">{milestone.year}</h3>
+                    <div className="space-y-4">
+                      {milestone.items.map((item, j) => (
+                        <div key={j} className={`glass-card p-5 rounded-2xl shadow-luxury-sm hover:shadow-luxury transition-shadow inline-block w-full ${i % 2 === 0 ? 'ml-auto' : ''}`}>
+                          <p className="text-[#72383D] font-medium">{item}</p>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </motion.div>
+              ))}
             </div>
-          ))}
+          </div>
         </div>
       </section>
 
-      {/* Team */}
-      <section className="mx-auto max-w-7xl px-4 pb-20 sm:px-6 lg:px-8">
-        <h2 className="heading-serif text-3xl text-[#50080E]">Meet Our Team</h2>
-        <p className="mt-2 text-sm text-[#72383D]/60">
-          The minds behind Aarvasa&apos;s intelligent platform.
-        </p>
+      {/* 7. AI + TECHNOLOGY SECTION */}
+      <section className="py-32 bg-[#0b0b0b] relative overflow-hidden">
+        <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-5" />
+        <div className="absolute top-0 right-0 w-[800px] h-[800px] bg-[#50080E]/20 blur-[120px] rounded-full pointer-events-none" />
+        
+        <div className="mx-auto max-w-7xl px-6 relative z-10">
+          <motion.div 
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true }}
+            variants={fadeIn}
+            className="text-center mb-20"
+          >
+            <h2 className="heading-serif text-4xl md:text-5xl text-white mb-6">Powered by Intelligence</h2>
+            <p className="text-[#DCCDCE] max-w-2xl mx-auto">Our proprietary technology stack is designed to de-risk investments and maximize returns through predictive modeling.</p>
+          </motion.div>
 
-        <div className="mx-auto mt-10 grid max-w-5xl gap-6 md:grid-cols-2 xl:grid-cols-3">
-          {team.slice(0, 3).map((member) => (
-            <TeamCard key={member.name} member={member} />
-          ))}
-        </div>
-        <div className="mx-auto mt-6 grid max-w-3xl gap-6 md:grid-cols-2">
-          {team.slice(3).map((member) => (
-            <TeamCard key={member.name} member={member} />
-          ))}
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {technologies.map((tech, i) => {
+              const Icon = tech.icon;
+              return (
+                <motion.div
+                  key={tech.title}
+                  initial={{ opacity: 0, y: 30 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ duration: 0.5, delay: i * 0.1 }}
+                  className="group p-8 rounded-3xl border border-white/10 bg-white/5 backdrop-blur-sm hover:bg-white/10 transition-all hover:-translate-y-2 relative overflow-hidden"
+                >
+                  <div className="absolute inset-0 bg-gradient-to-br from-[#D4AF37]/0 via-transparent to-[#D4AF37]/5 opacity-0 group-hover:opacity-100 transition-opacity" />
+                  <Icon className="w-10 h-10 text-[#D4AF37] mb-6 group-hover:scale-110 transition-transform" />
+                  <h3 className="text-xl font-bold text-white mb-3">{tech.title}</h3>
+                  <p className="text-sm text-[#DCCDCE]/80 leading-relaxed">{tech.desc}</p>
+                </motion.div>
+              );
+            })}
+          </div>
         </div>
       </section>
+
+      {/* 8. INVESTOR TRUST SECTION */}
+      <section className="py-24 bg-gradient-to-br from-[#50080E] to-[#2a0815] relative overflow-hidden">
+        <div className="absolute inset-0 opacity-20 bg-[radial-gradient(circle_at_top_right,rgba(212,175,55,0.8)_0%,transparent_60%)]" />
+        
+        <div className="mx-auto max-w-7xl px-6 relative z-10">
+          <motion.div 
+            initial={{ opacity: 0, scale: 0.95 }}
+            whileInView={{ opacity: 1, scale: 1 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.8 }}
+            className="rounded-[2.5rem] border border-[#D4AF37]/30 bg-black/40 backdrop-blur-xl p-12 md:p-20 text-center shadow-glow"
+          >
+            <h2 className="heading-serif text-4xl md:text-5xl text-white mb-16">The Institutional Standard</h2>
+            
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-10">
+              {[
+                { value: "₹70+ Cr", label: "Listings Value" },
+                { value: "AI-Powered", label: "Analytics" },
+                { value: "100%", label: "Verified Data" },
+                { value: "Tier 1", label: "Partnerships" }
+              ].map((stat, i) => (
+                <div key={i} className="space-y-3">
+                  <div className="text-3xl md:text-5xl font-bold text-[#D4AF37]">{stat.value}</div>
+                  <div className="text-xs font-bold uppercase tracking-widest text-[#DCCDCE]">{stat.label}</div>
+                </div>
+              ))}
+            </div>
+          </motion.div>
+        </div>
+      </section>
+
+
     </div>
   );
 }
 
-function TeamCard({
-  member,
-}: {
-  member: { name: string; role: string; image: string };
-}) {
+// ─── Subcomponents ───────────────────────────────────────────────────────────
+
+function TeamCard({ member, index }: { member: any; index: number }) {
+  const isEven = index % 2 === 0;
+
   return (
-    <article className="group overflow-hidden rounded-2xl border border-[#DCCDCE]/40 bg-white shadow-luxury-sm transition hover:-translate-y-1 hover:shadow-luxury">
-      <div className="relative aspect-square overflow-hidden">
+    <motion.div
+      initial={{ opacity: 0, y: 30 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true, margin: "-50px" }}
+      transition={{ duration: 0.6, delay: index * 0.1 }}
+      className={`group relative rounded-[2rem] overflow-hidden bg-gradient-to-br from-[#2a0815] to-[#50080E] shadow-luxury hover:shadow-glow transition-all duration-500 border border-[#D4AF37]/20 flex flex-col md:flex-row ${!isEven ? 'md:flex-row-reverse' : ''}`}
+    >
+      {/* Image Section */}
+      <div className="relative w-full md:w-2/5 aspect-[4/5] md:aspect-auto min-h-[300px] md:min-h-[400px] bg-black/20 overflow-hidden">
         <Image
           src={member.image}
           alt={member.name}
           fill
-          sizes="(max-width: 768px) 100vw, 33vw"
-          className="object-cover transition duration-700 group-hover:scale-105"
+          className="object-cover transition-transform duration-700 group-hover:scale-105"
         />
-        <div className="absolute inset-0 bg-gradient-to-t from-[#50080E]/30 to-transparent opacity-0 transition group-hover:opacity-100" />
+        <div className="absolute inset-0 bg-gradient-to-t from-[#0b0b0b]/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
       </div>
-      <div className="border-t border-[#DCCDCE]/30 p-5">
-        <h3 className="text-xl font-bold text-[#50080E]">{member.name}</h3>
-        <p className="mt-1 text-sm font-medium text-[#72383D]/70">{member.role}</p>
+      
+      {/* Text Section */}
+      <div className="flex-1 p-8 md:p-12 flex flex-col justify-center relative">
+        <div className="absolute top-0 right-0 w-32 h-32 bg-[#D4AF37]/5 rounded-full blur-3xl pointer-events-none" />
+        
+        <div className="mb-6">
+          <h3 className="heading-serif text-3xl md:text-4xl text-white mb-2 group-hover:text-[#D4AF37] transition-colors duration-300">{member.name}</h3>
+          <p className="text-sm font-bold tracking-[0.2em] uppercase text-[#D4AF37] mb-2">{member.role}</p>
+          <p className="text-xs text-[#DCCDCE] font-semibold tracking-wide uppercase">{member.subtitle}</p>
+        </div>
+        
+        <p className="text-[#DCCDCE]/80 leading-relaxed font-light mb-8 text-sm md:text-base">
+          {member.bio}
+        </p>
+        
+        <div className="flex items-center gap-4 mt-auto">
+          <a href="#" className="w-10 h-10 rounded-full border border-white/20 flex items-center justify-center text-[#DCCDCE] hover:text-[#D4AF37] hover:border-[#D4AF37] transition-all hover:bg-[#D4AF37]/10">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-4 h-4"><path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z"></path><rect x="2" y="9" width="4" height="12"></rect><circle cx="4" cy="4" r="2"></circle></svg>
+          </a>
+          <a href="#" className="w-10 h-10 rounded-full border border-white/20 flex items-center justify-center text-[#DCCDCE] hover:text-[#D4AF37] hover:border-[#D4AF37] transition-all hover:bg-[#D4AF37]/10">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-4 h-4"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"></line></svg>
+          </a>
+        </div>
       </div>
-    </article>
+    </motion.div>
   );
 }

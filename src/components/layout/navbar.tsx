@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import {
   Building2,
@@ -14,16 +15,36 @@ import { cn } from "@/lib/utils";
 
 const links = [
   { href: "/", label: "Home" },
-  { href: "/listings", label: "Buy" },
-  { href: "/services", label: "Invest" },
-  { href: "/ai-chat", label: "AI Insights" },
-  { href: "/blockchain", label: "Fractional" },
   { href: "/about", label: "About" },
+  { href: "/services", label: "Services" },
+  { href: "/blockchain", label: "Blockchain" },
+  { href: "/ai-chat", label: "AI" },
+  { href: "/listings", label: "Listings" },
 ];
 
 export function Navbar() {
+  const pathname = usePathname();
   const [scrolled, setScrolled] = useState(false);
   const [open, setOpen] = useState(false);
+  const [user, setUser] = useState<{name: string, email: string} | null>(null);
+  const [authLoading, setAuthLoading] = useState(true);
+
+  useEffect(() => {
+    fetch("/api/auth/me")
+      .then((res) => res.json())
+      .then((data) => {
+        setUser(data.user);
+      })
+      .finally(() => {
+        setAuthLoading(false);
+      });
+  }, []);
+
+  const handleLogout = async () => {
+    await fetch("/api/auth/logout", { method: "POST" });
+    setUser(null);
+    window.location.reload();
+  };
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 18);
@@ -58,25 +79,51 @@ export function Navbar() {
 
           {/* Desktop nav */}
           <nav className="hidden items-center gap-8 lg:flex">
-            {links.map((link) => (
-              <Link
-                key={link.href}
-                href={link.href}
-                className="text-sm font-medium text-[#50080E]/80 transition hover:text-[#D4AF37]"
-              >
-                {link.label}
-              </Link>
-            ))}
+            {links.map((link) => {
+              const isActive = pathname === link.href;
+              return (
+                <Link
+                  key={link.href}
+                  href={link.href}
+                  className={cn(
+                    "text-sm transition-colors relative group",
+                    isActive
+                      ? "font-bold text-[#D4AF37]"
+                      : "font-medium text-[#50080E]/80 hover:text-[#D4AF37]"
+                  )}
+                >
+                  {link.label}
+                  {isActive && (
+                    <span className="absolute -bottom-1 left-0 h-0.5 w-full rounded-full bg-[#D4AF37]" />
+                  )}
+                </Link>
+              );
+            })}
           </nav>
 
           {/* Right actions */}
           <div className="hidden min-w-40 items-center justify-end gap-3 md:flex">
-            <Button asChild variant="ghost" size="sm" className="text-sm text-[#50080E] hover:bg-transparent hover:text-[#D4AF37]">
-              <Link href="/login">Login</Link>
-            </Button>
-            <Button asChild variant="gold" size="sm" className="rounded-lg px-5 text-xs font-bold uppercase tracking-wider">
-              <Link href="/dashboard">Dashboard</Link>
-            </Button>
+            {!authLoading && user ? (
+              <>
+                <div className="flex h-9 w-9 items-center justify-center rounded-full bg-[#902941] text-sm font-bold text-white shadow-sm">
+                  {user.name ? user.name.charAt(0).toUpperCase() : "A"}
+                </div>
+                <Button onClick={handleLogout} variant="gold" size="sm" className="rounded-lg px-5 text-xs font-bold uppercase tracking-wider">
+                  Logout
+                </Button>
+              </>
+            ) : !authLoading ? (
+              <>
+                <Button asChild variant="ghost" size="sm" className="text-sm text-[#50080E] hover:bg-transparent hover:text-[#D4AF37]">
+                  <Link href="/login">Login</Link>
+                </Button>
+                <Button asChild variant="gold" size="sm" className="rounded-lg px-5 text-xs font-bold uppercase tracking-wider">
+                  <Link href="/dashboard">Dashboard</Link>
+                </Button>
+              </>
+            ) : (
+              <div className="h-9 w-32 animate-pulse rounded-md bg-[#DCCDCE]/30" />
+            )}
             <div className="rounded-full bg-[#50080E] p-1 text-white">
               <ThemeToggle />
             </div>
@@ -103,23 +150,47 @@ export function Navbar() {
         {open ? (
           <div className="mt-1 rounded-2xl border border-[#DCCDCE]/40 bg-[#F2F1ED]/98 p-4 shadow-luxury backdrop-blur-2xl lg:hidden">
             <div className="grid gap-1.5">
-              {links.map((link) => (
-                <Link
-                  key={link.href}
-                  href={link.href}
-                  onClick={() => setOpen(false)}
-                  className="flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium text-[#50080E] transition hover:bg-[#DCCDCE]/20"
-                >
-                  {link.label}
-                </Link>
-              ))}
+              {links.map((link) => {
+                const isActive = pathname === link.href;
+                return (
+                  <Link
+                    key={link.href}
+                    href={link.href}
+                    onClick={() => setOpen(false)}
+                    className={cn(
+                      "flex items-center gap-3 rounded-xl px-4 py-3 text-sm transition",
+                      isActive
+                        ? "bg-[#50080E]/5 font-bold text-[#D4AF37]"
+                        : "font-medium text-[#50080E] hover:bg-[#DCCDCE]/20"
+                    )}
+                  >
+                    {link.label}
+                  </Link>
+                );
+              })}
               <div className="mt-2 grid grid-cols-2 gap-2">
-                <Button asChild variant="outline" size="sm">
-                  <Link href="/login">Login</Link>
-                </Button>
-                <Button asChild variant="gold" size="sm">
-                  <Link href="/dashboard">Dashboard</Link>
-                </Button>
+                {!authLoading && user ? (
+                  <>
+                    <div className="flex items-center justify-center gap-2 rounded-md border border-[#DCCDCE] px-3 py-1.5 text-sm font-bold text-[#50080E]">
+                      <div className="flex h-6 w-6 items-center justify-center rounded-full bg-[#902941] text-xs text-white">
+                        {user.name ? user.name.charAt(0).toUpperCase() : "A"}
+                      </div>
+                      <span className="truncate">{user.name.split(" ")[0]}</span>
+                    </div>
+                    <Button onClick={() => { handleLogout(); setOpen(false); }} variant="gold" size="sm">
+                      Logout
+                    </Button>
+                  </>
+                ) : !authLoading ? (
+                  <>
+                    <Button asChild variant="outline" size="sm" onClick={() => setOpen(false)}>
+                      <Link href="/login">Login</Link>
+                    </Button>
+                    <Button asChild variant="gold" size="sm" onClick={() => setOpen(false)}>
+                      <Link href="/dashboard">Dashboard</Link>
+                    </Button>
+                  </>
+                ) : null}
               </div>
             </div>
           </div>

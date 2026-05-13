@@ -1,6 +1,9 @@
-import { NextResponse } from "next/server";
+// ─── Aarvasa AI Chat — Streaming Endpoint ────────────────────────────────────
+
 import { z } from "zod";
-import { getRecommendations } from "@/lib/properties";
+import { processAdvisorQuery } from "@/lib/ai";
+import type { ChatMessage } from "@/lib/ai/types";
+import { isRateLimited, AI_ENDPOINT_LIMIT } from "@/lib/ai/rate-limiter";
 
 const ChatSchema = z.object({
   messages: z.array(
@@ -11,87 +14,76 @@ const ChatSchema = z.object({
   ),
 });
 
-function mockResponse(prompt: string) {
-  const budgetMatch = prompt.match(/(\d+)\s*(l|lac|lakh|cr|crore)?/i);
-  const numeric = budgetMatch ? Number(budgetMatch[1]) : 50;
-  const multiplier = /cr|crore/i.test(budgetMatch?.[2] || "") ? 10000000 : 100000;
-  const budget = numeric * multiplier;
-  const location = /bangalore|bengaluru/i.test(prompt)
-    ? "Bengaluru"
-    : /goa/i.test(prompt)
-      ? "Goa"
-      : /mumbai/i.test(prompt)
-        ? "Mumbai"
-        : undefined;
-
-  const recommendations = getRecommendations({ budget, location }).slice(0, 3);
-
-  return [
-    `Based on your query, I would shortlist ${recommendations.map((item) => item.title).join(", ")}.`,
-    recommendations
-      .map(
-        (item, index) =>
-          `${index + 1}. ${item.title} in ${item.location}: ${item.roi}% projected ROI, ${item.risk.toLowerCase()} risk, ${item.growth.toLowerCase()}.`,
-      )
-      .join("\n"),
-    "Next step: compare rental comps and exit liquidity before booking a consultation.",
-  ].join("\n\n");
-}
-
-function extractText(data: unknown) {
-  const response = data as {
-    output_text?: string;
-    output?: Array<{ content?: Array<{ text?: string }> }>;
-  };
-  return (
-    response.output_text ||
-    response.output?.flatMap((item) => item.content || []).find((part) => part.text)?.text
-  );
-}
-
 export async function POST(request: Request) {
-  const parsed = ChatSchema.safeParse(await request.json());
+  // Rate limiting
+  if (isRateLimited("chat:global", AI_ENDPOINT_LIMIT)) {
+    return new Response(
+      JSON.stringify({ error: "Too many requests. Please wait a moment." }),
+      { status: 429, headers: { "Content-Type": "application/json" } },
+    );
+  }
+
+  let parsed;
+  try {
+    parsed = ChatSchema.safeParse(await request.json());
+  } catch {
+    return new Response(
+      JSON.stringify({ error: "Invalid JSON body" }),
+      { status: 400, headers: { "Content-Type": "application/json" } },
+    );
+  }
 
   if (!parsed.success) {
-    return NextResponse.json({ error: "Invalid chat payload" }, { status: 400 });
+    return new Response(
+      JSON.stringify({ error: "Invalid chat payload" }),
+      { status: 400, headers: { "Content-Type": "application/json" } },
+    );
   }
 
-  const latest = parsed.data.messages.at(-1)?.content || "";
-  const apiKey = process.env.OPENAI_API_KEY;
-
-  if (!apiKey) {
-    return NextResponse.json({ message: mockResponse(latest), mode: "mock" });
-  }
+  const messages = parsed.data.messages as ChatMessage[];
 
   try {
-    const response = await fetch("https://api.openai.com/v1/responses", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${apiKey}`,
-      },
-      body: JSON.stringify({
-        model: process.env.OPENAI_MODEL || "gpt-5.2",
-        instructions:
-          "You are Aarvasa AI, a concise real estate investment advisor for Indian property. Suggest properties, ROI logic, risks, and next diligence steps. Never claim guaranteed returns.",
-        input: parsed.data.messages.map((message) => ({
-          role: message.role,
-          content: message.content,
-        })),
-        max_output_tokens: 420,
-      }),
-    });
+    const result = await processAdvisorQuery(messages);
 
-    if (!response.ok) {
-      return NextResponse.json({ message: mockResponse(latest), mode: "mock" });
+    const sourceCount = result.aggregatedResult.sourceSummary
+      .filter((s) => s.status === "success")
+      .length;
+
+    const headers: Record<string, string> = {
+      "Content-Type": "text/plain; charset=utf-8",
+      "Transfer-Encoding": "chunked",
+      "Cache-Control": "no-cache",
+      "X-Ai-Mode": result.mode,
+      "X-Sources-Used": String(sourceCount),
+      "X-Properties-Evaluated": String(result.aggregatedResult.totalCandidates),
+    };
+
+    // Streaming response (OpenAI)
+    if (result.stream) {
+      return new Response(result.stream, { headers });
     }
 
-    const data = await response.json();
-    return NextResponse.json({
-      message: extractText(data) || mockResponse(latest),
-      mode: "openai",
+    // Mock streaming — character-by-character for typing effect
+    const mockText = result.text || "I'm unable to process your request right now.";
+    const encoder = new TextEncoder();
+
+    const mockStream = new ReadableStream<Uint8Array>({
+      async start(controller) {
+        const chunkSize = 4;
+        for (let i = 0; i < mockText.length; i += chunkSize) {
+          controller.enqueue(encoder.encode(mockText.slice(i, i + chunkSize)));
+          await new Promise((r) => setTimeout(r, 6));
+        }
+        controller.close();
+      },
     });
-  } catch {
-    return NextResponse.json({ message: mockResponse(latest), mode: "mock" });
+
+    return new Response(mockStream, { headers });
+  } catch (error) {
+    console.error("AI advisor error:", error);
+    return new Response(
+      JSON.stringify({ error: "AI processing failed" }),
+      { status: 500, headers: { "Content-Type": "application/json" } },
+    );
   }
 }

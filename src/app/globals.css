@@ -174,3 +174,82 @@ body::after {
 .animate-fade-up {
   animation: fade-up 0.6s ease-out both;
 }
+
+/* ── About Page — Cinematic Utilities ── */
+
+@keyframes pulse-glow {
+  0%, 100% { box-shadow: 0 0 20px rgba(212, 175, 55, 0.15); }
+  50% { box-shadow: 0 0 40px rgba(212, 175, 55, 0.35); }
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-12px); }
+}
+
+@keyframes shimmer {
+  0% { background-position: -200% center; }
+  100% { background-position: 200% center; }
+}
+
+@keyframes gradient-rotate {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+@keyframes particle-drift {
+  0% { transform: translateY(0) translateX(0); opacity: 0; }
+  20% { opacity: 0.6; }
+  80% { opacity: 0.4; }
+  100% { transform: translateY(-100vh) translateX(40px); opacity: 0; }
+}
+
+.animate-pulse-glow { animation: pulse-glow 3s ease-in-out infinite; }
+.animate-float { animation: float 6s ease-in-out infinite; }
+.animate-shimmer {
+  background-size: 200% auto;
+  animation: shimmer 3s linear infinite;
+}
+.animate-gradient-rotate {
+  background-size: 200% 200%;
+  animation: gradient-rotate 4s ease infinite;
+}
+
+.about-hero-gradient {
+  background: linear-gradient(
+    135deg,
+    #0b0b0b 0%,
+    #1a0510 25%,
+    #50080E 50%,
+    #2a0815 75%,
+    #0b0b0b 100%
+  );
+}
+
+.gold-shimmer-text {
+  background: linear-gradient(
+    90deg,
+    #D4AF37 0%,
+    #F5D27A 25%,
+    #D4AF37 50%,
+    #b9872f 75%,
+    #D4AF37 100%
+  );
+  background-size: 200% auto;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  animation: shimmer 4s linear infinite;
+}
+
+.timeline-glow::before {
+  content: '';
+  position: absolute;
+  left: 50%;
+  top: 0;
+  bottom: 0;
+  width: 2px;
+  background: linear-gradient(180deg, transparent, #D4AF37, #50080E, transparent);
+  transform: translateX(-50%);
+}

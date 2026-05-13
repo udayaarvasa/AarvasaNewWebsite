@@ -7,6 +7,11 @@ import {
   LineChart,
   ShieldCheck,
   Sparkles,
+  Cpu,
+  Wallet,
+  Lock,
+  Glasses,
+  BadgeCheck,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
@@ -40,6 +45,31 @@ const services = [
     icon: FileCheck2,
     title: "Documentation Support",
     text: "Keep title checks, rental comps, KYC, and transaction documents organized in one flow.",
+  },
+  {
+    icon: BadgeCheck,
+    title: "100% Verified Property Listings",
+    text: "Every property on our platform undergoes a rigorous multi-point verification process to ensure authenticity and legal compliance.",
+  },
+  {
+    icon: Cpu,
+    title: "AI-Powered Insights & Recommendations",
+    text: "Leverage advanced machine learning algorithms to receive tailored investment advice and market trend predictions.",
+  },
+  {
+    icon: Wallet,
+    title: "Flexible Payment Models",
+    text: "Access a variety of structured payment plans, including fractional ownership and milestones-based installments.",
+  },
+  {
+    icon: Lock,
+    title: "Blockchain Based Smart Contracts",
+    text: "Experience unprecedented security and transparency with immutable digital contracts that automate escrow and title transfers.",
+  },
+  {
+    icon: Glasses,
+    title: "AR/VR Virtual Property Tours",
+    text: "Explore your potential investment from anywhere in the world with high-fidelity, immersive virtual walkthroughs.",
   },
 ];
 

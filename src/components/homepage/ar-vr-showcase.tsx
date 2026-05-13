@@ -50,7 +50,7 @@ export function ARVRShowcase() {
             </div>
             <div className="mt-8 px-4">
               <Button className="w-full" disabled><Glasses className="h-4 w-4" /> Early Access — Join Waitlist</Button>
-              <p className="mt-3 text-center text-xs text-muted-foreground">Beta launching Q3 2025 • WebXR compatible</p>
+              <p className="mt-3 text-center text-xs text-muted-foreground">Beta launching Q4 2026 • WebXR compatible</p>
             </div>
           </div>
         </div>
