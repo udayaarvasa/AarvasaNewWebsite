@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 
 const quickLinks = [
   { href: "/", label: "Home" },
@@ -22,18 +23,21 @@ export function LuxuryFooter() {
           {/* Brand column */}
           <div className="lg:col-span-1">
             <Link href="/" className="flex items-center gap-3">
-              <span className="relative flex h-12 w-12 items-center justify-center">
-                <span className="absolute h-9 w-9 rotate-45 rounded-lg bg-gradient-to-br from-[#f5d27a] via-[#f0a83a] to-[#72383D]" />
-                <span className="relative text-xl font-black text-white">A</span>
-              </span>
-              <span className="leading-none">
-                <span className="block text-lg font-black uppercase tracking-[0.22em] text-[#F2F1ED]">
+              <div className="relative h-12 w-12 flex-shrink-0">
+                <img 
+                  src="/logo-icon.png" 
+                  alt="Aarvasa Icon" 
+                  className="h-full w-full object-contain brightness-110"
+                />
+              </div>
+              <div className="flex flex-col justify-center leading-[1.1]">
+                <span className="font-serif text-xl font-black uppercase tracking-[0.05em] text-[#F2F1ED]">
                   Aarvasa
                 </span>
-                <span className="mt-0.5 block text-[7px] font-bold uppercase tracking-[0.2em] text-[#DCCDCE]">
-                  Building Dreams, Securing Futures.
+                <span className="text-[7px] font-bold uppercase tracking-[0.12em] text-[#D4AF37]">
+                  Building Dreams, Securing Futures
                 </span>
-              </span>
+              </div>
             </Link>
             <p className="mt-5 max-w-xs text-sm font-semibold leading-relaxed text-[#F2F1ED]">
               Empowering individuals to own, lease, and monetize real estate

@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 import { Building2, Mail, MapPin, Phone, ArrowRight } from "lucide-react";
 
 const footerLinks = {
@@ -30,14 +31,21 @@ export function Footer() {
           {/* Brand column */}
           <div>
             <Link href="/" className="flex items-center gap-3">
-              <span className="relative flex h-12 w-12 items-center justify-center">
-                <span className="absolute h-9 w-9 rotate-45 rounded-lg bg-gradient-to-br from-[#f5d27a] via-[#f0a83a] to-[#7a1f3d]" />
-                <span className="relative text-xl font-black text-white">A</span>
-              </span>
-              <span>
-                <span className="block text-base font-black uppercase tracking-[0.2em] text-foreground">Aarvasa</span>
-                <span className="block text-[7px] font-bold uppercase tracking-[0.18em] text-muted-foreground">Building Dreams, Securing Futures</span>
-              </span>
+              <div className="relative h-12 w-12 flex-shrink-0">
+                <img 
+                  src="/logo-icon.png" 
+                  alt="Aarvasa Icon" 
+                  className="h-full w-full object-contain brightness-110"
+                />
+              </div>
+              <div className="flex flex-col justify-center leading-[1.1]">
+                <span className="font-serif text-xl font-black uppercase tracking-[0.05em] text-foreground">
+                  Aarvasa
+                </span>
+                <span className="text-[7px] font-bold uppercase tracking-[0.12em] text-[#D4AF37]">
+                  Building Dreams, Securing Futures
+                </span>
+              </div>
             </Link>
             <p className="mt-6 max-w-sm text-sm leading-relaxed text-muted-foreground">
               India&apos;s premier AI-powered real estate investment platform. Combining machine intelligence, blockchain verification, and luxury curation for discerning investors.

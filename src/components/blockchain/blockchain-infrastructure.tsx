@@ -2,375 +2,411 @@
 
 import { motion } from "framer-motion";
 import {
-  User,
   Fingerprint,
-  Activity,
-  Smartphone,
-  Layout,
-  ShieldCheck,
-  Network,
-  Box,
   FileCode2,
-  UserCheck,
-  LockKeyhole,
-  Building2,
+  Shield,
+  ArrowRight,
+  Network,
+  Coins,
+  Lock,
   Zap,
-  BellRing,
+  ClipboardCheck,
+  Scale,
+  CreditCard,
+  ScrollText,
+  Building2,
+  BrainCircuit,
 } from "lucide-react";
-import { cn } from "@/lib/utils";
 
-const createPath = (
-  startX: number,
-  startY: number,
-  endX: number,
-  endY: number
-) => {
-  const midX = (startX + endX) / 2;
+/* ═══════════════════════════════════════════════════════════════════════════
+   DATA
+   ═══════════════════════════════════════════════════════════════════════ */
 
-  return `M ${startX} ${startY} H ${midX} V ${endY} H ${endX}`;
+const modules = {
+  top: [
+    { id: "identity", icon: Fingerprint, label: "Identity Verification", desc: "Biometric KYC and decentralized ID validation" },
+    { id: "contracts", icon: FileCode2, label: "Smart Contracts", desc: "Automated escrow and programmable settlements" },
+    { id: "escrow", icon: Shield, label: "Escrow Engine", desc: "Multi-signature trustless capital custody" },
+  ],
+  left: [
+    { id: "fraud", icon: Zap, label: "AI Fraud Detection", desc: "Real-time anomaly scanning and risk alerts" },
+    { id: "risk", icon: BrainCircuit, label: "AI Risk Analysis", desc: "Predictive risk scoring and exposure modeling" },
+    { id: "validation", icon: ClipboardCheck, label: "Property Validation", desc: "Title verification and compliance checks" },
+  ],
+  right: [
+    { id: "transfer", icon: ArrowRight, label: "Ownership Transfer", desc: "Immutable on-chain title registry updates" },
+    { id: "tokenization", icon: Coins, label: "Tokenization", desc: "Fractional property investment instruments" },
+    { id: "security", icon: Lock, label: "Transaction Security", desc: "AES-256 end-to-end encrypted pipelines" },
+  ],
+  bottom: [
+    { id: "payment", icon: CreditCard, label: "Payment Gateway", desc: "Multi-rail institutional payment processing" },
+    { id: "audit", icon: ScrollText, label: "Audit Trail", desc: "Immutable timestamped event logging" },
+    { id: "compliance", icon: Scale, label: "Compliance Layer", desc: "RERA regulatory automation engine" },
+  ],
 };
 
-const nodes = [
-  {
-    id: 'user',
-    label: 'User',
-    icon: User,
-    description: 'The investor initiating the secure luxury property transaction.',
-    details: 'Initiates high-value transactions with cryptographic signatures.',
-    position: { x: 10, y: 18 },
-    category: 'entry'
-  },
-  {
-    id: 'biometric',
-    label: 'Biometric Validation',
-    icon: Fingerprint,
-    description: 'Hardware-level biometric authorization.',
-    details: 'AES-256 encrypted biometric verification.',
-    position: { x: 10, y: 36 },
-    category: 'input'
-  },
-  {
-    id: 'transaction',
-    label: 'Transaction Request',
-    icon: Activity,
-    description: 'Transaction intent and metadata.',
-    details: 'Secure transaction packet generation.',
-    position: { x: 10, y: 54 },
-    category: 'input'
-  },
-  {
-    id: 'edge',
-    label: 'Edge Processor',
-    icon: Smartphone,
-    description: 'Localized edge processing layer.',
-    details: 'Packages and validates encrypted packets.',
-    position: { x: 22, y: 82 },
-    category: 'processor'
-  },
-  {
-    id: 'shamir',
-    label: 'Shamir Share',
-    icon: Layout,
-    description: 'Distributed secret sharing.',
-    details: 'Splits secure transaction fragments.',
-    position: { x: 40, y: 82 },
-    category: 'processor-sub'
-  },
-  {
-    id: 'verification',
-    label: 'Verification Layer',
-    icon: ShieldCheck,
-    description: 'Distributed verification nodes.',
-    details: 'Cross-node identity validation.',
-    position: { x: 58, y: 82 },
-    category: 'processor-sub'
-  },
-  {
-    id: 'mpc',
-    label: 'Consensus Engine',
-    icon: Network,
-    description: 'Multi-party computation consensus.',
-    details: 'Distributed consensus validation.',
-    position: { x: 74, y: 82 },
-    category: 'consensus'
-  },
-  {
-    id: 'blockchain',
-    label: 'Blockchain Settlement',
-    icon: Box,
-    description: 'Immutable ledger settlement layer.',
-    details: 'Finalized blockchain registry.',
-    position: { x: 78, y: 52 },
-    category: 'core'
-  },
-  {
-    id: 'contract',
-    label: 'Smart Contract',
-    icon: FileCode2,
-    description: 'Automated escrow execution.',
-    details: 'Handles programmable settlements.',
-    position: { x: 68, y: 20 },
-    category: 'core-sub'
-  },
-  {
-    id: 'did',
-    label: 'Decentralized ID',
-    icon: UserCheck,
-    description: 'W3C decentralized identity.',
-    details: 'Secure credential verification.',
-    position: { x: 82, y: 12 },
-    category: 'core-sub'
-  },
-  {
-    id: 'zkp',
-    label: 'ZK Proof',
-    icon: LockKeyhole,
-    description: 'Zero-knowledge verification.',
-    details: 'Validates without revealing data.',
-    position: { x: 96, y: 20 },
-    category: 'core-sub'
-  },
-  {
-    id: 'bank-backend',
-    label: 'Bank Backend',
-    icon: Building2,
-    description: 'Institutional settlement engine.',
-    details: 'Traditional banking integration.',
-    position: { x: 92, y: 52 },
-    category: 'settlement'
-  },
-  {
-    id: 'bank-sub',
-    label: 'AI Fraud Check',
-    icon: Zap,
-    description: 'AI-powered fraud monitoring.',
-    details: 'Real-time anomaly detection.',
-    position: { x: 92, y: 70 },
-    category: 'settlement-sub'
-  },
-  {
-    id: 'notification',
-    label: 'Notification Response',
-    icon: BellRing,
-    description: 'Final investor response system.',
-    details: 'Settlement notifications.',
-    position: { x: 92, y: 88 },
-    category: 'notification'
-  }
-];
+type Module = { id: string; icon: React.ComponentType<{ className?: string }>; label: string; desc: string };
 
-function Node({
-  node,
-}: {
-  node: (typeof nodes)[0];
-}) {
-  const Icon = node.icon;
+/* ═══════════════════════════════════════════════════════════════════════════
+   ANIMATION VARIANTS
+   ═══════════════════════════════════════════════════════════════════════ */
 
-  const isConsensus = node.category === "consensus";
-  const isCore = node.category === "core";
+const fadeUp = {
+  hidden: { opacity: 0, y: 30 },
+  visible: { opacity: 1, y: 0, transition: { duration: 0.7, ease: [0.23, 1, 0.32, 1] } },
+};
+
+const stagger = {
+  hidden: { opacity: 0 },
+  visible: { opacity: 1, transition: { staggerChildren: 0.08 } },
+};
+
+const nodeReveal = {
+  hidden: { opacity: 0, scale: 0.85 },
+  visible: { opacity: 1, scale: 1, transition: { duration: 0.6, ease: [0.23, 1, 0.32, 1] } },
+};
+
+const pulseGlow = {
+  animate: {
+    boxShadow: [
+      "0 0 30px rgba(212,175,55,0.15), 0 0 60px rgba(212,175,55,0.05)",
+      "0 0 50px rgba(212,175,55,0.3), 0 0 100px rgba(212,175,55,0.1)",
+      "0 0 30px rgba(212,175,55,0.15), 0 0 60px rgba(212,175,55,0.05)",
+    ],
+    transition: { duration: 3, repeat: Infinity, ease: "easeInOut" },
+  },
+};
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   MODULE NODE COMPONENT
+   ═══════════════════════════════════════════════════════════════════════ */
+
+function ModuleNode({ module: m, index, direction }: { module: Module; index: number; direction: "top" | "left" | "right" | "bottom" }) {
+  const Icon = m.icon;
+  const isHorizontal = direction === "top" || direction === "bottom";
 
   return (
     <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.5 }}
-      className="absolute z-20 group"
-      style={{
-        left: `${node.position.x}%`,
-        top: `${node.position.y}%`,
-        transform: "translate(-50%, -50%)",
-      }}
+      variants={nodeReveal}
+      className="group flex flex-col items-center text-center"
     >
-      <div className="flex flex-col items-center">
-        <div
-          className={cn(
-            "relative flex h-14 w-14 items-center justify-center rounded-2xl border transition-all duration-300 sm:h-16 sm:w-16",
-            isConsensus
-              ? "border-[#D4AF37] bg-[#1a1204] shadow-[0_0_60px_rgba(200,169,77,0.18)]"
-              : isCore
-                ? "border-[#D4AF37] bg-[#120b02] shadow-[0_0_28px_rgba(212,175,55,0.25)]"
-                : "border-white/10 bg-white/[0.03] backdrop-blur-xl group-hover:border-[#D4AF37]/40"
-          )}
-        >
-          <Icon className="h-6 w-6 text-[#DCCDCE] sm:h-7 sm:w-7" />
+      {/* Connector line going toward center */}
+      {direction === "top" && (
+        <div className="relative mb-3 h-10 w-px">
+          <div className="absolute inset-0 bg-gradient-to-b from-transparent to-[#D4AF37]/30" />
+          <div className="absolute bottom-0 left-1/2 -translate-x-1/2 h-1.5 w-1.5 rounded-full bg-[#D4AF37]/60" />
         </div>
+      )}
 
-        <div className="mt-3 flex flex-col items-center text-center max-w-[110px]">
-          <div className="text-[9px] uppercase tracking-[0.2em] text-[#D4AF37] mb-1 font-bold">
-            {node.label}
-          </div>
-
-          <div className="text-[10px] text-[#DCCDCE]/70 leading-snug font-medium">
-            {node.description}
-          </div>
+      {/* Card */}
+      <div className="relative flex flex-col items-center rounded-2xl border border-white/[0.06] bg-gradient-to-b from-white/[0.04] to-white/[0.01] p-5 backdrop-blur-md transition-all duration-400 hover:border-[#D4AF37]/30 hover:bg-white/[0.07] hover:shadow-[0_0_30px_rgba(212,175,55,0.08)] w-full max-w-[200px]">
+        {/* Icon container */}
+        <div className="mb-3 flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br from-[#5B0017] to-[#2a0010] border border-[#D4AF37]/15 shadow-lg transition-all duration-400 group-hover:border-[#D4AF37]/40 group-hover:shadow-[0_0_20px_rgba(212,175,55,0.15)]">
+          <Icon className="h-5 w-5 text-[#D4AF37]" />
         </div>
+        {/* Label */}
+        <h4 className="text-[11px] font-bold uppercase tracking-[0.1em] text-[#F8F4EF] leading-tight mb-1.5">
+          {m.label}
+        </h4>
+        {/* Description */}
+        <p className="text-[10px] leading-snug text-[#DCCDCE]/45">
+          {m.desc}
+        </p>
       </div>
+
+      {/* Connector line going toward center */}
+      {direction === "bottom" && (
+        <div className="relative mt-3 h-10 w-px">
+          <div className="absolute inset-0 bg-gradient-to-t from-transparent to-[#D4AF37]/30" />
+          <div className="absolute top-0 left-1/2 -translate-x-1/2 h-1.5 w-1.5 rounded-full bg-[#D4AF37]/60" />
+        </div>
+      )}
     </motion.div>
   );
 }
 
+/* ═══════════════════════════════════════════════════════════════════════════
+   SIDE MODULE LIST (for left/right columns)
+   ═══════════════════════════════════════════════════════════════════════ */
+
+function SideModules({ items, side }: { items: Module[]; side: "left" | "right" }) {
+  return (
+    <motion.div
+      initial="hidden"
+      whileInView="visible"
+      viewport={{ once: true }}
+      variants={stagger}
+      className="flex flex-col gap-5"
+    >
+      {items.map((m, i) => {
+        const Icon = m.icon;
+        return (
+          <motion.div
+            key={m.id}
+            variants={nodeReveal}
+            className={`group flex items-center gap-4 ${side === "right" ? "flex-row-reverse text-right" : ""}`}
+          >
+            {/* Card */}
+            <div className={`flex items-center gap-3 rounded-2xl border border-white/[0.06] bg-gradient-to-b from-white/[0.04] to-white/[0.01] p-4 backdrop-blur-md transition-all duration-400 hover:border-[#D4AF37]/30 hover:bg-white/[0.07] hover:shadow-[0_0_30px_rgba(212,175,55,0.08)] flex-1 max-w-[240px] ${side === "right" ? "flex-row-reverse" : ""}`}>
+              <div className="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-[#5B0017] to-[#2a0010] border border-[#D4AF37]/15 shadow-lg transition-all duration-400 group-hover:border-[#D4AF37]/40 group-hover:shadow-[0_0_20px_rgba(212,175,55,0.15)]">
+                <Icon className="h-5 w-5 text-[#D4AF37]" />
+              </div>
+              <div className={side === "right" ? "text-right" : ""}>
+                <h4 className="text-[11px] font-bold uppercase tracking-[0.08em] text-[#F8F4EF] leading-tight mb-0.5">
+                  {m.label}
+                </h4>
+                <p className="text-[10px] leading-snug text-[#DCCDCE]/45">
+                  {m.desc}
+                </p>
+              </div>
+            </div>
+
+            {/* Horizontal connector */}
+            <div className="relative h-px w-8 flex-shrink-0 hidden lg:block">
+              <div className={`absolute inset-0 ${side === "left" ? "bg-gradient-to-r" : "bg-gradient-to-l"} from-[#D4AF37]/30 to-transparent`} />
+              <div className={`absolute top-1/2 -translate-y-1/2 h-1.5 w-1.5 rounded-full bg-[#D4AF37]/60 ${side === "left" ? "right-0" : "left-0"}`} />
+            </div>
+          </motion.div>
+        );
+      })}
+    </motion.div>
+  );
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   AMBIENT PARTICLES
+   ═══════════════════════════════════════════════════════════════════════ */
+
+function Particles() {
+  return (
+    <div className="absolute inset-0 overflow-hidden pointer-events-none z-[1]">
+      {[...Array(12)].map((_, i) => (
+        <div
+          key={i}
+          className="absolute rounded-full"
+          style={{
+            width: `${1 + Math.random() * 2}px`,
+            height: `${1 + Math.random() * 2}px`,
+            background: `rgba(212,175,55,${0.15 + Math.random() * 0.25})`,
+            left: `${Math.random() * 100}%`,
+            bottom: `-${Math.random() * 10}%`,
+            animation: `services-particle ${14 + Math.random() * 16}s linear infinite`,
+            animationDelay: `${Math.random() * 10}s`,
+          }}
+        />
+      ))}
+    </div>
+  );
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   MAIN COMPONENT
+   ═══════════════════════════════════════════════════════════════════════ */
+
 export default function BlockchainArchitecture() {
   return (
-    <section className="relative overflow-hidden rounded-[40px] border border-white/10 bg-gradient-to-br from-[#0b0b0b] via-[#50080E]/40 to-[#0b0b0b] px-6 py-8 sm:px-10 lg:px-14 shadow-2xl">
-      {/* Background Gradient Layer */}
-      <div className="absolute inset-0 bg-gradient-to-br from-[#0b0b0b] via-[#1a0510] to-[#0b0b0b] opacity-90" />
-      
-      {/* Cinematic Gradient overlay */}
-      <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(80,8,14,0.3),transparent_70%)]" />
-      
-      {/* Grid Background */}
-      <div className="absolute inset-0 bg-[linear-gradient(to_bottom,rgba(114,56,61,0.08),transparent_40%,rgba(0,0,0,0.8))]" />
+    <section className="relative overflow-hidden rounded-[2.5rem] border border-white/[0.06] bg-gradient-to-br from-[#0b0b0b] via-[#1a0510] to-[#0b0b0b] shadow-2xl">
 
-      {/* Ambient Glow */}
-      <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(212,175,55,0.02),transparent_50%)]" />
-      <div className="absolute inset-0 opacity-[0.025] mix-blend-soft-light bg-[url('/noise.png')]" />
-      {/* Stage Labels */}
+      {/* ── Background Layers ──────────────────────────────────────────── */}
+      <div className="absolute inset-0 bg-[radial-gradient(ellipse_80%_50%_at_50%_40%,rgba(122,0,25,0.2),transparent_70%)]" />
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,rgba(212,175,55,0.03),transparent_50%)]" />
 
-      <div className="absolute top-[14%] left-[10%] text-[10px] uppercase tracking-[0.35em] text-[#DCCDCE]/20">
-        Input Layer
-      </div>
+      {/* Grid texture */}
+      <div className="absolute inset-0 opacity-[0.03]" style={{
+        backgroundImage: "linear-gradient(rgba(212,175,55,0.2) 1px, transparent 1px), linear-gradient(90deg, rgba(212,175,55,0.15) 1px, transparent 1px)",
+        backgroundSize: "60px 60px",
+        maskImage: "radial-gradient(ellipse 70% 60% at 50% 45%, black, transparent)",
+      }} />
 
-      <div className="absolute top-[76%] left-[38%] text-[10px] uppercase tracking-[0.35em] text-[#DCCDCE]/20">
-        Processing
-      </div>
+      {/* Vignette */}
+      <div className="absolute inset-0 bg-[radial-gradient(ellipse_100%_100%_at_50%_50%,transparent_30%,rgba(0,0,0,0.5)_100%)]" />
 
-      <div className="absolute top-[76%] left-[72%] text-[10px] uppercase tracking-[0.35em] text-[#DCCDCE]/20">
-        Consensus
-      </div>
+      <Particles />
 
-      <div className="absolute top-[48%] left-[88%] text-[10px] uppercase tracking-[0.35em] text-[#DCCDCE]/20">
-        Settlement
-      </div>
+      {/* ── CONTENT ────────────────────────────────────────────────────── */}
+      <div className="relative z-10 px-6 py-14 sm:px-10 lg:px-16 lg:py-20">
 
-      {/* SVG Connections */}
-      <svg
-        className="absolute inset-0 h-full w-full pointer-events-none"
-        viewBox="0 0 100 100"
-        preserveAspectRatio="none"
-      >
-        {nodes.map((node) => {
-          const targets: string[] = [];
+        {/* Header */}
+        <motion.div
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: true }}
+          variants={fadeUp}
+          className="mx-auto mb-16 max-w-3xl text-center lg:mb-20"
+        >
+          <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-[#D4AF37]/20 bg-[#D4AF37]/5 px-5 py-2 text-[10px] font-bold uppercase tracking-[0.25em] text-[#D4AF37] backdrop-blur-md">
+            <Network className="h-3.5 w-3.5" />
+            Blockchain Infrastructure
+          </div>
 
-          if (
-            ["user", "biometric", "transaction"].includes(node.id)
-          ) {
-            targets.push("edge");
-          }
+          <h2 className="heading-serif text-3xl leading-[1.15] tracking-tight text-white sm:text-4xl md:text-5xl lg:text-[3.5rem]">
+            Institutional-Grade{" "}
+            <span className="gold-shimmer-text">Blockchain</span>{" "}
+            Orchestration
+          </h2>
 
-          if (node.id === "edge") targets.push("shamir");
-          if (node.id === "shamir") targets.push("verification");
-          if (node.id === "verification") targets.push("mpc");
-          if (node.id === "mpc") targets.push("blockchain");
+          <p className="mx-auto mt-6 max-w-2xl text-sm leading-relaxed text-[#DCCDCE]/50 sm:text-base">
+            Aarvasa combines MPC validation, smart contracts, decentralized identity, AI fraud analysis, and blockchain settlement infrastructure into a unified transaction engine.
+          </p>
+        </motion.div>
 
-          if (node.id === "blockchain") {
-            targets.push("contract");
-            targets.push("did");
-            targets.push("zkp");
-            targets.push("bank-backend");
-          }
+        {/* ── ARCHITECTURE MAP ─────────────────────────────────────────── */}
 
-          if (node.id === "bank-backend") {
-            targets.push("bank-sub");
-            targets.push("notification");
-          }
+        {/* DESKTOP: Centralized radial layout */}
+        <div className="hidden lg:block">
+          {/* TOP ROW */}
+          <motion.div
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true }}
+            variants={stagger}
+            className="flex justify-center gap-6 mb-4"
+          >
+            {modules.top.map((m, i) => (
+              <ModuleNode key={m.id} module={m} index={i} direction="top" />
+            ))}
+          </motion.div>
 
-          return targets.map((targetId) => {
-            const target = nodes.find(
-              (n) => n.id === targetId
-            );
+          {/* MIDDLE: Left | Center Hub | Right */}
+          <div className="flex items-center justify-center gap-0">
+            {/* Left column */}
+            <div className="flex-shrink-0">
+              <SideModules items={modules.left} side="left" />
+            </div>
 
-            if (!target) return null;
+            {/* CENTER HUB */}
+            <div className="mx-4 flex-shrink-0">
+              <motion.div
+                initial={{ opacity: 0, scale: 0.8 }}
+                whileInView={{ opacity: 1, scale: 1 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.8, ease: [0.23, 1, 0.32, 1] }}
+                className="relative"
+              >
+                {/* Outer rotating gradient ring */}
+                <div className="absolute -inset-4 rounded-full animate-gradient-rotate opacity-30" style={{
+                  background: "conic-gradient(from 0deg, #D4AF37, transparent, #7A0019, transparent, #D4AF37)",
+                  filter: "blur(16px)",
+                }} />
 
-            const isDashed =
-              ["shamir", "bank-sub"].includes(targetId);
+                {/* Glow aura */}
+                <div className="absolute -inset-8 rounded-full bg-[radial-gradient(circle,rgba(212,175,55,0.1)_0%,transparent_70%)] animate-pulse-glow" />
 
-            return (
-              <g key={`${node.id}-${targetId}`}>
-                {/* Base Path */}
-                <path
-                  d={createPath(
-                    node.position.x,
-                    node.position.y,
-                    target.position.x,
-                    target.position.y
-                  )}
-                  fill="none"
-                  stroke="rgba(212,175,55,0.14)"
-                  strokeWidth="1.4"
-                  strokeDasharray={isDashed ? "5 5" : "none"}
-                />
+                {/* Hub card */}
+                <motion.div
+                  {...pulseGlow}
+                  className="relative flex h-52 w-52 flex-col items-center justify-center rounded-full border-2 border-[#D4AF37]/30 bg-gradient-to-br from-[#1a0a02]/80 to-[#0b0b0b]/90 backdrop-blur-xl"
+                >
+                  {/* Inner decorative ring */}
+                  <div className="absolute inset-3 rounded-full border border-[#D4AF37]/10" />
 
-                {/* Animated Flow */}
-                {!isDashed && (
-                  <path
-                    d={createPath(
-                      node.position.x,
-                      node.position.y,
-                      target.position.x,
-                      target.position.y
-                    )}
-                    fill="none"
-                    stroke="rgba(212,175,55,0.55)"
-                    strokeWidth="1.2"
-                    strokeOpacity="0.12"
-                    strokeDasharray="4 18"
-                  >
-                    <animate
-                      attributeName="stroke-dashoffset"
-                      values="0;400"
-                      dur="14s"
-                      repeatCount="indefinite"
-                    />
-                  </path>
-                )}
-              </g>
-            );
-          });
-        })}
-      </svg>
+                  <Building2 className="mb-3 h-9 w-9 text-[#D4AF37]" />
+                  <div className="text-center px-4">
+                    <div className="text-[10px] font-bold uppercase tracking-[0.2em] text-[#D4AF37] mb-1">
+                      Aarvasa
+                    </div>
+                    <div className="text-[9px] font-bold uppercase tracking-[0.15em] text-[#F8F4EF]/70 leading-tight">
+                      Blockchain<br />Engine
+                    </div>
+                  </div>
 
-      {/* Header */}
-      <div className="relative z-20 mb-12 max-w-3xl">
-        <div className="mb-5 inline-flex items-center rounded-full border border-[#D4AF37]/20 bg-[#D4AF37]/5 px-4 py-2 text-[11px] uppercase tracking-[0.25em] text-[#D4AF37]">
-          Aarvasa Blockchain Infrastructure
+                  {/* Pulse ring animation */}
+                  <div className="absolute inset-0 rounded-full border border-[#D4AF37]/20 animate-ping" style={{ animationDuration: "3s" }} />
+                </motion.div>
+              </motion.div>
+            </div>
+
+            {/* Right column */}
+            <div className="flex-shrink-0">
+              <SideModules items={modules.right} side="right" />
+            </div>
+          </div>
+
+          {/* BOTTOM ROW */}
+          <motion.div
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true }}
+            variants={stagger}
+            className="flex justify-center gap-6 mt-4"
+          >
+            {modules.bottom.map((m, i) => (
+              <ModuleNode key={m.id} module={m} index={i} direction="bottom" />
+            ))}
+          </motion.div>
         </div>
 
-        <h2 className="text-4xl sm:text-5xl lg:text-6xl font-semibold tracking-[-0.03em] leading-tight text-white">
-          Institutional-grade blockchain orchestration
-          for secure real estate settlement.
-        </h2>
+        {/* ── MOBILE / TABLET: Vertical Flow ────────────────────────────── */}
+        <div className="lg:hidden">
+          {/* Center Hub */}
+          <motion.div
+            initial={{ opacity: 0, scale: 0.85 }}
+            whileInView={{ opacity: 1, scale: 1 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.7 }}
+            className="mx-auto mb-10 flex flex-col items-center"
+          >
+            <motion.div
+              {...pulseGlow}
+              className="relative flex h-36 w-36 flex-col items-center justify-center rounded-full border-2 border-[#D4AF37]/30 bg-gradient-to-br from-[#1a0a02]/80 to-[#0b0b0b]/90 backdrop-blur-xl"
+            >
+              <div className="absolute inset-3 rounded-full border border-[#D4AF37]/10" />
+              <Building2 className="mb-2 h-7 w-7 text-[#D4AF37]" />
+              <div className="text-[9px] font-bold uppercase tracking-[0.2em] text-[#D4AF37]">Aarvasa</div>
+              <div className="text-[8px] font-bold uppercase tracking-[0.12em] text-[#F8F4EF]/60">Blockchain Engine</div>
+            </motion.div>
+          </motion.div>
 
-        <p className="mt-6 text-lg leading-relaxed text-[#DCCDCE]/52">
-          Aarvasa combines MPC validation, smart contracts,
-          decentralized identity, AI fraud analysis, and
-          blockchain settlement infrastructure into a unified
-          transaction engine for premium real estate investing.
-        </p>
-      </div>
-
-      {/* Nodes */}
-      <div className="relative h-[1000px] w-full mt-16">
-        {nodes.map((node) => (
-          <Node key={node.id} node={node} />
-        ))}
-      </div>
-
-      {/* Legend */}
-      <div className="relative z-20 mt-12 flex flex-wrap gap-6 text-[11px] uppercase tracking-[0.2em] text-[#DCCDCE]/45">
-        <div className="flex items-center gap-2">
-          <div className="h-2 w-2 rounded-full bg-[#D4AF37]" />
-          Active Data Stream
+          {/* All modules in a responsive grid */}
+          <motion.div
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true }}
+            variants={stagger}
+            className="grid grid-cols-2 gap-3 sm:grid-cols-3"
+          >
+            {[...modules.top, ...modules.left, ...modules.right, ...modules.bottom].map((m) => {
+              const Icon = m.icon;
+              return (
+                <motion.div
+                  key={m.id}
+                  variants={nodeReveal}
+                  className="group flex flex-col items-center rounded-2xl border border-white/[0.06] bg-gradient-to-b from-white/[0.04] to-white/[0.01] p-4 backdrop-blur-md text-center transition-all duration-300 hover:border-[#D4AF37]/30"
+                >
+                  <div className="mb-2.5 flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-[#5B0017] to-[#2a0010] border border-[#D4AF37]/15">
+                    <Icon className="h-4.5 w-4.5 text-[#D4AF37]" />
+                  </div>
+                  <h4 className="text-[10px] font-bold uppercase tracking-[0.08em] text-[#F8F4EF] leading-tight mb-1">
+                    {m.label}
+                  </h4>
+                  <p className="text-[9px] leading-snug text-[#DCCDCE]/40">{m.desc}</p>
+                </motion.div>
+              );
+            })}
+          </motion.div>
         </div>
 
-        <div className="flex items-center gap-2">
-          <div className="h-2 w-2 rounded-full border border-[#D4AF37]" />
-          Encrypted Sub-process
-        </div>
-
-        <div className="flex items-center gap-2">
-          <div className="h-2 w-2 rounded-full bg-[#50080E]" />
-          Blockchain Verification
-        </div>
+        {/* ── LEGEND ───────────────────────────────────────────────────── */}
+        <motion.div
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: true }}
+          variants={fadeUp}
+          className="mt-16 flex flex-wrap items-center justify-center gap-6 text-[10px] uppercase tracking-[0.2em] text-[#DCCDCE]/35"
+        >
+          <div className="flex items-center gap-2">
+            <div className="h-2 w-2 rounded-full bg-[#D4AF37] shadow-[0_0_6px_rgba(212,175,55,0.5)]" />
+            Active Data Stream
+          </div>
+          <div className="flex items-center gap-2">
+            <div className="h-2 w-2 rounded-full border border-[#D4AF37]/50" />
+            Encrypted Sub-process
+          </div>
+          <div className="flex items-center gap-2">
+            <div className="h-2 w-2 rounded-full bg-gradient-to-r from-[#5B0017] to-[#D4AF37]" />
+            Core Verification
+          </div>
+        </motion.div>
       </div>
     </section>
   );

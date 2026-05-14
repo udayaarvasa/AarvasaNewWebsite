@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import {
@@ -65,16 +66,22 @@ export function Navbar() {
       >
         <div className="mx-auto flex h-16 max-w-7xl items-center justify-between rounded-2xl border border-[#DCCDCE]/40 bg-[#F2F1ED]/95 px-5 shadow-luxury-sm backdrop-blur-2xl sm:px-8">
           {/* Logo */}
-          <Link href="/" className="flex min-w-40 items-center gap-2.5">
-            <span className="relative flex h-10 w-10 items-center justify-center">
-              <span className="absolute h-8 w-8 rotate-45 rounded-lg bg-gradient-to-br from-[#f5d27a] via-[#f0a83a] to-[#72383D]" />
-              <span className="relative text-lg font-black text-white">A</span>
-            </span>
-            <span className="hidden leading-none sm:block">
-              <span className="block text-sm font-black uppercase tracking-[0.2em] text-[#50080E]">
+          <Link href="/" className="flex items-center gap-3">
+            <div className="relative h-12 w-12 flex-shrink-0">
+              <img 
+                src="/logo-icon.png" 
+                alt="Aarvasa Icon" 
+                className="h-full w-full object-contain"
+              />
+            </div>
+            <div className="flex flex-col justify-center leading-[1.1]">
+              <span className="font-serif text-xl font-black uppercase tracking-[0.05em] text-[#50080E]">
                 Aarvasa
               </span>
-            </span>
+              <span className="text-[7px] font-bold uppercase tracking-[0.12em] text-[#D4AF37]">
+                Building Dreams, Securing Futures
+              </span>
+            </div>
           </Link>
 
           {/* Desktop nav */}

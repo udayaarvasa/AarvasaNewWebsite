@@ -253,3 +253,266 @@ body::after {
   background: linear-gradient(180deg, transparent, #D4AF37, #50080E, transparent);
   transform: translateX(-50%);
 }
+
+/* ── Services Page — Cinematic Utilities ── */
+
+.services-cinematic-bg {
+  background:
+    radial-gradient(ellipse 120% 60% at 50% 0%, rgba(122, 0, 25, 0.55) 0%, transparent 55%),
+    radial-gradient(ellipse 80% 50% at 20% 80%, rgba(91, 0, 23, 0.3) 0%, transparent 50%),
+    radial-gradient(ellipse 60% 40% at 85% 60%, rgba(74, 0, 18, 0.25) 0%, transparent 45%),
+    radial-gradient(circle at 50% 50%, #7A0019 0%, #4A0012 40%, #1A0006 100%);
+}
+
+.services-vignette::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 1;
+  background:
+    radial-gradient(ellipse 140% 70% at 50% 0%, transparent 50%, rgba(10, 0, 3, 0.6) 100%),
+    linear-gradient(180deg, transparent 60%, rgba(10, 0, 3, 0.4) 100%);
+}
+
+@keyframes orb-drift {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  25% { transform: translate(30px, -20px) scale(1.05); }
+  50% { transform: translate(-15px, 15px) scale(0.97); }
+  75% { transform: translate(20px, 10px) scale(1.03); }
+}
+
+@keyframes icon-glow {
+  0%, 100% { filter: drop-shadow(0 0 6px rgba(212, 175, 55, 0.3)); }
+  50% { filter: drop-shadow(0 0 18px rgba(212, 175, 55, 0.7)); }
+}
+
+@keyframes services-particle {
+  0% { transform: translateY(0) translateX(0) scale(0); opacity: 0; }
+  10% { opacity: 0.5; transform: scale(1); }
+  90% { opacity: 0.2; }
+  100% { transform: translateY(-100vh) translateX(60px) scale(0.5); opacity: 0; }
+}
+
+@keyframes stat-float {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-8px); }
+}
+
+@keyframes border-glow {
+  0%, 100% { border-color: rgba(212, 175, 55, 0.15); }
+  50% { border-color: rgba(212, 175, 55, 0.4); }
+}
+
+.animate-orb-drift { animation: orb-drift 20s ease-in-out infinite; }
+.animate-icon-glow { animation: icon-glow 3s ease-in-out infinite; }
+.animate-stat-float { animation: stat-float 4s ease-in-out infinite; }
+.animate-border-glow { animation: border-glow 3s ease-in-out infinite; }
+
+.service-card-glass {
+  background: linear-gradient(135deg, rgba(91, 0, 23, 0.35) 0%, rgba(26, 0, 6, 0.5) 100%);
+  border: 1px solid rgba(212, 175, 55, 0.12);
+  backdrop-filter: blur(24px) saturate(1.4);
+  -webkit-backdrop-filter: blur(24px) saturate(1.4);
+  box-shadow:
+    0 8px 32px rgba(0, 0, 0, 0.4),
+    inset 0 1px 0 rgba(255, 255, 255, 0.04);
+  transition: all 0.5s cubic-bezier(0.23, 1, 0.32, 1);
+}
+
+.service-card-glass:hover {
+  transform: translateY(-8px) scale(1.02);
+  border-color: rgba(212, 175, 55, 0.4);
+  box-shadow:
+    0 20px 60px rgba(212, 175, 55, 0.15),
+    0 8px 32px rgba(0, 0, 0, 0.5),
+    inset 0 1px 0 rgba(255, 255, 255, 0.06);
+  background: linear-gradient(135deg, rgba(91, 0, 23, 0.45) 0%, rgba(26, 0, 6, 0.55) 100%);
+}
+
+/* Premium Ivory Service Cards */
+.service-card-ivory {
+  background: linear-gradient(160deg, #FAF7F4 0%, #F5F1ED 50%, #F0ECE7 100%);
+  border: 1px solid rgba(220, 205, 206, 0.25);
+  border-radius: 1.5rem;
+  box-shadow:
+    0 10px 30px rgba(0, 0, 0, 0.06),
+    0 2px 10px rgba(0, 0, 0, 0.04),
+    0 1px 3px rgba(0, 0, 0, 0.03);
+  transition: all 0.45s cubic-bezier(0.23, 1, 0.32, 1);
+  position: relative;
+  overflow: hidden;
+}
+
+.service-card-ivory::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  opacity: 0;
+  transition: opacity 0.45s ease;
+  background: linear-gradient(160deg, rgba(212, 175, 55, 0.04) 0%, transparent 60%);
+  pointer-events: none;
+}
+
+.service-card-ivory:hover {
+  transform: translateY(-6px) scale(1.01);
+  border-color: rgba(212, 175, 55, 0.2);
+  box-shadow:
+    0 20px 50px rgba(0, 0, 0, 0.08),
+    0 8px 24px rgba(0, 0, 0, 0.05),
+    0 0 0 1px rgba(212, 175, 55, 0.08),
+    0 12px 40px rgba(212, 175, 55, 0.06);
+}
+
+.service-card-ivory:hover::before {
+  opacity: 1;
+}
+
+.services-noise::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  pointer-events: none;
+  opacity: 0.03;
+  background-image: url('/noise.png');
+  background-repeat: repeat;
+  mix-blend-mode: overlay;
+}
+
+.services-grid-lines::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  opacity: 0.04;
+  background-image:
+    linear-gradient(rgba(212, 175, 55, 0.15) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(212, 175, 55, 0.1) 1px, transparent 1px);
+  background-size: 80px 80px;
+  mask-image: radial-gradient(ellipse 60% 50% at 50% 30%, black, transparent);
+}
+
+/* ── Investment Journey — Premium Timeline Beam ── */
+
+/* Layer 1: Bright gold center thread */
+.timeline-beam-core {
+  position: absolute;
+  width: 2px;
+  top: 0;
+  bottom: 0;
+  background: linear-gradient(180deg,
+    transparent 0%,
+    rgba(212, 175, 55, 0.6) 10%,
+    rgba(212, 175, 55, 0.8) 50%,
+    rgba(212, 175, 55, 0.6) 90%,
+    transparent 100%
+  );
+}
+
+/* Layer 2: Soft glow halo */
+.timeline-beam-glow {
+  position: absolute;
+  width: 12px;
+  top: 0;
+  bottom: 0;
+  background: linear-gradient(180deg,
+    transparent 0%,
+    rgba(212, 175, 55, 0.12) 10%,
+    rgba(212, 175, 55, 0.2) 50%,
+    rgba(212, 175, 55, 0.12) 90%,
+    transparent 100%
+  );
+  filter: blur(4px);
+}
+
+/* Layer 3: Ambient radiant beam */
+.timeline-beam-ambient {
+  position: absolute;
+  width: 40px;
+  top: 0;
+  bottom: 0;
+  background: linear-gradient(180deg,
+    transparent 0%,
+    rgba(212, 175, 55, 0.04) 15%,
+    rgba(122, 0, 25, 0.06) 50%,
+    rgba(212, 175, 55, 0.04) 85%,
+    transparent 100%
+  );
+  filter: blur(10px);
+}
+
+/* Flowing particle animation along the beam */
+@keyframes timeline-flow {
+  0% { top: -8px; opacity: 0; }
+  5% { opacity: 1; }
+  95% { opacity: 1; }
+  100% { top: calc(100% + 8px); opacity: 0; }
+}
+
+.timeline-flow-particle {
+  position: absolute;
+  width: 3px;
+  height: 20px;
+  border-radius: 2px;
+  background: linear-gradient(180deg, transparent, rgba(212, 175, 55, 0.7), transparent);
+  animation: timeline-flow linear infinite;
+  pointer-events: none;
+}
+
+/* Node pulse breathing */
+@keyframes node-breathe {
+  0%, 100% {
+    box-shadow:
+      0 0 8px rgba(212, 175, 55, 0.3),
+      0 0 20px rgba(212, 175, 55, 0.1),
+      inset 0 0 6px rgba(212, 175, 55, 0.15);
+  }
+  50% {
+    box-shadow:
+      0 0 14px rgba(212, 175, 55, 0.5),
+      0 0 35px rgba(212, 175, 55, 0.2),
+      inset 0 0 10px rgba(212, 175, 55, 0.25);
+  }
+}
+
+.timeline-node {
+  animation: node-breathe 3s ease-in-out infinite;
+}
+
+/* Horizontal connector from beam to card */
+.timeline-connector {
+  position: relative;
+  height: 2px;
+  background: linear-gradient(90deg,
+    rgba(212, 175, 55, 0.5),
+    rgba(212, 175, 55, 0.15)
+  );
+}
+
+.timeline-connector-right {
+  background: linear-gradient(90deg,
+    rgba(212, 175, 55, 0.15),
+    rgba(212, 175, 55, 0.5)
+  );
+}
+
+.timeline-connector::after {
+  content: '';
+  position: absolute;
+  inset: -2px 0;
+  background: linear-gradient(90deg,
+    rgba(212, 175, 55, 0.1),
+    rgba(212, 175, 55, 0.03)
+  );
+  filter: blur(3px);
+}
+
+.timeline-connector-right::after {
+  background: linear-gradient(90deg,
+    rgba(212, 175, 55, 0.03),
+    rgba(212, 175, 55, 0.1)
+  );
+}
