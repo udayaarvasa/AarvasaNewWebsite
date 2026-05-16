@@ -1,69 +1,55 @@
-import bcrypt from "bcryptjs";
-import { NextResponse } from "next/server";
-import { z } from "zod";
-import { authCookieOptions, jsonError } from "@/lib/api";
-import { signToken } from "@/lib/auth";
-import { connectDb } from "@/lib/db";
-import { User } from "@/models/User";
+import { NextResponse } from "next/server"
+import bcrypt from "bcryptjs"
+import { prisma } from "@/lib/prisma"
 
-const SignupSchema = z.object({
-  name: z.string().min(2),
-  email: z.string().email(),
-  password: z.string().min(8),
-  budget: z.coerce.number().optional(),
-  risk: z.string().optional(),
-});
-
-export async function POST(request: Request) {
-  const parsed = SignupSchema.safeParse(await request.json());
-
-  if (!parsed.success) {
-    return jsonError("Enter a valid name, email, and password with at least 8 characters.");
-  }
-
-  const { name, email, password, budget, risk } = parsed.data;
-
+export async function POST(req: Request) {
   try {
-    await connectDb();
-    const existing = await User.findOne({ email });
-    if (existing) {
-      return jsonError("An account already exists for this email.", 409);
+    const body = await req.json();
+    const { name, email, password } = body;
+
+    if (!email || !password || !name) {
+      return NextResponse.json(
+        { message: "Missing required fields" },
+        { status: 400 }
+      );
     }
 
-    const hashed = await bcrypt.hash(password, 12);
-    const user = await User.create({
-      name,
-      email,
-      password: hashed,
-      preferences: {
-        budget: budget ?? 50000000,
-        risk: risk ?? "Balanced",
-      },
+    const existingUser = await prisma.user.findUnique({
+      where: {
+        email
+      }
     });
 
-    const token = signToken({
-      id: user._id.toString(),
-      name: user.name,
-      email: user.email,
+    if (existingUser) {
+      return NextResponse.json(
+        { message: "User already exists with this email" },
+        { status: 409 }
+      );
+    }
+
+    const hashedPassword = await bcrypt.hash(password, 12);
+
+    const user = await prisma.user.create({
+      data: {
+        name,
+        email,
+        password: hashedPassword,
+        // Role defaults to USER in schema
+      }
     });
-    const response = NextResponse.json({
-      token,
-      user: { id: user._id.toString(), name: user.name, email: user.email },
-    });
-    response.cookies.set("aarvasa_token", token, authCookieOptions());
-    return response;
-  } catch {
-    const token = signToken({
-      id: "demo-user",
-      name,
-      email,
-    });
-    const response = NextResponse.json({
-      token,
-      user: { id: "demo-user", name, email },
-      mode: "demo",
-    });
-    response.cookies.set("aarvasa_token", token, authCookieOptions());
-    return response;
+
+    // Don't return password
+    const { password: _, ...userWithoutPassword } = user;
+
+    return NextResponse.json(
+      { message: "User created successfully", user: userWithoutPassword },
+      { status: 201 }
+    );
+  } catch (error) {
+    console.error("Signup error:", error);
+    return NextResponse.json(
+      { message: "An error occurred during signup" },
+      { status: 500 }
+    );
   }
 }

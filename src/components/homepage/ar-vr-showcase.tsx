@@ -18,9 +18,9 @@ export function ARVRShowcase() {
       <div className="overflow-hidden rounded-3xl border border-border bg-card shadow-glass">
         <div className="grid lg:grid-cols-2">
           <div className="relative min-h-[400px] overflow-hidden bg-gradient-to-br from-[#240914] via-[#481123] to-[#7a1f3d] p-10 lg:p-14">
-            <motion.div animate={{ y: [-8, 8, -8], rotateZ: [-2, 2, -2] }} transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }} className="absolute left-[10%] top-[20%] h-32 w-48 rounded-2xl border border-white/10 bg-white/5 backdrop-blur-xl" />
-            <motion.div animate={{ y: [6, -6, 6] }} transition={{ duration: 5, repeat: Infinity, ease: "easeInOut", delay: 0.5 }} className="absolute bottom-[15%] right-[15%] h-28 w-44 rounded-2xl border border-[#d4af37]/20 bg-[#d4af37]/10 backdrop-blur-xl" />
-            <motion.div animate={{ y: [4, -8, 4], scale: [1, 1.05, 1] }} transition={{ duration: 7, repeat: Infinity, ease: "easeInOut", delay: 1 }} className="absolute right-[30%] top-[40%] h-40 w-56 rounded-3xl border border-white/15 bg-white/8 shadow-2xl backdrop-blur-xl" />
+            <motion.div animate={{ y: [-8, 8, -8], rotateZ: [-2, 2, -2] }} transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" as any }} className="absolute left-[10%] top-[20%] h-32 w-48 rounded-2xl border border-white/10 bg-white/5 backdrop-blur-xl" />
+            <motion.div animate={{ y: [6, -6, 6] }} transition={{ duration: 5, repeat: Infinity, ease: "easeInOut" as any, delay: 0.5 }} className="absolute bottom-[15%] right-[15%] h-28 w-44 rounded-2xl border border-[#d4af37]/20 bg-[#d4af37]/10 backdrop-blur-xl" />
+            <motion.div animate={{ y: [4, -8, 4], scale: [1, 1.05, 1] }} transition={{ duration: 7, repeat: Infinity, ease: "easeInOut" as any, delay: 1 }} className="absolute right-[30%] top-[40%] h-40 w-56 rounded-3xl border border-white/15 bg-white/8 shadow-2xl backdrop-blur-xl" />
             <div className="relative z-10 flex h-full flex-col justify-end">
               <span className="inline-flex w-fit items-center gap-2 rounded-full border border-white/20 bg-white/10 px-4 py-2 text-sm font-semibold text-white backdrop-blur-sm">
                 <Eye className="h-4 w-4 text-[#d4af37]" /> Coming Soon

@@ -1,21 +1,29 @@
 "use client";
 
-import { motion, useScroll, useTransform } from "framer-motion";
+import { motion, type Variants, useScroll, useTransform } from "framer-motion";
 import Image from "next/image";
 import { useRef } from "react";
 import {
   ArrowRight,
+  Award,
+  BadgeCheck,
   BrainCircuit,
   ShieldCheck,
   BarChart4,
   Cpu,
   Building2,
+  Gem,
   TrendingUp,
   Globe,
+  Landmark,
   MapPin,
+  Medal,
+  Newspaper,
+  Rocket,
   Lock,
   Search,
   CheckCircle2,
+  Trophy,
 } from "lucide-react";
 
 // ─── Data Arrays ─────────────────────────────────────────────────────────────
@@ -75,14 +83,99 @@ const milestones = [
 
 const partners = ["TimeSlotter Pvt Ltd", "PS Associates", "Paramjyoti Pvt Ltd", "Ealth Technologies", "Softwave Solutions"];
 
+const recognitionStats = [
+  { value: "7+", label: "National Startup Recognitions", icon: Trophy },
+  { value: "NVIDIA", label: "Inception Selection", icon: Cpu },
+  { value: "Top 25", label: "Startup Recognition", icon: Medal },
+  { value: "AI-Driven", label: "Innovation", icon: BrainCircuit },
+];
+
+const awards = [
+  {
+    title: "2nd Runner-Up - GSEA Indore",
+    description:
+      "Recognized at GSEA Indore for innovation, scalability, and impact in the PropTech and AI-driven real estate sector.",
+    icon: Trophy,
+    badge: "Entrepreneurship",
+  },
+  {
+    title: "Top 25 Startups Across India - Build 3",
+    description:
+      "Selected among the Top 25 startups across India through a highly competitive national startup selection process.",
+    icon: Medal,
+    badge: "National Selection",
+  },
+  {
+    title: "NVIDIA Inception Program",
+    description:
+      "Selected for the NVIDIA Inception Program, recognizing Aarvasa as a high-potential AI-driven startup building innovative technology solutions.",
+    icon: Cpu,
+    badge: "AI Ecosystem",
+  },
+  {
+    title: "Startup India Recognition",
+    description:
+      "Officially recognized and registered under Startup India as an emerging innovation-driven startup.",
+    icon: BadgeCheck,
+    badge: "Government Recognition",
+  },
+  {
+    title: "VIT-TBI Pre-Incubated Startup",
+    description:
+      "Recognized as a Pre-Incubated Startup at VIT Technology Business Incubator (VIT-TBI), supporting the growth of transformative technology ventures.",
+    icon: Rocket,
+    badge: "Incubation",
+  },
+  {
+    title: "Media & Entrepreneurship Features",
+    description:
+      "Featured in startup and entrepreneurship platforms including KaroStartup and IndiaPreneur for innovation in AI-powered real estate and investment solutions.",
+    icon: Newspaper,
+    badge: "Media Features",
+  },
+  {
+    title: "Technology-Driven Real Estate Innovation",
+    description:
+      "Recognized by startup and academic evaluation panels for building a technology-first platform focused on transparency, affordability, and intelligent investment insights in real estate.",
+    icon: Gem,
+    badge: "PropTech Innovation",
+  },
+];
+
+const recognitionTimeline = [
+  "Startup validation",
+  "National shortlisting",
+  "AI ecosystem selection",
+  "Incubation support",
+  "Media visibility",
+];
+
+const heroParticles = [
+  { left: "8%", bottom: "-4%", delay: "0s", duration: "12s" },
+  { left: "16%", bottom: "-12%", delay: "1.2s", duration: "18s" },
+  { left: "24%", bottom: "-8%", delay: "3.4s", duration: "16s" },
+  { left: "31%", bottom: "-15%", delay: "2.1s", duration: "22s" },
+  { left: "39%", bottom: "-6%", delay: "5.6s", duration: "14s" },
+  { left: "48%", bottom: "-18%", delay: "0.8s", duration: "20s" },
+  { left: "55%", bottom: "-10%", delay: "4.4s", duration: "17s" },
+  { left: "63%", bottom: "-5%", delay: "2.9s", duration: "24s" },
+  { left: "70%", bottom: "-14%", delay: "6.2s", duration: "15s" },
+  { left: "77%", bottom: "-7%", delay: "1.7s", duration: "19s" },
+  { left: "84%", bottom: "-16%", delay: "3.8s", duration: "21s" },
+  { left: "91%", bottom: "-9%", delay: "5.1s", duration: "13s" },
+  { left: "6%", bottom: "-19%", delay: "7.3s", duration: "23s" },
+  { left: "52%", bottom: "-3%", delay: "6.7s", duration: "18s" },
+  { left: "96%", bottom: "-13%", delay: "2.5s", duration: "16s" },
+];
+
 // ─── Animation Variants ──────────────────────────────────────────────────────
 
-const fadeIn = {
+const fadeIn: Variants = {
   hidden: { opacity: 0, y: 30 },
-  visible: { opacity: 1, y: 0, transition: { duration: 0.8, ease: "easeOut" } }
+  visible: { opacity: 1, y: 0, transition: { duration: 0.8, ease: [0.16, 1, 0.3, 1] as any } }
 };
 
-const staggerContainer = {
+const staggerContainer: Variants = {
   hidden: { opacity: 0 },
   visible: {
     opacity: 1,
@@ -116,15 +209,15 @@ export default function AboutPage() {
 
         {/* Animated Particles */}
         <div className="absolute inset-0 z-0 overflow-hidden pointer-events-none">
-          {[...Array(15)].map((_, i) => (
+          {heroParticles.map((particle, i) => (
             <div
               key={i}
               className="absolute w-1.5 h-1.5 bg-[#D4AF37]/40 rounded-full animate-particle-drift"
               style={{
-                left: `${Math.random() * 100}%`,
-                bottom: `-${Math.random() * 20}%`,
-                animationDelay: `${Math.random() * 8}s`,
-                animationDuration: `${10 + Math.random() * 15}s`
+                left: particle.left,
+                bottom: particle.bottom,
+                animationDelay: particle.delay,
+                animationDuration: particle.duration,
               }}
             />
           ))}
@@ -134,7 +227,7 @@ export default function AboutPage() {
           <motion.div
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 1, ease: "easeOut" }}
+            transition={{ duration: 1, ease: "easeOut" as any }}
             className="inline-flex items-center gap-2 rounded-full border border-[#D4AF37]/30 bg-[#0b0b0b]/60 px-5 py-2 text-xs font-bold uppercase tracking-[0.2em] text-[#D4AF37] backdrop-blur-md mb-8"
           >
             <BrainCircuit className="w-4 h-4" /> The Future of PropTech
@@ -342,7 +435,151 @@ export default function AboutPage() {
         </div>
       </section>
 
-      {/* 5. TEAM SECTION */}
+      {/* 5. AWARDS & RECOGNITION */}
+      <section className="relative overflow-hidden bg-[#F2F1ED] py-32">
+        <div className="absolute inset-0 pointer-events-none">
+          <div className="absolute left-1/2 top-0 h-[42rem] w-[42rem] -translate-x-1/2 rounded-full bg-[#D4AF37]/10 blur-[120px]" />
+          <div className="absolute -left-32 bottom-12 h-80 w-80 rounded-full bg-[#50080E]/10 blur-[90px]" />
+          <div className="absolute right-0 top-24 h-96 w-96 rounded-full bg-[#72383D]/10 blur-[110px]" />
+        </div>
+
+        <div className="relative z-10 mx-auto max-w-7xl px-6">
+          <motion.div
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true, margin: "-100px" }}
+            variants={fadeIn}
+            className="mx-auto mb-16 max-w-4xl text-center"
+          >
+            <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-[#D4AF37]/30 bg-white/60 px-5 py-2 text-xs font-bold uppercase tracking-[0.2em] text-[#D4AF37] shadow-luxury-sm backdrop-blur-xl">
+              <Award className="h-4 w-4" />
+              Startup Credibility
+            </div>
+            <h2 className="heading-serif text-4xl text-[#50080E] md:text-6xl">
+              Awards & Recognition
+            </h2>
+            <p className="mx-auto mt-6 max-w-3xl text-base leading-relaxed text-[#72383D]/82 md:text-lg">
+              Recognized for innovation, entrepreneurship, and redefining the future of intelligent real estate through AI-driven technology and modern investment solutions.
+            </p>
+          </motion.div>
+
+          <motion.div
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true, margin: "-80px" }}
+            variants={staggerContainer}
+            className="mb-16 grid gap-4 sm:grid-cols-2 lg:grid-cols-4"
+          >
+            {recognitionStats.map((stat) => (
+              <RecognitionStat key={stat.label} stat={stat} />
+            ))}
+          </motion.div>
+
+          <div className="grid gap-8 lg:grid-cols-[1fr_0.72fr]">
+            <motion.div
+              initial="hidden"
+              whileInView="visible"
+              viewport={{ once: true, margin: "-80px" }}
+              variants={staggerContainer}
+              className="grid gap-5 md:grid-cols-2"
+            >
+              {awards.map((award, index) => (
+                <AwardCard key={award.title} award={award} index={index} />
+              ))}
+            </motion.div>
+
+            <motion.aside
+              initial={{ opacity: 0, x: 36 }}
+              whileInView={{ opacity: 1, x: 0 }}
+              viewport={{ once: true, margin: "-80px" }}
+              transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] as any }}
+              className="relative rounded-[2rem] border border-[#D4AF37]/24 bg-gradient-to-br from-[#50080E] via-[#2a0815] to-[#0b0b0b] p-6 text-white shadow-luxury-xl lg:sticky lg:top-28 lg:self-start"
+            >
+              <div className="absolute inset-0 rounded-[2rem] bg-[radial-gradient(circle_at_top_right,rgba(212,175,55,0.25),transparent_46%)]" />
+              <div className="relative">
+                <div className="mb-8 flex items-center justify-between gap-4">
+                  <div>
+                    <p className="text-xs font-bold uppercase tracking-[0.2em] text-[#D4AF37]">
+                      Recognition Timeline
+                    </p>
+                    <h3 className="mt-3 heading-serif text-3xl leading-tight text-white">
+                      Built with credibility from day one.
+                    </h3>
+                  </div>
+                  <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl border border-[#D4AF37]/35 bg-[#D4AF37]/12">
+                    <Landmark className="h-6 w-6 text-[#D4AF37]" />
+                  </div>
+                </div>
+
+                <div className="space-y-5">
+                  {recognitionTimeline.map((item, index) => (
+                    <div key={item} className="relative flex gap-4">
+                      <div className="flex flex-col items-center">
+                        <div className="flex h-8 w-8 items-center justify-center rounded-full border border-[#D4AF37]/45 bg-[#D4AF37]/15 text-xs font-black text-[#D4AF37]">
+                          {index + 1}
+                        </div>
+                        {index < recognitionTimeline.length - 1 ? (
+                          <div className="mt-2 h-10 w-px bg-gradient-to-b from-[#D4AF37]/50 to-transparent" />
+                        ) : null}
+                      </div>
+                      <div className="pt-1">
+                        <p className="text-sm font-semibold text-[#F2F1ED]">{item}</p>
+                        <p className="mt-1 text-xs leading-relaxed text-[#DCCDCE]/70">
+                          Ecosystem signal strengthening investor, builder, buyer, and partner trust.
+                        </p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+
+                <div className="mt-8 grid gap-3 sm:grid-cols-3 lg:grid-cols-1 xl:grid-cols-3">
+                  {[
+                    { icon: Globe, label: "National reach" },
+                    { icon: Building2, label: "PropTech focus" },
+                    { icon: ShieldCheck, label: "Trust layer" },
+                  ].map((item) => {
+                    const Icon = item.icon;
+                    return (
+                      <div key={item.label} className="rounded-2xl border border-white/10 bg-white/7 p-4 backdrop-blur-md">
+                        <Icon className="mb-3 h-5 w-5 text-[#D4AF37]" />
+                        <p className="text-xs font-bold uppercase tracking-[0.14em] text-[#DCCDCE]">{item.label}</p>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            </motion.aside>
+          </div>
+
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, margin: "-80px" }}
+            transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] as any }}
+            className="mt-16 overflow-hidden rounded-[2rem] border border-[#D4AF37]/30 bg-[#50080E] p-8 shadow-glow md:p-12"
+          >
+            <div className="grid gap-8 lg:grid-cols-[1fr_0.62fr] lg:items-center">
+              <div>
+                <p className="mb-4 text-xs font-bold uppercase tracking-[0.22em] text-[#D4AF37]">
+                  Backed by Innovation & Vision
+                </p>
+                <h3 className="heading-serif text-3xl leading-tight text-white md:text-5xl">
+                  Building the Future of Intelligent Real Estate Through AI, Innovation & Transparency.
+                </h3>
+              </div>
+              <div className="grid gap-3 sm:grid-cols-2">
+                {["Investors", "Builders", "Property Buyers", "Ecosystem Partners"].map((audience) => (
+                  <div key={audience} className="rounded-2xl border border-white/10 bg-white/8 px-4 py-3 text-sm font-bold text-[#F2F1ED] backdrop-blur-md">
+                    {audience}
+                  </div>
+                ))}
+              </div>
+            </div>
+          </motion.div>
+        </div>
+      </section>
+
+      {/* 6. TEAM SECTION */}
       <section id="team" className="py-32 bg-[#F2F1ED]">
         <div className="mx-auto max-w-7xl px-6">
           <motion.div 
@@ -365,7 +602,7 @@ export default function AboutPage() {
         </div>
       </section>
 
-      {/* 6. MILESTONES & FUTURE ROADMAP */}
+      {/* 7. MILESTONES & FUTURE ROADMAP */}
       <section className="py-32 bg-white">
         <div className="mx-auto max-w-5xl px-6">
           <motion.div 
@@ -413,7 +650,7 @@ export default function AboutPage() {
         </div>
       </section>
 
-      {/* 7. AI + TECHNOLOGY SECTION */}
+      {/* 8. AI + TECHNOLOGY SECTION */}
       <section className="py-32 bg-[#0b0b0b] relative overflow-hidden">
         <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-5" />
         <div className="absolute top-0 right-0 w-[800px] h-[800px] bg-[#50080E]/20 blur-[120px] rounded-full pointer-events-none" />
@@ -453,7 +690,7 @@ export default function AboutPage() {
         </div>
       </section>
 
-      {/* 8. INVESTOR TRUST SECTION */}
+      {/* 9. INVESTOR TRUST SECTION */}
       <section className="py-24 bg-gradient-to-br from-[#50080E] to-[#2a0815] relative overflow-hidden">
         <div className="absolute inset-0 opacity-20 bg-[radial-gradient(circle_at_top_right,rgba(212,175,55,0.8)_0%,transparent_60%)]" />
         
@@ -491,7 +728,93 @@ export default function AboutPage() {
 
 // ─── Subcomponents ───────────────────────────────────────────────────────────
 
-function TeamCard({ member, index }: { member: any; index: number }) {
+function RecognitionStat({ stat }: { stat: (typeof recognitionStats)[number] }) {
+  const Icon = stat.icon;
+
+  return (
+    <motion.div
+      variants={fadeIn}
+      className="group relative overflow-hidden rounded-3xl border border-[#DCCDCE]/55 bg-white/70 p-6 shadow-luxury-sm backdrop-blur-xl transition-all duration-500 hover:-translate-y-1 hover:border-[#D4AF37]/45 hover:shadow-glow"
+    >
+      <div className="absolute inset-0 bg-gradient-to-br from-[#D4AF37]/10 via-transparent to-[#50080E]/5 opacity-0 transition-opacity duration-500 group-hover:opacity-100" />
+      <div className="relative flex items-start justify-between gap-4">
+        <div>
+          <motion.div
+            initial={{ opacity: 0, y: 12 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] as any }}
+            className="text-3xl font-black tracking-tight text-[#50080E]"
+          >
+            {stat.value}
+          </motion.div>
+          <p className="mt-2 text-xs font-bold uppercase tracking-[0.15em] text-[#72383D]/75">
+            {stat.label}
+          </p>
+        </div>
+        <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl border border-[#D4AF37]/30 bg-[#D4AF37]/10 text-[#D4AF37] transition-transform duration-500 group-hover:scale-110">
+          <Icon className="h-5 w-5" />
+        </div>
+      </div>
+    </motion.div>
+  );
+}
+
+function AwardCard({
+  award,
+  index,
+}: {
+  award: (typeof awards)[number];
+  index: number;
+}) {
+  const Icon = award.icon;
+  const featured = index === 0;
+
+  return (
+    <motion.article
+      variants={fadeIn}
+      className={`group relative overflow-hidden rounded-[1.75rem] border p-6 shadow-luxury-sm backdrop-blur-2xl transition-all duration-500 hover:-translate-y-1 hover:shadow-luxury-xl ${
+        featured
+          ? "border-[#D4AF37]/45 bg-gradient-to-br from-[#50080E] to-[#2a0815] text-white md:col-span-2"
+          : "border-[#DCCDCE]/55 bg-white/72 text-[#50080E]"
+      }`}
+    >
+      <div className="absolute right-0 top-0 h-32 w-32 translate-x-8 -translate-y-8 rounded-full bg-[#D4AF37]/12 blur-3xl transition-opacity duration-500 group-hover:opacity-100" />
+      <div className="relative">
+        <div className="mb-8 flex items-start justify-between gap-4">
+          <div
+            className={`inline-flex items-center gap-2 rounded-full border px-3 py-1.5 text-[10px] font-black uppercase tracking-[0.16em] ${
+              featured
+                ? "border-[#D4AF37]/35 bg-[#D4AF37]/12 text-[#D4AF37]"
+                : "border-[#D4AF37]/25 bg-[#D4AF37]/10 text-[#72383D]"
+            }`}
+          >
+            <BadgeCheck className="h-3.5 w-3.5" />
+            {award.badge}
+          </div>
+          <div
+            className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl border transition-all duration-500 group-hover:scale-110 ${
+              featured
+                ? "border-[#D4AF37]/35 bg-[#D4AF37]/15 text-[#D4AF37]"
+                : "border-[#D4AF37]/25 bg-[#50080E]/5 text-[#D4AF37]"
+            }`}
+          >
+            <Icon className="h-5 w-5" />
+          </div>
+        </div>
+
+        <h3 className={`heading-serif text-2xl leading-tight ${featured ? "text-white" : "text-[#50080E]"}`}>
+          {award.title}
+        </h3>
+        <p className={`mt-4 text-sm leading-relaxed ${featured ? "text-[#DCCDCE]" : "text-[#72383D]/82"}`}>
+          {award.description}
+        </p>
+      </div>
+    </motion.article>
+  );
+}
+
+function TeamCard({ member, index }: { member: (typeof team)[number]; index: number }) {
   const isEven = index % 2 === 0;
 
   return (

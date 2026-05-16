@@ -36,6 +36,7 @@ const widgets = [
     value: "92/100",
     change: "Bullish sentiment",
     positive: true,
+    chart: [55, 60, 58, 65, 62, 70, 75, 72, 80, 85, 88, 92],
   },
 ];
 
@@ -55,8 +56,8 @@ export function DashboardPreview() {
         {widgets.map((widget, i) => {
           const Icon = widget.icon;
           return (
-            <MotionReveal key={widget.title} delay={i * 0.1}>
-              <Card className="group overflow-hidden border-border/50 p-5 transition-all duration-300 hover:-translate-y-1 hover:border-primary/30 hover:shadow-glow">
+            <MotionReveal key={widget.title} delay={i * 0.1} className="h-full">
+              <Card className="group flex h-full flex-col overflow-hidden border-border/50 p-5 transition-all duration-300 hover:-translate-y-1 hover:border-primary/30 hover:shadow-glow">
                 <div className="flex items-center justify-between">
                   <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-[#7a1f3d] to-[#d4af37] text-white">
                     <Icon className="h-5 w-5" />
@@ -78,7 +79,7 @@ export function DashboardPreview() {
 
                 {/* Mini sparkline chart */}
                 {widget.chart && (
-                  <div className="mt-4 flex h-12 items-end gap-[3px]">
+                  <div className="mt-auto pt-4 flex h-12 items-end gap-[3px]">
                     {widget.chart.map((v, j) => (
                       <div
                         key={j}
@@ -91,7 +92,7 @@ export function DashboardPreview() {
 
                 {/* Pie chart segments */}
                 {widget.segments && (
-                  <div className="mt-4 space-y-2">
+                  <div className="mt-auto pt-4 space-y-2">
                     {widget.segments.map((s) => (
                       <div key={s.label} className="flex items-center gap-2 text-xs">
                         <div className="h-2 w-2 rounded-full" style={{ backgroundColor: s.color }} />

@@ -1,11 +1,10 @@
 import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
 import { getRecommendations } from "@/lib/properties";
-import { verifyToken } from "@/lib/auth";
+import { auth } from "@/auth";
 
 export async function GET(request: Request) {
-  const cookieStore = await cookies();
-  const session = verifyToken(cookieStore.get("aarvasa_token")?.value);
+  const session = await auth();
   const url = new URL(request.url);
 
   const recommendations = getRecommendations({

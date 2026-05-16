@@ -53,7 +53,7 @@ type Module = { id: string; icon: React.ComponentType<{ className?: string }>; l
 
 const fadeUp = {
   hidden: { opacity: 0, y: 30 },
-  visible: { opacity: 1, y: 0, transition: { duration: 0.7, ease: [0.23, 1, 0.32, 1] } },
+  visible: { opacity: 1, y: 0, transition: { duration: 0.7, ease: [0.23, 1, 0.32, 1] as any } },
 };
 
 const stagger = {
@@ -63,7 +63,7 @@ const stagger = {
 
 const nodeReveal = {
   hidden: { opacity: 0, scale: 0.85 },
-  visible: { opacity: 1, scale: 1, transition: { duration: 0.6, ease: [0.23, 1, 0.32, 1] } },
+  visible: { opacity: 1, scale: 1, transition: { duration: 0.6, ease: [0.23, 1, 0.32, 1] as any } },
 };
 
 const pulseGlow = {
@@ -73,7 +73,7 @@ const pulseGlow = {
       "0 0 50px rgba(212,175,55,0.3), 0 0 100px rgba(212,175,55,0.1)",
       "0 0 30px rgba(212,175,55,0.15), 0 0 60px rgba(212,175,55,0.05)",
     ],
-    transition: { duration: 3, repeat: Infinity, ease: "easeInOut" },
+    transition: { duration: 3, repeat: Infinity, ease: "easeInOut" as any },
   },
 };
 
@@ -280,7 +280,7 @@ export default function BlockchainArchitecture() {
                 initial={{ opacity: 0, scale: 0.8 }}
                 whileInView={{ opacity: 1, scale: 1 }}
                 viewport={{ once: true }}
-                transition={{ duration: 0.8, ease: [0.23, 1, 0.32, 1] }}
+                transition={{ duration: 0.8, ease: [0.23, 1, 0.32, 1] as any }}
                 className="relative"
               >
                 {/* Outer rotating gradient ring */}

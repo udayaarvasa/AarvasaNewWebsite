@@ -148,7 +148,7 @@ body::after {
 
 /* Premium dark footer background */
 .footer-dark {
-  background: linear-gradient(180deg, #50080E 0%, #2A0815 100%);
+  background: linear-gradient(135deg, #d4af37 0%, #7a1f3d 100%);
   color: #F2F1ED;
 }
 
@@ -165,6 +165,7 @@ body::after {
     opacity: 0;
     transform: translateY(20px);
   }
+
   to {
     opacity: 1;
     transform: translateY(0);
@@ -178,64 +179,107 @@ body::after {
 /* ── About Page — Cinematic Utilities ── */
 
 @keyframes pulse-glow {
-  0%, 100% { box-shadow: 0 0 20px rgba(212, 175, 55, 0.15); }
-  50% { box-shadow: 0 0 40px rgba(212, 175, 55, 0.35); }
+
+  0%,
+  100% {
+    box-shadow: 0 0 20px rgba(212, 175, 55, 0.15);
+  }
+
+  50% {
+    box-shadow: 0 0 40px rgba(212, 175, 55, 0.35);
+  }
 }
 
 @keyframes float {
-  0%, 100% { transform: translateY(0px); }
-  50% { transform: translateY(-12px); }
+
+  0%,
+  100% {
+    transform: translateY(0px);
+  }
+
+  50% {
+    transform: translateY(-12px);
+  }
 }
 
 @keyframes shimmer {
-  0% { background-position: -200% center; }
-  100% { background-position: 200% center; }
+  0% {
+    background-position: -200% center;
+  }
+
+  100% {
+    background-position: 200% center;
+  }
 }
 
 @keyframes gradient-rotate {
-  0% { background-position: 0% 50%; }
-  50% { background-position: 100% 50%; }
-  100% { background-position: 0% 50%; }
+  0% {
+    background-position: 0% 50%;
+  }
+
+  50% {
+    background-position: 100% 50%;
+  }
+
+  100% {
+    background-position: 0% 50%;
+  }
 }
 
 @keyframes particle-drift {
-  0% { transform: translateY(0) translateX(0); opacity: 0; }
-  20% { opacity: 0.6; }
-  80% { opacity: 0.4; }
-  100% { transform: translateY(-100vh) translateX(40px); opacity: 0; }
+  0% {
+    transform: translateY(0) translateX(0);
+    opacity: 0;
+  }
+
+  20% {
+    opacity: 0.6;
+  }
+
+  80% {
+    opacity: 0.4;
+  }
+
+  100% {
+    transform: translateY(-100vh) translateX(40px);
+    opacity: 0;
+  }
 }
 
-.animate-pulse-glow { animation: pulse-glow 3s ease-in-out infinite; }
-.animate-float { animation: float 6s ease-in-out infinite; }
+.animate-pulse-glow {
+  animation: pulse-glow 3s ease-in-out infinite;
+}
+
+.animate-float {
+  animation: float 6s ease-in-out infinite;
+}
+
 .animate-shimmer {
   background-size: 200% auto;
   animation: shimmer 3s linear infinite;
 }
+
 .animate-gradient-rotate {
   background-size: 200% 200%;
   animation: gradient-rotate 4s ease infinite;
 }
 
 .about-hero-gradient {
-  background: linear-gradient(
-    135deg,
-    #0b0b0b 0%,
-    #1a0510 25%,
-    #50080E 50%,
-    #2a0815 75%,
-    #0b0b0b 100%
-  );
+  background: linear-gradient(135deg,
+      #0b0b0b 0%,
+      #1a0510 25%,
+      #50080E 50%,
+      #2a0815 75%,
+      #0b0b0b 100%);
 }
 
 .gold-shimmer-text {
-  background: linear-gradient(
-    90deg,
-    #D4AF37 0%,
-    #F5D27A 25%,
-    #D4AF37 50%,
-    #b9872f 75%,
-    #D4AF37 100%
-  );
+  background: linear-gradient(90deg,
+      #D4AF37 0%,
+      #F5D27A 25%,
+      #D4AF37 50%,
+      #b9872f 75%,
+      #D4AF37 100%);
   background-size: 200% auto;
   -webkit-background-clip: text;
   background-clip: text;
@@ -276,38 +320,97 @@ body::after {
 }
 
 @keyframes orb-drift {
-  0%, 100% { transform: translate(0, 0) scale(1); }
-  25% { transform: translate(30px, -20px) scale(1.05); }
-  50% { transform: translate(-15px, 15px) scale(0.97); }
-  75% { transform: translate(20px, 10px) scale(1.03); }
+
+  0%,
+  100% {
+    transform: translate(0, 0) scale(1);
+  }
+
+  25% {
+    transform: translate(30px, -20px) scale(1.05);
+  }
+
+  50% {
+    transform: translate(-15px, 15px) scale(0.97);
+  }
+
+  75% {
+    transform: translate(20px, 10px) scale(1.03);
+  }
 }
 
 @keyframes icon-glow {
-  0%, 100% { filter: drop-shadow(0 0 6px rgba(212, 175, 55, 0.3)); }
-  50% { filter: drop-shadow(0 0 18px rgba(212, 175, 55, 0.7)); }
+
+  0%,
+  100% {
+    filter: drop-shadow(0 0 6px rgba(212, 175, 55, 0.3));
+  }
+
+  50% {
+    filter: drop-shadow(0 0 18px rgba(212, 175, 55, 0.7));
+  }
 }
 
 @keyframes services-particle {
-  0% { transform: translateY(0) translateX(0) scale(0); opacity: 0; }
-  10% { opacity: 0.5; transform: scale(1); }
-  90% { opacity: 0.2; }
-  100% { transform: translateY(-100vh) translateX(60px) scale(0.5); opacity: 0; }
+  0% {
+    transform: translateY(0) translateX(0) scale(0);
+    opacity: 0;
+  }
+
+  10% {
+    opacity: 0.5;
+    transform: scale(1);
+  }
+
+  90% {
+    opacity: 0.2;
+  }
+
+  100% {
+    transform: translateY(-100vh) translateX(60px) scale(0.5);
+    opacity: 0;
+  }
 }
 
 @keyframes stat-float {
-  0%, 100% { transform: translateY(0px); }
-  50% { transform: translateY(-8px); }
+
+  0%,
+  100% {
+    transform: translateY(0px);
+  }
+
+  50% {
+    transform: translateY(-8px);
+  }
 }
 
 @keyframes border-glow {
-  0%, 100% { border-color: rgba(212, 175, 55, 0.15); }
-  50% { border-color: rgba(212, 175, 55, 0.4); }
+
+  0%,
+  100% {
+    border-color: rgba(212, 175, 55, 0.15);
+  }
+
+  50% {
+    border-color: rgba(212, 175, 55, 0.4);
+  }
 }
 
-.animate-orb-drift { animation: orb-drift 20s ease-in-out infinite; }
-.animate-icon-glow { animation: icon-glow 3s ease-in-out infinite; }
-.animate-stat-float { animation: stat-float 4s ease-in-out infinite; }
-.animate-border-glow { animation: border-glow 3s ease-in-out infinite; }
+.animate-orb-drift {
+  animation: orb-drift 20s ease-in-out infinite;
+}
+
+.animate-icon-glow {
+  animation: icon-glow 3s ease-in-out infinite;
+}
+
+.animate-stat-float {
+  animation: stat-float 4s ease-in-out infinite;
+}
+
+.animate-border-glow {
+  animation: border-glow 3s ease-in-out infinite;
+}
 
 .service-card-glass {
   background: linear-gradient(135deg, rgba(91, 0, 23, 0.35) 0%, rgba(26, 0, 6, 0.5) 100%);
@@ -404,12 +507,11 @@ body::after {
   top: 0;
   bottom: 0;
   background: linear-gradient(180deg,
-    transparent 0%,
-    rgba(212, 175, 55, 0.6) 10%,
-    rgba(212, 175, 55, 0.8) 50%,
-    rgba(212, 175, 55, 0.6) 90%,
-    transparent 100%
-  );
+      transparent 0%,
+      rgba(212, 175, 55, 0.6) 10%,
+      rgba(212, 175, 55, 0.8) 50%,
+      rgba(212, 175, 55, 0.6) 90%,
+      transparent 100%);
 }
 
 /* Layer 2: Soft glow halo */
@@ -419,12 +521,11 @@ body::after {
   top: 0;
   bottom: 0;
   background: linear-gradient(180deg,
-    transparent 0%,
-    rgba(212, 175, 55, 0.12) 10%,
-    rgba(212, 175, 55, 0.2) 50%,
-    rgba(212, 175, 55, 0.12) 90%,
-    transparent 100%
-  );
+      transparent 0%,
+      rgba(212, 175, 55, 0.12) 10%,
+      rgba(212, 175, 55, 0.2) 50%,
+      rgba(212, 175, 55, 0.12) 90%,
+      transparent 100%);
   filter: blur(4px);
 }
 
@@ -435,21 +536,33 @@ body::after {
   top: 0;
   bottom: 0;
   background: linear-gradient(180deg,
-    transparent 0%,
-    rgba(212, 175, 55, 0.04) 15%,
-    rgba(122, 0, 25, 0.06) 50%,
-    rgba(212, 175, 55, 0.04) 85%,
-    transparent 100%
-  );
+      transparent 0%,
+      rgba(212, 175, 55, 0.04) 15%,
+      rgba(122, 0, 25, 0.06) 50%,
+      rgba(212, 175, 55, 0.04) 85%,
+      transparent 100%);
   filter: blur(10px);
 }
 
 /* Flowing particle animation along the beam */
 @keyframes timeline-flow {
-  0% { top: -8px; opacity: 0; }
-  5% { opacity: 1; }
-  95% { opacity: 1; }
-  100% { top: calc(100% + 8px); opacity: 0; }
+  0% {
+    top: -8px;
+    opacity: 0;
+  }
+
+  5% {
+    opacity: 1;
+  }
+
+  95% {
+    opacity: 1;
+  }
+
+  100% {
+    top: calc(100% + 8px);
+    opacity: 0;
+  }
 }
 
 .timeline-flow-particle {
@@ -464,12 +577,15 @@ body::after {
 
 /* Node pulse breathing */
 @keyframes node-breathe {
-  0%, 100% {
+
+  0%,
+  100% {
     box-shadow:
       0 0 8px rgba(212, 175, 55, 0.3),
       0 0 20px rgba(212, 175, 55, 0.1),
       inset 0 0 6px rgba(212, 175, 55, 0.15);
   }
+
   50% {
     box-shadow:
       0 0 14px rgba(212, 175, 55, 0.5),
@@ -487,16 +603,14 @@ body::after {
   position: relative;
   height: 2px;
   background: linear-gradient(90deg,
-    rgba(212, 175, 55, 0.5),
-    rgba(212, 175, 55, 0.15)
-  );
+      rgba(212, 175, 55, 0.5),
+      rgba(212, 175, 55, 0.15));
 }
 
 .timeline-connector-right {
   background: linear-gradient(90deg,
-    rgba(212, 175, 55, 0.15),
-    rgba(212, 175, 55, 0.5)
-  );
+      rgba(212, 175, 55, 0.15),
+      rgba(212, 175, 55, 0.5));
 }
 
 .timeline-connector::after {
@@ -504,15 +618,13 @@ body::after {
   position: absolute;
   inset: -2px 0;
   background: linear-gradient(90deg,
-    rgba(212, 175, 55, 0.1),
-    rgba(212, 175, 55, 0.03)
-  );
+      rgba(212, 175, 55, 0.1),
+      rgba(212, 175, 55, 0.03));
   filter: blur(3px);
 }
 
 .timeline-connector-right::after {
   background: linear-gradient(90deg,
-    rgba(212, 175, 55, 0.03),
-    rgba(212, 175, 55, 0.1)
-  );
+      rgba(212, 175, 55, 0.03),
+      rgba(212, 175, 55, 0.1));
 }

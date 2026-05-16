@@ -110,9 +110,9 @@ const processSteps = [
 
 /* ── Animations ───────────────────────────────────────────────────────────── */
 
-const fadeUp = {
+const fadeUp: any = {
   hidden: { opacity: 0, y: 40 },
-  visible: { opacity: 1, y: 0, transition: { duration: 0.8, ease: [0.23, 1, 0.32, 1] } },
+  visible: { opacity: 1, y: 0, transition: { duration: 0.8, ease: [0.23, 1, 0.32, 1] as any } },
 };
 
 const stagger = {
@@ -123,13 +123,13 @@ const stagger = {
   },
 };
 
-const cardReveal = {
+const cardReveal: any = {
   hidden: { opacity: 0, y: 50, scale: 0.95 },
   visible: {
     opacity: 1,
     y: 0,
     scale: 1,
-    transition: { duration: 0.7, ease: [0.23, 1, 0.32, 1] },
+    transition: { duration: 0.7, ease: [0.23, 1, 0.32, 1] as any },
   },
 };
 
@@ -331,12 +331,12 @@ export default function ServicesPage() {
               <motion.article
                 key={service.title}
                 variants={cardReveal}
-                className="group service-card-ivory p-8 sm:p-9"
+                className="group service-card-ivory p-8 sm:p-9 h-full flex flex-col"
               >
                 {/* Content */}
-                <div className="relative z-10">
+                <div className="relative z-10 flex flex-col h-full">
                   {/* Badge */}
-                  <div className="mb-5 inline-flex items-center rounded-full border border-[#D4AF37]/20 bg-gradient-to-r from-[#D4AF37]/8 to-[#D4AF37]/4 px-3.5 py-1 text-[10px] font-bold uppercase tracking-[0.15em] text-[#7A0019]">
+                  <div className="mb-5 inline-flex items-center rounded-full border border-[#D4AF37]/20 bg-gradient-to-r from-[#D4AF37]/8 to-[#D4AF37]/4 px-3.5 py-1 text-[10px] font-bold uppercase tracking-[0.15em] text-[#7A0019] self-start">
                     {service.badge}
                   </div>
 
@@ -351,15 +351,9 @@ export default function ServicesPage() {
                   </h3>
 
                   {/* Description */}
-                  <p className="mt-3 text-[0.9rem] leading-[1.7] text-[#7A5C5C]">
+                  <p className="mt-3 text-[0.9rem] leading-[1.7] text-[#7A5C5C] text-justify flex-1">
                     {service.text}
                   </p>
-
-                  {/* Learn more link */}
-                  <div className="mt-6 flex items-center gap-2 text-xs font-bold uppercase tracking-[0.12em] text-[#7A0019]/40 transition-all duration-300 group-hover:text-[#D4AF37]">
-                    <span>Learn more</span>
-                    <ArrowRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-1" />
-                  </div>
                 </div>
               </motion.article>
             );

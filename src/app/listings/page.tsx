@@ -1,5 +1,14 @@
+import { Suspense } from "react";
 import { ListingExperience } from "@/components/property/listing-experience";
-import { Activity, BrainCircuit, LineChart, Target } from "lucide-react";
+import { ListingsGrid } from "@/components/property/listings-grid";
+import { PropertyGridSkeleton } from "@/components/property/property-skeleton";
+import { Activity, BrainCircuit, Target } from "lucide-react";
+import Link from "next/link";
+
+export const metadata = {
+  title: "Listings | Aarvasa",
+  description: "Browse AI-curated real estate investment opportunities",
+};
 
 export default function ListingsPage() {
   return (
@@ -36,11 +45,6 @@ export default function ListingsPage() {
                 <span className="text-lg font-black text-[#4A0012]">94%</span>
                 <span className="text-[9px] uppercase tracking-wider font-semibold text-[#7A5C5C]">AI Accuracy</span>
               </div>
-              <div className="flex flex-col items-center justify-center p-3.5 rounded-2xl bg-white border border-[#DCCDCE]/40 shadow-sm min-w-[120px]">
-                <LineChart className="h-4 w-4 text-[#D4AF37] mb-2" />
-                <span className="text-lg font-black text-[#4A0012]">₹70+ Cr</span>
-                <span className="text-[9px] uppercase tracking-wider font-semibold text-[#7A5C5C]">Curated Assets</span>
-              </div>
               <div className="flex flex-col items-center justify-center p-3.5 rounded-2xl bg-[#50080E] border border-[#7A0019] shadow-[0_4px_15px_rgba(80,8,14,0.15)] min-w-[120px]">
                 <Activity className="h-4 w-4 text-[#D4AF37] mb-2" />
                 <span className="text-lg font-black text-white">Live</span>
@@ -51,9 +55,11 @@ export default function ListingsPage() {
         </div>
       </section>
 
-      {/* ── LISTINGS EXPERIENCE ── */}
+      {/* ── DATABASE-DRIVEN LISTINGS ── */}
       <section className="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8 relative z-0">
-        <ListingExperience />
+        <Suspense fallback={<PropertyGridSkeleton count={6} />}>
+          <ListingsGrid />
+        </Suspense>
       </section>
     </div>
   );

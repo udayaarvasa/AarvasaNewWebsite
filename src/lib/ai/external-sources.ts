@@ -78,7 +78,7 @@ const rapidApiAdapter: ProviderAdapter = {
   async fetchProperties(params) {
     const apiKey = process.env.RAPIDAPI_KEY;
     if (!apiKey) return [];
-    const cacheKey = buildCacheKey("rapidapi:props", params);
+    const cacheKey = buildCacheKey("rapidapi:props", params as any);
     const cached = apiCache.get<NormalizedProperty[]>(cacheKey);
     if (cached) return cached;
 

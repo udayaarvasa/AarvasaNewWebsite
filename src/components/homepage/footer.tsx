@@ -1,6 +1,6 @@
 import Link from "next/link";
 import Image from "next/image";
-import { Building2, Mail, MapPin, Phone, ArrowRight } from "lucide-react";
+import { Mail, MapPin, Phone } from "lucide-react";
 
 const footerLinks = {
   Platform: [
@@ -32,10 +32,12 @@ export function Footer() {
           <div>
             <Link href="/" className="flex items-center gap-3">
               <div className="relative h-12 w-12 flex-shrink-0">
-                <img 
-                  src="/logo-icon.png" 
-                  alt="Aarvasa Icon" 
-                  className="h-full w-full object-contain brightness-110"
+                <Image
+                  src="/aarvasa-logo-mark.png"
+                  alt="Aarvasa Icon"
+                  fill
+                  sizes="48px"
+                  className="object-cover brightness-110"
                 />
               </div>
               <div className="flex flex-col justify-center leading-[1.1]">

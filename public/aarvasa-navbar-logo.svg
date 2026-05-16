@@ -1,0 +1,31 @@
+<svg width="653" height="169" viewBox="0 0 653 169" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="title desc">
+  <title id="title">Aarvasa</title>
+  <desc id="desc">Aarvasa logo with the tagline Building homes, securing future</desc>
+  <rect width="138" height="142" rx="10" fill="#710006"/>
+  <path
+    d="M22 116V98.3C22 84.9 27.3 72 36.7 62.6L58.6 40.7C63.4 35.9 71.1 35.9 75.9 40.7L105.7 70.5L78.9 95.8V68.7L48.2 99.4V116H22Z"
+    fill="#E8DEC8"
+  />
+  <path d="M78.9 68.7L105.7 64.3V70.5L78.9 95.8V68.7Z" fill="#710006"/>
+  <text
+    x="160"
+    y="91"
+    fill="#710006"
+    font-family="Arial Black, Arial, Helvetica, sans-serif"
+    font-size="90"
+    font-weight="900"
+    letter-spacing="-1"
+  >
+    Aarvasa
+  </text>
+  <text
+    x="162"
+    y="134"
+    fill="#1B0103"
+    font-family="Arial Black, Arial, Helvetica, sans-serif"
+    font-size="31"
+    font-weight="900"
+  >
+    Building homes, securing future
+  </text>
+</svg>

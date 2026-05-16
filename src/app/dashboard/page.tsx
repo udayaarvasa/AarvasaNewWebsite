@@ -1,15 +1,20 @@
-import { cookies } from "next/headers";
-import { redirect } from "next/navigation";
-import { DashboardClient } from "@/components/dashboard-client";
-import { verifyToken } from "@/lib/auth";
+import { auth } from "@/auth"
+import { redirect } from "next/navigation"
+import { DashboardView } from "@/components/dashboard/dashboard-view"
+
+export const metadata = {
+  title: "Dashboard | Aarvasa",
+  description: "Manage your property portfolio and investments",
+}
 
 export default async function DashboardPage() {
-  const cookieStore = await cookies();
-  const session = verifyToken(cookieStore.get("aarvasa_token")?.value);
+  const session = await auth()
+  if (!session) redirect("/login?callbackUrl=/dashboard")
 
-  if (!session) {
-    redirect("/login");
-  }
-
-  return <DashboardClient userName={session.name} />;
+  return (
+    <DashboardView
+      userName={session.user.name || "User"}
+      userRole={session.user.role || "USER"}
+    />
+  )
 }
