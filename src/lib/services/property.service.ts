@@ -75,11 +75,11 @@ export async function getProperties(filters: PropertyFilters, userId?: string) {
     : sortBy === "featured" ? { featured: "desc" }
     : { createdAt: "desc" };
 
-  const skip = (page - 1) * limit;
+  const skip = (Number(page) - 1) * Number(limit);
 
   const [total, rawProperties] = await Promise.all([
     prisma.property.count({ where }),
-    prisma.property.findMany({ where, select: PROPERTY_SELECT, orderBy, skip, take: limit }),
+    prisma.property.findMany({ where, select: PROPERTY_SELECT, orderBy, skip, take: Number(limit) }),
   ]);
 
   // Attach isFavorited if user is logged in
@@ -102,9 +102,9 @@ export async function getProperties(filters: PropertyFilters, userId?: string) {
   return {
     properties,
     total,
-    page,
-    totalPages: Math.ceil(total / limit),
-    hasMore: skip + limit < total,
+    page: Number(page),
+    totalPages: Math.ceil(total / Number(limit)),
+    hasMore: skip + Number(limit) < total,
   };
 }
 

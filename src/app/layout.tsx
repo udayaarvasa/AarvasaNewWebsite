@@ -5,6 +5,7 @@ import { LuxuryFooter } from "@/components/shared/luxury-footer";
 import { SessionProvider } from "@/components/auth/session-provider";
 import { FloatingActions } from "@/components/shared/floating-actions";
 import { Toaster } from "react-hot-toast";
+import { TawkChatWidget } from "@/components/shared/tawk-chat-widget";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -27,6 +28,7 @@ export default function RootLayout({
             <main className="flex-1">{children}</main>
             <LuxuryFooter />
             <FloatingActions />
+            <TawkChatWidget />
             <Toaster position="top-center" />
           </ThemeProvider>
         </SessionProvider>

@@ -55,7 +55,7 @@ export const inquirySchema = z.object({
   propertyId: z.string().min(1),
 });
 
-export type CreatePropertyInput = z.infer<typeof createPropertySchema>;
-export type UpdatePropertyInput = z.infer<typeof updatePropertySchema>;
-export type PropertyFilters = z.infer<typeof propertyFiltersSchema>;
-export type InquiryInput = z.infer<typeof inquirySchema>;
+export type CreatePropertyInput = z.input<typeof createPropertySchema>;
+export type UpdatePropertyInput = z.input<typeof updatePropertySchema>;
+export type PropertyFilters = z.input<typeof propertyFiltersSchema>;
+export type InquiryInput = z.input<typeof inquirySchema>;
