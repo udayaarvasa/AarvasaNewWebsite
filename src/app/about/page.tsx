@@ -77,10 +77,10 @@ const technologies = [
 ];
 
 const nodes = [
-  { city: "Bengaluru AI Hub", purpose: "Technology & Core Data", growth: "Active HQ", image: "https://images.unsplash.com/photo-1596176530529-78163a4f7af2?auto=format&fit=crop&w=800&q=80" },
-  { city: "Dubai Expansion", purpose: "Global Capital Inflow", growth: "Q3 2025", image: "https://images.unsplash.com/photo-1512453979798-5ea266f8880c?auto=format&fit=crop&w=800&q=80" },
-  { city: "London Node", purpose: "Institutional Partnerships", growth: "Q1 2026", image: "https://images.unsplash.com/photo-1529655683826-aba9b3e77383?auto=format&fit=crop&w=800&q=80" },
-  { city: "New York Nexus", purpose: "PropTech Innovation", growth: "2026+", image: "https://images.unsplash.com/photo-1496442226666-8d4d0e62e6e9?auto=format&fit=crop&w=800&q=80" },
+  { city: "Bhopal", purpose: "Home Office", growth: "Headquarters", image: "https://images.unsplash.com/photo-1596176530529-78163a4f7af2?auto=format&fit=crop&w=800&q=80" },
+  { city: "Delhi", purpose: "Branch Office", growth: "Active", image: "https://images.unsplash.com/photo-1587474260584-136574528ed5?auto=format&fit=crop&w=800&q=80" },
+  { city: "Bengaluru", purpose: "Branch Office", growth: "Active", image: "https://images.unsplash.com/photo-1596176530529-78163a4f7af2?auto=format&fit=crop&w=800&q=80" },
+  { city: "Dubai", purpose: "International Expansion", growth: "Global Capital Inflow", image: "https://images.unsplash.com/photo-1512453979798-5ea266f8880c?auto=format&fit=crop&w=800&q=80" },
 ];
 
 const milestones = [
@@ -384,7 +384,7 @@ export default function AboutPage() {
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true, margin: "-50px" }}
                 transition={{ duration: 0.6, delay: i * 0.1 }}
-                className="group relative rounded-3xl overflow-hidden aspect-[16/10] shadow-luxury"
+                className="group relative rounded-3xl overflow-hidden aspect-[4/3] shadow-luxury"
               >
                 <Image src={node.image} alt={node.city} fill className="object-cover transition-transform duration-1000 group-hover:scale-110" />
                 <div className="absolute inset-0 bg-gradient-to-t from-[#0b0b0b] via-[#0b0b0b]/40 to-transparent opacity-80 group-hover:opacity-90 transition-opacity" />
@@ -398,9 +398,6 @@ export default function AboutPage() {
                       </div>
                       <h3 className="heading-serif text-3xl text-white mb-2">{node.city}</h3>
                       <p className="text-sm text-[#DCCDCE]">{node.purpose}</p>
-                    </div>
-                    <div className="w-12 h-12 rounded-full border border-white/20 flex items-center justify-center backdrop-blur-md transition-transform group-hover:bg-[#D4AF37] group-hover:border-transparent group-hover:scale-110">
-                      <ArrowRight className="w-5 h-5 text-white" />
                     </div>
                   </div>
                 </div>

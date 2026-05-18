@@ -2,6 +2,7 @@
 
 import { motion } from "framer-motion";
 import { Shield, Users, Award, Globe } from "lucide-react";
+import Image from "next/image";
 import { AnimatedCounter } from "./animated-counter";
 import { MotionReveal } from "@/components/layout/motion-reveal";
 
@@ -38,12 +39,14 @@ const trustMetrics = [
 ];
 
 const logos = [
-  "Goldman Sachs",
-  "Blackstone",
-  "Brookfield",
-  "HDFC Capital",
-  "Kotak",
-  "Piramal",
+  { name: "VITTBI", image: "/images/partners/vit-tbi.jpg" },
+  { name: "GSEA", image: "/images/partners/gsea.png" },
+  { name: "build3", image: "/images/partners/build3.png" },
+  { name: "Startupindia", image: "/images/partners/startupindia.png" },
+  { name: "AU Bank", image: "/images/partners/au-bank.png" },
+  { name: "NVIDIA", image: "/images/partners/nvidia.png" },
+  { name: "PS Associates", image: "/images/partners/ps-associates.jpg" },
+  { name: "AWS", image: "/images/partners/aws.png" },
 ];
 
 export function InvestorTrust() {
@@ -102,19 +105,73 @@ export function InvestorTrust() {
 
         {/* Partner logos */}
         <MotionReveal delay={0.3}>
-          <div className="mt-20">
-            <p className="text-center text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground">
+          <div className="mt-20 overflow-hidden relative w-full">
+            <p className="text-center text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground mb-8">
               Trusted by partners at
             </p>
-            <div className="mt-8 flex flex-wrap items-center justify-center gap-x-12 gap-y-4">
-              {logos.map((name) => (
-                <span
-                  key={name}
-                  className="text-lg font-bold text-muted-foreground/40 transition-colors hover:text-foreground/60"
-                >
-                  {name}
-                </span>
-              ))}
+            {/* Fade masks for edges */}
+            <div className="pointer-events-none absolute inset-y-0 left-0 w-32 bg-gradient-to-r from-background to-transparent z-10" />
+            <div className="pointer-events-none absolute inset-y-0 right-0 w-32 bg-gradient-to-l from-background to-transparent z-10" />
+            
+            <div className="flex">
+              <motion.div
+                className="flex shrink-0 items-center gap-x-24 pr-24 whitespace-nowrap"
+                animate={{ x: ["0%", "-100%"] }}
+                transition={{
+                  ease: "linear",
+                  duration: 25,
+                  repeat: Infinity,
+                }}
+              >
+                {[...logos, ...logos].map((logo, i) => (
+                  <span
+                    key={`${logo.name}-${i}`}
+                    className="flex items-center text-3xl font-bold text-muted-foreground/40 transition-colors hover:text-foreground/60"
+                  >
+                    {logo.image ? (
+                      <Image 
+                        src={logo.image} 
+                        alt={logo.name} 
+                        width={300} 
+                        height={120} 
+                        className="object-contain mix-blend-multiply dark:mix-blend-lighten" 
+                        style={{ height: '90px', width: 'auto' }}
+                      />
+                    ) : (
+                      logo.name
+                    )}
+                  </span>
+                ))}
+              </motion.div>
+              <motion.div
+                className="flex shrink-0 items-center gap-x-24 pr-24 whitespace-nowrap"
+                animate={{ x: ["0%", "-100%"] }}
+                transition={{
+                  ease: "linear",
+                  duration: 25,
+                  repeat: Infinity,
+                }}
+              >
+                {[...logos, ...logos].map((logo, i) => (
+                  <span
+                    key={`dup-${logo.name}-${i}`}
+                    className="flex items-center text-3xl font-bold text-muted-foreground/40 transition-colors hover:text-foreground/60"
+                  >
+                    {logo.image ? (
+                      <Image 
+                        src={logo.image} 
+                        alt={logo.name} 
+                        width={300} 
+                        height={120} 
+                        className="object-contain mix-blend-multiply dark:mix-blend-lighten" 
+                        style={{ height: '90px', width: 'auto' }}
+                      />
+                    ) : (
+                      logo.name
+                    )}
+                  </span>
+                ))}
+              </motion.div>
             </div>
           </div>
         </MotionReveal>
