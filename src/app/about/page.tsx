@@ -35,6 +35,8 @@ const team = [
     subtitle: "Expert in Networking & Sales | External Affairs Lead",
     bio: "Uday Sahu leads Aarvasa as CEO, driving growth, partnerships, and market expansion. With expertise in business networking and real estate sales, he strengthens stakeholder relations and positions Aarvasa as a key player in property investment.",
     image: "/images/team/uday.png",
+    linkedin: "https://www.linkedin.com/in/udayprakashsahu/",
+    instagram: "https://www.instagram.com/uday.sahu_10?igsh=MWVzNW85dTRydndpdg%3D%3D",
   },
   {
     name: "Ansh Dubey",
@@ -42,6 +44,8 @@ const team = [
     subtitle: "Operations Strategist | Product & Process Leader",
     bio: "Ansh Dubey, COO of Aarvasa, oversees operations, workflow optimization, and product delivery. Focused on efficiency, he ensures smooth platform functionality, from listings to customer experience, translating ideas into scalable, real-world execution.",
     image: "/images/team/ansh.png",
+    linkedin: "https://www.linkedin.com/in/ansh-dubey-526325273/",
+    instagram: "https://www.instagram.com/_ansh_.dubey/",
   },
   {
     name: "Anirudh Saxena",
@@ -49,6 +53,8 @@ const team = [
     subtitle: "Tech Architect | Innovation & Engineering Lead",
     bio: "Anirudh Saxena, CTO of Aarvasa, drives AI tools, smart contracts, and infrastructure development. He ensures a secure, scalable tech foundation, shaping the digital systems that power Aarvasa’s platform and future growth.",
     image: "/images/team/anirudh.png",
+    linkedin: "https://www.linkedin.com/in/anirudh-saxena-481ba2245/",
+    instagram: "https://www.instagram.com/_anirudh__.07?igsh=MTJocm1va3VtZDV0bw%3D%3D",
   },
   {
     name: "Sriaditya S",
@@ -56,6 +62,8 @@ const team = [
     subtitle: "Technology Strategist | System Architect | Cybersecurity Advocate",
     bio: "Sriaditya S leads IT Operations at Aarvasa, managing the company’s digital infrastructure, cloud systems, and cybersecurity. He ensures platform stability, secure workflows, and drives Aarvasa’s tech innovations for scalable business growth.",
     image: "/images/team/sriaditya.png",
+    linkedin: "https://www.linkedin.com/in/sriadityas/",
+    instagram: "https://www.instagram.com/sriaditya_kamikaze?igsh=amdnbDR4MG82cDFh",
   },
 ];
 
@@ -402,38 +410,6 @@ export default function AboutPage() {
         </div>
       </section>
 
-      {/* 4. COMPANY PARTNERS */}
-      <section className="py-24 bg-[#50080E] relative overflow-hidden">
-        <div className="absolute inset-0 opacity-10 bg-[radial-gradient(circle_at_center,rgba(212,175,55,0.4)_0%,transparent_70%)]" />
-        
-        <div className="mx-auto max-w-7xl px-6 relative z-10">
-          <motion.div 
-            initial="hidden"
-            whileInView="visible"
-            viewport={{ once: true }}
-            variants={fadeIn}
-            className="text-center max-w-3xl mx-auto mb-16"
-          >
-            <h2 className="heading-serif text-3xl md:text-4xl text-white mb-4">Strategic Industry Partnerships</h2>
-            <p className="text-[#DCCDCE]/80">Collaborating with innovators shaping the future of technology, infrastructure, and intelligent investment ecosystems.</p>
-          </motion.div>
-
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-6">
-            {partners.map((partner, i) => (
-              <motion.div
-                key={partner}
-                initial={{ opacity: 0, scale: 0.9 }}
-                whileInView={{ opacity: 1, scale: 1 }}
-                viewport={{ once: true }}
-                transition={{ duration: 0.5, delay: i * 0.1 }}
-                className="glass-card !bg-white/5 !border-white/10 rounded-2xl p-6 flex items-center justify-center text-center group hover:!bg-white/10 transition-colors"
-              >
-                <span className="font-bold text-[#DCCDCE] group-hover:text-white transition-colors">{partner}</span>
-              </motion.div>
-            ))}
-          </div>
-        </div>
-      </section>
 
       {/* 5. AWARDS & RECOGNITION */}
       <section className="relative overflow-hidden bg-[#F2F1ED] py-32">
@@ -602,53 +578,7 @@ export default function AboutPage() {
         </div>
       </section>
 
-      {/* 7. MILESTONES & FUTURE ROADMAP */}
-      <section className="py-32 bg-white">
-        <div className="mx-auto max-w-5xl px-6">
-          <motion.div 
-            initial="hidden"
-            whileInView="visible"
-            viewport={{ once: true }}
-            variants={fadeIn}
-            className="text-center mb-24"
-          >
-            <h2 className="heading-serif text-4xl md:text-5xl text-[#50080E] mb-6">Milestones & Future Plans</h2>
-          </motion.div>
 
-          <div className="relative">
-            <div className="absolute left-8 md:left-1/2 top-0 bottom-0 w-0.5 bg-gradient-to-b from-[#D4AF37]/10 via-[#D4AF37] to-[#D4AF37]/10 md:-translate-x-1/2" />
-            
-            <div className="space-y-20">
-              {milestones.map((milestone, i) => (
-                <motion.div 
-                  key={milestone.year}
-                  initial={{ opacity: 0, y: 50 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  viewport={{ once: true, margin: "-100px" }}
-                  transition={{ duration: 0.7 }}
-                  className={`relative flex flex-col md:flex-row gap-8 md:gap-0 ${i % 2 === 0 ? 'md:flex-row-reverse' : ''}`}
-                >
-                  <div className="md:w-1/2" />
-                  
-                  {/* Glowing Node */}
-                  <div className="absolute left-8 md:left-1/2 w-6 h-6 rounded-full bg-[#50080E] border-4 border-[#D4AF37] -translate-x-[11px] md:-translate-x-3 mt-1.5 shadow-[0_0_15px_rgba(212,175,55,0.5)] z-10" />
-                  
-                  <div className={`md:w-1/2 pl-16 md:pl-0 ${i % 2 === 0 ? 'md:pr-16 text-left md:text-right' : 'md:pl-16 text-left'}`}>
-                    <h3 className="heading-serif text-3xl text-[#50080E] mb-6">{milestone.year}</h3>
-                    <div className="space-y-4">
-                      {milestone.items.map((item, j) => (
-                        <div key={j} className={`glass-card p-5 rounded-2xl shadow-luxury-sm hover:shadow-luxury transition-shadow inline-block w-full ${i % 2 === 0 ? 'ml-auto' : ''}`}>
-                          <p className="text-[#72383D] font-medium">{item}</p>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                </motion.div>
-              ))}
-            </div>
-          </div>
-        </div>
-      </section>
 
       {/* 8. AI + TECHNOLOGY SECTION */}
       <section className="py-32 bg-[#0b0b0b] relative overflow-hidden">
@@ -690,36 +620,6 @@ export default function AboutPage() {
         </div>
       </section>
 
-      {/* 9. INVESTOR TRUST SECTION */}
-      <section className="py-24 bg-gradient-to-br from-[#50080E] to-[#2a0815] relative overflow-hidden">
-        <div className="absolute inset-0 opacity-20 bg-[radial-gradient(circle_at_top_right,rgba(212,175,55,0.8)_0%,transparent_60%)]" />
-        
-        <div className="mx-auto max-w-7xl px-6 relative z-10">
-          <motion.div 
-            initial={{ opacity: 0, scale: 0.95 }}
-            whileInView={{ opacity: 1, scale: 1 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.8 }}
-            className="rounded-[2.5rem] border border-[#D4AF37]/30 bg-black/40 backdrop-blur-xl p-12 md:p-20 text-center shadow-glow"
-          >
-            <h2 className="heading-serif text-4xl md:text-5xl text-white mb-16">The Institutional Standard</h2>
-            
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-10">
-              {[
-                { value: "₹70+ Cr", label: "Listings Value" },
-                { value: "AI-Powered", label: "Analytics" },
-                { value: "100%", label: "Verified Data" },
-                { value: "Tier 1", label: "Partnerships" }
-              ].map((stat, i) => (
-                <div key={i} className="space-y-3">
-                  <div className="text-3xl md:text-5xl font-bold text-[#D4AF37]">{stat.value}</div>
-                  <div className="text-xs font-bold uppercase tracking-widest text-[#DCCDCE]">{stat.label}</div>
-                </div>
-              ))}
-            </div>
-          </motion.div>
-        </div>
-      </section>
 
 
     </div>
@@ -851,10 +751,12 @@ function TeamCard({ member, index }: { member: (typeof team)[number]; index: num
         </p>
         
         <div className="flex items-center gap-4 mt-auto">
-          <a href="#" className="w-10 h-10 rounded-full border border-white/20 flex items-center justify-center text-[#DCCDCE] hover:text-[#D4AF37] hover:border-[#D4AF37] transition-all hover:bg-[#D4AF37]/10">
+          {/* LinkedIn Icon */}
+          <a href={member.linkedin || "#"} target="_blank" rel="noopener noreferrer" className="w-10 h-10 rounded-full border border-white/20 flex items-center justify-center text-[#DCCDCE] hover:text-[#D4AF37] hover:border-[#D4AF37] transition-all hover:bg-[#D4AF37]/10">
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-4 h-4"><path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z"></path><rect x="2" y="9" width="4" height="12"></rect><circle cx="4" cy="4" r="2"></circle></svg>
           </a>
-          <a href="#" className="w-10 h-10 rounded-full border border-white/20 flex items-center justify-center text-[#DCCDCE] hover:text-[#D4AF37] hover:border-[#D4AF37] transition-all hover:bg-[#D4AF37]/10">
+          {/* Instagram/Twitter Icon */}
+          <a href={member.instagram || "#"} target="_blank" rel="noopener noreferrer" className="w-10 h-10 rounded-full border border-white/20 flex items-center justify-center text-[#DCCDCE] hover:text-[#D4AF37] hover:border-[#D4AF37] transition-all hover:bg-[#D4AF37]/10">
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-4 h-4"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"></line></svg>
           </a>
         </div>

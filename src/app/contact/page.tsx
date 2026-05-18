@@ -22,17 +22,17 @@ export default function ContactPage() {
             </p>
             <div className="mt-8 space-y-4">
               {[
-                { icon: Mail, text: "invest@aarvasa.ai" },
-                { icon: Phone, text: "+91 98765 43210" },
-                { icon: MapPin, text: "Mumbai, Bengaluru, Goa" },
+                { icon: Mail, text: "contact@aarvasa.com" },
+                { icon: Phone, text: "+91 6382083873" },
+                { icon: MapPin, text: "3 Flr, off Windsar Sq Opp, Vishal Megamart Kolar Rd, Kolar Road, Huzur, Bhopal- 462042, Madhya Pradesh." },
               ].map((item) => {
                 const Icon = item.icon;
                 return (
-                  <div key={item.text} className="flex items-center gap-3">
-                    <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-[#50080E]/5">
+                  <div key={item.text} className="flex items-start gap-3">
+                    <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-[#50080E]/5">
                       <Icon className="h-4 w-4 text-[#50080E]" />
                     </div>
-                    <span className="text-sm text-[#72383D]/80">{item.text}</span>
+                    <span className="text-sm leading-relaxed text-[#72383D]/80 pt-2">{item.text}</span>
                   </div>
                 );
               })}
