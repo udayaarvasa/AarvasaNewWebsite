@@ -6,7 +6,7 @@ import bcrypt from "bcryptjs"
 // Removed Prisma type imports for local build compatibility
 
 export const { handlers, auth, signIn, signOut } = NextAuth({
-  secret: process.env.AUTH_SECRET || process.env.NEXTAUTH_SECRET,
+  secret: process.env.AUTH_SECRET,
   trustHost: true,
   debug: true,
   adapter: PrismaAdapter(prisma),
