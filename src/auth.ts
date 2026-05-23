@@ -6,6 +6,9 @@ import bcrypt from "bcryptjs"
 // Removed Prisma type imports for local build compatibility
 
 export const { handlers, auth, signIn, signOut } = NextAuth({
+  secret: process.env.AUTH_SECRET || process.env.NEXTAUTH_SECRET,
+  trustHost: true,
+  debug: true,
   adapter: PrismaAdapter(prisma),
   session: { strategy: "jwt" },
   pages: {
@@ -63,7 +66,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       return token;
     },
     async session({ session, token }) {
-      if (token && session.user) {
+      if (token && session?.user) {
         session.user.role = token.role as any;
         session.user.id = token.id as string;
       }
