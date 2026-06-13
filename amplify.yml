@@ -5,7 +5,6 @@ frontend:
       commands:
         - npm install
         - npx prisma generate
-        - npx prisma migrate deploy
     build:
       commands:
         - env | grep -E '^(DATABASE_URL|AUTH_SECRET|AUTH_URL|MONGODB_URI|OPENAI_|RAPIDAPI_|RERA_|GOOGLE_|NEWS_|RENTAL_|CLOUDINARY_)' >> .env.production || true
