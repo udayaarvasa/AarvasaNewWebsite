@@ -5,6 +5,8 @@ export async function GET() {
   const diag = {
     hasDatabaseUrl: !!process.env.DATABASE_URL,
     hasAuthSecret: !!process.env.AUTH_SECRET,
+    hasGoogleClientId: !!process.env.AUTH_GOOGLE_ID,
+    hasGoogleClientSecret: !!process.env.AUTH_GOOGLE_SECRET,
     nodeEnv: process.env.NODE_ENV,
     authUrl: process.env.AUTH_URL || "not set",
     nextAuthUrl: process.env.NEXTAUTH_URL || "not set",
