@@ -1,41 +1,46 @@
 import { NextResponse } from "next/server"
 import { PrismaClient } from "@prisma/client"
 
-function replacePassword(url: string, newPasswordEncoded: string): string {
-  return url.replace(/(postgresql:\/\/[^:]+:)[^@]+(@)/, `$1${newPasswordEncoded}$2`);
+function buildDbUrl(username: string, passwordEncoded: string, hostPortDb: string, ssl: string): string {
+  return `postgresql://${username}:${passwordEncoded}@${hostPortDb}${ssl}`;
 }
 
 export async function GET() {
   const dbUrl = process.env.DATABASE_URL || "";
   let rawUrlDiagnostics = "none";
+  let hostPortDb = "database-1.cqpc8oe8w8lz.us-east-1.rds.amazonaws.com:5432/postgres";
+  let ssl = "?sslmode=require";
 
   if (dbUrl) {
-    const rawMatch = dbUrl.match(/postgresql:\/\/([^:]+):([^@]+)@/);
+    const rawMatch = dbUrl.match(/postgresql:\/\/([^:]+):([^@]+)@([^?]+)(.*)/);
     if (rawMatch) {
+      const rawUser = rawMatch[1];
       const rawPass = rawMatch[2];
-      rawUrlDiagnostics = `length: ${rawPass.length}, contains $: ${rawPass.includes('$')}, contains %24: ${rawPass.includes('%24')}, contains %: ${rawPass.includes('%')}`;
+      hostPortDb = rawMatch[3];
+      ssl = rawMatch[4];
+      rawUrlDiagnostics = `username: ${rawUser}, passLength: ${rawPass.length}, contains $: ${rawPass.includes('$')}, contains %24: ${rawPass.includes('%24')}`;
     } else {
-      rawUrlDiagnostics = "regex mismatch for password";
+      rawUrlDiagnostics = "regex mismatch for raw URL";
     }
   }
 
-  const testCases = [
-    { name: "default_env_url", url: dbUrl },
-    { name: "password_no_special_char_Aarvasa2104", url: replacePassword(dbUrl, "Aarvasa2104") },
-    { name: "password_double_encoded_Aarvasa2104%2524", url: replacePassword(dbUrl, "Aarvasa2104%2524") },
-    { name: "password_literal_dollar_Aarvasa2104$", url: replacePassword(dbUrl, "Aarvasa2104$") },
-    { name: "password_escaped_dollar_Aarvasa2104\\$", url: replacePassword(dbUrl, "Aarvasa2104\\$") }
-  ];
+  const usernames = ["postgres", "aarvasa", "udayaarvasa", "admin", "ansh"];
+  const passwordsEncoded = ["Aarvasa2104%24", "Aarvasa2104"];
+
+  const testCases: any[] = [];
+  for (const username of usernames) {
+    for (const passEncoded of passwordsEncoded) {
+      testCases.push({
+        name: `${username} + password:${passEncoded === "Aarvasa2104%24" ? "Aarvasa2104$" : "Aarvasa2104"}`,
+        url: buildDbUrl(username, passEncoded, hostPortDb, ssl)
+      });
+    }
+  }
 
   const results: any[] = [];
   let workingCase = "none";
 
   for (const testCase of testCases) {
-    if (!testCase.url) {
-      results.push({ name: testCase.name, status: "skipped (empty URL)" });
-      continue;
-    }
-
     const testClient = new PrismaClient({
       datasources: {
         db: {
@@ -49,10 +54,22 @@ export async function GET() {
       results.push({ name: testCase.name, status: "success" });
       workingCase = testCase.name;
     } catch (error: any) {
+      // Keep error message short and descriptive
+      const msg = error.message;
+      let shortError = "Unknown error";
+      if (msg.includes("Authentication failed")) {
+        shortError = "Authentication failed (invalid credentials)";
+      } else if (msg.includes("invalid port number")) {
+        shortError = "Connection string error (invalid port/characters)";
+      } else if (msg.includes("Can't reach database server")) {
+        shortError = "Can't reach database server";
+      } else {
+        shortError = msg.split("\n").filter((l: string) => l.trim().length > 0)[0] || msg;
+      }
       results.push({
         name: testCase.name,
         status: "failed",
-        error: error.message
+        error: shortError
       });
     } finally {
       await testClient.$disconnect();
@@ -68,6 +85,7 @@ export async function GET() {
     results
   });
 }
+
 
 
 
