@@ -9,6 +9,7 @@ import { motion } from "framer-motion"
 import { Loader2, Mail, Lock, User } from "lucide-react"
 import toast from "react-hot-toast"
 import Link from "next/link"
+import { signIn } from "next-auth/react"
 
 const signupSchema = z.object({
   name: z.string().min(2, "Name must be at least 2 characters"),
@@ -57,6 +58,52 @@ export function SignupForm() {
       router.push("/login")
     } catch (error: any) {
       toast.error(error.message || "An error occurred during signup")
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  async function handleWalletLogin() {
+    if (typeof window === "undefined" || !(window as any).ethereum) {
+      toast.error("Please install a Web3 wallet (like MetaMask)")
+      return
+    }
+
+    setIsLoading(true)
+    try {
+      const ethereum = (window as any).ethereum
+      const accounts = await ethereum.request({ method: "eth_requestAccounts" })
+      if (!accounts || accounts.length === 0) {
+        throw new Error("No accounts found")
+      }
+      const address = accounts[0]
+      
+      const nonce = Math.random().toString(36).substring(2)
+      const message = `Sign in to Aarvasa with your wallet.\nNonce: ${nonce}`
+
+      const signature = await ethereum.request({
+        method: "personal_sign",
+        params: [message, address]
+      })
+
+      const result = await signIn("wallet", {
+        message,
+        signature,
+        address,
+        redirect: false,
+      })
+
+      if (result?.error) {
+        toast.error("Wallet authentication failed")
+        return
+      }
+
+      toast.success("Successfully logged in with wallet!")
+      router.push("/dashboard")
+      router.refresh()
+    } catch (error: any) {
+      console.error(error)
+      toast.error(error.message || "Failed to sign in with wallet")
     } finally {
       setIsLoading(false)
     }
@@ -183,6 +230,35 @@ export function SignupForm() {
             Sign in
           </Link>
         </p>
+      </div>
+
+      <div className="mt-8">
+        <div className="relative">
+          <div className="absolute inset-0 flex items-center">
+            <div className="w-full border-t border-white/10"></div>
+          </div>
+          <div className="relative flex justify-center text-sm">
+            <span className="px-2 bg-transparent text-[#F2F1ED]/40">Or continue with</span>
+          </div>
+        </div>
+        <div className="mt-6 grid grid-cols-2 gap-3">
+          <button 
+            type="button"
+            onClick={() => signIn("google")}
+            disabled={isLoading}
+            className="flex justify-center items-center py-2.5 border border-white/10 rounded-xl hover:bg-white/5 transition-colors cursor-pointer disabled:opacity-50"
+          >
+            <span className="text-[#F2F1ED] text-sm font-medium">Google</span>
+          </button>
+          <button 
+            type="button"
+            onClick={handleWalletLogin}
+            disabled={isLoading}
+            className="flex justify-center items-center py-2.5 border border-white/10 rounded-xl hover:bg-white/5 transition-colors cursor-pointer disabled:opacity-50"
+          >
+            <span className="text-[#F2F1ED] text-sm font-medium">Wallet</span>
+          </button>
+        </div>
       </div>
     </motion.div>
   )

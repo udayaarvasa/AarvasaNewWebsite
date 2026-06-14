@@ -55,6 +55,52 @@ export function LoginForm() {
     }
   }
 
+  async function handleWalletLogin() {
+    if (typeof window === "undefined" || !(window as any).ethereum) {
+      toast.error("Please install a Web3 wallet (like MetaMask)")
+      return
+    }
+
+    setIsLoading(true)
+    try {
+      const ethereum = (window as any).ethereum
+      const accounts = await ethereum.request({ method: "eth_requestAccounts" })
+      if (!accounts || accounts.length === 0) {
+        throw new Error("No accounts found")
+      }
+      const address = accounts[0]
+      
+      const nonce = Math.random().toString(36).substring(2)
+      const message = `Sign in to Aarvasa with your wallet.\nNonce: ${nonce}`
+
+      const signature = await ethereum.request({
+        method: "personal_sign",
+        params: [message, address]
+      })
+
+      const result = await signIn("wallet", {
+        message,
+        signature,
+        address,
+        redirect: false,
+      })
+
+      if (result?.error) {
+        toast.error("Wallet authentication failed")
+        return
+      }
+
+      toast.success("Successfully logged in with wallet!")
+      router.push("/dashboard")
+      router.refresh()
+    } catch (error: any) {
+      console.error(error)
+      toast.error(error.message || "Failed to sign in with wallet")
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
@@ -144,8 +190,7 @@ export function LoginForm() {
         </p>
       </div>
 
-      {/* Social login placeholders */}
-      <div className="mt-6">
+      <div className="mt-8">
         <div className="relative">
           <div className="absolute inset-0 flex items-center">
             <div className="w-full border-t border-white/10"></div>
@@ -155,10 +200,20 @@ export function LoginForm() {
           </div>
         </div>
         <div className="mt-6 grid grid-cols-2 gap-3">
-          <button className="flex justify-center items-center py-2.5 border border-white/10 rounded-xl hover:bg-white/5 transition-colors">
+          <button 
+            type="button"
+            onClick={() => signIn("google")}
+            disabled={isLoading}
+            className="flex justify-center items-center py-2.5 border border-white/10 rounded-xl hover:bg-white/5 transition-colors cursor-pointer disabled:opacity-50"
+          >
             <span className="text-[#F2F1ED] text-sm font-medium">Google</span>
           </button>
-          <button className="flex justify-center items-center py-2.5 border border-white/10 rounded-xl hover:bg-white/5 transition-colors">
+          <button 
+            type="button"
+            onClick={handleWalletLogin}
+            disabled={isLoading}
+            className="flex justify-center items-center py-2.5 border border-white/10 rounded-xl hover:bg-white/5 transition-colors cursor-pointer disabled:opacity-50"
+          >
             <span className="text-[#F2F1ED] text-sm font-medium">Wallet</span>
           </button>
         </div>

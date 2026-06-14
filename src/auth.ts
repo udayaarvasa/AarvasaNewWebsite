@@ -2,6 +2,7 @@ import NextAuth from "next-auth"
 import { PrismaAdapter } from "@auth/prisma-adapter"
 import { prisma } from "./lib/prisma"
 import CredentialsProvider from "next-auth/providers/credentials"
+import Google from "next-auth/providers/google"
 import bcrypt from "bcryptjs"
 // Removed Prisma type imports for local build compatibility
 
@@ -15,7 +16,12 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     signIn: "/login",
   },
   providers: [
+    Google({
+      clientId: process.env.AUTH_GOOGLE_ID,
+      clientSecret: process.env.AUTH_GOOGLE_SECRET,
+    }),
     CredentialsProvider({
+      id: "credentials",
       name: "credentials",
       credentials: {
         email: { label: "Email", type: "email" },
@@ -52,6 +58,63 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
           role: user.role,
         };
       }
+    }),
+    CredentialsProvider({
+      id: "wallet",
+      name: "wallet",
+      credentials: {
+        message: { label: "Message", type: "text" },
+        signature: { label: "Signature", type: "text" },
+        address: { label: "Address", type: "text" }
+      },
+      async authorize(credentials) {
+        if (!credentials?.message || !credentials?.signature || !credentials?.address) {
+          throw new Error("Invalid wallet credentials");
+        }
+
+        const address = credentials.address as string;
+        const signature = credentials.signature as string;
+        const message = credentials.message as string;
+
+        try {
+          const { verifyMessage } = await import("viem");
+          const isValid = await verifyMessage({
+            address: address as `0x${string}`,
+            message: message,
+            signature: signature as `0x${string}`
+          });
+
+          if (!isValid) {
+            throw new Error("Invalid signature");
+          }
+
+          let user = await prisma.user.findUnique({
+            where: {
+              email: `${address.toLowerCase()}@wallet.aarvasa`
+            }
+          });
+
+          if (!user) {
+            user = await prisma.user.create({
+              data: {
+                name: `Wallet ${address.substring(0, 6)}...`,
+                email: `${address.toLowerCase()}@wallet.aarvasa`,
+                role: "USER"
+              }
+            });
+          }
+
+          return {
+            id: user.id,
+            name: user.name,
+            email: user.email,
+            role: user.role,
+          };
+        } catch (error) {
+          console.error("Wallet authentication failed:", error);
+          throw new Error("Wallet authentication failed");
+        }
+      }
     })
   ],
   callbacks: {
@@ -74,3 +137,4 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     }
   }
 })
+
