@@ -18,6 +18,7 @@ import { useSession, signOut } from "next-auth/react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { ThemeToggle } from "./theme-toggle";
+import { logoutAction } from "@/app/actions/auth";
 
 type NavLink = {
   href: string;
@@ -181,7 +182,37 @@ export function Navbar() {
 
   const handleLogout = async () => {
     try {
-      await signOut({ redirect: false });
+      // 1. Clear cookies client-side to ensure session cookies are immediately gone
+      const cookies = document.cookie.split(";");
+      for (let i = 0; i < cookies.length; i++) {
+        const cookie = cookies[i];
+        const eqPos = cookie.indexOf("=");
+        const name = eqPos > -1 ? cookie.substring(0, eqPos).trim() : cookie.trim();
+        if (
+          name.includes("authjs") || 
+          name.includes("next-auth") || 
+          name.includes("session")
+        ) {
+          document.cookie = name + "=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+          document.cookie = name + "=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; secure;";
+        }
+      }
+
+      // 2. Call next-auth client signOut to clear its internal state
+      try {
+        await signOut({ redirect: false });
+      } catch (err) {
+        console.warn("Client-side next-auth signOut warn:", err);
+      }
+
+      // 3. Trigger server action signOut to clear cookies server-side
+      try {
+        await logoutAction();
+      } catch (err) {
+        console.warn("Server-side logoutAction warn:", err);
+      }
+
+      // 4. Force reload to home page to invalidate router cache
       window.location.href = "/";
     } catch (error) {
       console.error("Logout error:", error);
