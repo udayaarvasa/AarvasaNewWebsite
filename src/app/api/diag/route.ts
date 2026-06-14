@@ -11,8 +11,8 @@ export async function GET() {
   }
 
   try {
-    // Try a simple raw query to test database connectivity
-    await prisma.$queryRaw`SELECT 1`
+    // Try querying the User table to test if schema tables exist
+    await prisma.user.findMany({ take: 1 })
     diag.dbConnectionStatus = "success"
   } catch (error: any) {
     diag.dbConnectionStatus = "failed"
