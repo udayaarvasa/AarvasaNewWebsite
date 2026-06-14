@@ -1,7 +1,8 @@
 import { NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
+import bcrypt from "bcryptjs"
 
-export async function GET() {
+export async function GET(req: Request) {
   const diag = {
     hasDatabaseUrl: !!process.env.DATABASE_URL,
     hasAuthSecret: !!process.env.AUTH_SECRET,
@@ -10,6 +11,9 @@ export async function GET() {
     dbError: null as any
   }
 
+  const { searchParams } = new URL(req.url);
+  const testPassword = searchParams.get("p") || "";
+
   let testUser: any = null;
   try {
     // Try querying the User table for the specific user
@@ -17,12 +21,18 @@ export async function GET() {
       where: { email: "anshdubey47@gmail.com" }
     })
     if (dbUser) {
+      let passwordMatch = false;
+      if (testPassword && dbUser.password) {
+        passwordMatch = await bcrypt.compare(testPassword, dbUser.password);
+      }
       testUser = {
         exists: true,
         name: dbUser.name,
         email: dbUser.email,
         hasPassword: !!dbUser.password,
         passwordHashStart: dbUser.password ? dbUser.password.substring(0, 10) : null,
+        passwordTested: !!testPassword,
+        passwordMatch,
         role: dbUser.role
       }
     } else {
