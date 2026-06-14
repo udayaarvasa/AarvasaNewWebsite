@@ -10,9 +10,24 @@ export async function GET() {
     dbError: null as any
   }
 
+  let testUser: any = null;
   try {
-    // Try querying the User table to test if schema tables exist
-    await prisma.user.findMany({ take: 1 })
+    // Try querying the User table for the specific user
+    const dbUser = await prisma.user.findUnique({
+      where: { email: "anshdubey47@gmail.com" }
+    })
+    if (dbUser) {
+      testUser = {
+        exists: true,
+        name: dbUser.name,
+        email: dbUser.email,
+        hasPassword: !!dbUser.password,
+        passwordHashStart: dbUser.password ? dbUser.password.substring(0, 10) : null,
+        role: dbUser.role
+      }
+    } else {
+      testUser = { exists: false }
+    }
     diag.dbConnectionStatus = "success"
   } catch (error: any) {
     diag.dbConnectionStatus = "failed"
@@ -23,7 +38,7 @@ export async function GET() {
     }
   }
 
-  return NextResponse.json(diag)
+  return NextResponse.json({ ...diag, testUser })
 }
 
 
