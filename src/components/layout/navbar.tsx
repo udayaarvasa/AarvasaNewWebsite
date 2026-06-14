@@ -138,6 +138,26 @@ export function Navbar() {
   
   const user = session?.user;
   const authLoading = status === "loading";
+  const [profileOpen, setProfileOpen] = useState(false);
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      const target = event.target as HTMLElement;
+      if (!target.closest("#user-profile-menu")) {
+        setProfileOpen(false);
+      }
+    };
+    if (profileOpen) {
+      document.addEventListener("click", handleClickOutside);
+    }
+    return () => document.removeEventListener("click", handleClickOutside);
+  }, [profileOpen]);
+
+  useEffect(() => {
+    setProfileOpen(false);
+    setSearchOpen(false);
+    setOpen(false);
+  }, [pathname]);
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 18);
@@ -151,6 +171,7 @@ export function Navbar() {
       if (event.key === "Escape") {
         setSearchOpen(false);
         setOpen(false);
+        setProfileOpen(false);
       }
     };
 
@@ -192,11 +213,11 @@ export function Navbar() {
       >
         <div className="relative mx-auto max-w-7xl">
           <div className="flex h-16 items-center justify-between gap-3 rounded-2xl border border-[#DCCDCE]/45 bg-[#F2F1ED]/92 px-4 shadow-luxury-sm backdrop-blur-2xl transition-all duration-300 sm:px-6 lg:h-[4.35rem] lg:px-7">
-            <div className="flex flex-1 items-center justify-start">
+            <div className="flex items-center justify-start flex-shrink-0">
               <LogoLockup />
             </div>
 
-            <nav className="hidden min-w-0 flex-1 items-center justify-center gap-5 px-4 xl:flex xl:gap-6">
+            <nav className="hidden min-w-0 flex-grow items-center justify-center gap-4 px-2 xl:flex xl:gap-5">
               {navLinks.map((link) => (
                 <DesktopNavLink
                   key={link.href}
@@ -206,7 +227,7 @@ export function Navbar() {
               ))}
             </nav>
 
-            <div className="hidden flex-1 items-center justify-end gap-2 xl:flex">
+            <div className="hidden items-center justify-end gap-2 xl:flex flex-shrink-0">
               <Button
                 type="button"
                 variant="glass"
@@ -220,44 +241,61 @@ export function Navbar() {
               </Button>
 
               {!authLoading && user ? (
-                <>
-                  <Button
-                    asChild
-                    variant="ghost"
-                    size="sm"
-                    className="rounded-full px-4 text-sm text-[#50080E] hover:bg-[#50080E]/5 hover:text-[#D4AF37]"
+                <div id="user-profile-menu" className="relative flex items-center gap-2">
+                  <button
+                    onClick={() => setProfileOpen((prev) => !prev)}
+                    className="flex h-10 w-10 items-center justify-center rounded-full bg-[#902941] text-sm font-bold text-white shadow-[0_8px_22px_rgba(80,8,14,0.18)] transition-all hover:scale-105 focus:outline-none focus:ring-2 focus:ring-[#D4AF37]/75 cursor-pointer"
+                    aria-label="User profile menu"
+                    aria-expanded={profileOpen}
                   >
-                    <Link href="/dashboard">
-                      <LayoutDashboard className="h-3.5 w-3.5" />
-                      Dashboard
-                    </Link>
-                  </Button>
-                  {(user as any).role === "ADMIN" && (
-                    <Button
-                      asChild
-                      variant="ghost"
-                      size="sm"
-                      className="rounded-full px-3 text-sm text-[#50080E] hover:bg-[#50080E]/5 hover:text-[#D4AF37]"
-                    >
-                      <Link href="/admin">
-                        <Shield className="h-3.5 w-3.5" />
-                        Admin
-                      </Link>
-                    </Button>
-                  )}
-                  <div className="flex h-10 w-10 items-center justify-center rounded-full bg-[#902941] text-sm font-bold text-white shadow-[0_8px_22px_rgba(80,8,14,0.18)]">
                     {user.name ? user.name.charAt(0).toUpperCase() : "A"}
-                  </div>
-                  <Button
-                    onClick={handleLogout}
-                    variant="gold"
-                    size="sm"
-                    className="rounded-full px-4 text-xs font-bold uppercase tracking-wider"
-                  >
-                    <LogOut className="h-3.5 w-3.5" />
-                    Logout
-                  </Button>
-                </>
+                  </button>
+
+                  {profileOpen && (
+                    <div className="absolute right-0 top-[calc(100%+0.5rem)] w-56 origin-top-right rounded-2xl border border-[#DCCDCE]/55 bg-[#F2F1ED]/96 p-2 shadow-luxury-lg backdrop-blur-2xl animate-fade-up z-50">
+                      <div className="px-3 py-2">
+                        <p className="text-[10px] font-bold uppercase tracking-wider text-[#50080E]/60">Logged in as</p>
+                        <p className="truncate text-sm font-bold text-[#50080E]">{user.name || "User"}</p>
+                        <p className="truncate text-xs text-[#50080E]/70">{user.email}</p>
+                      </div>
+                      
+                      <div className="my-1 border-t border-[#DCCDCE]/45" />
+                      
+                      <Link
+                        href="/dashboard"
+                        className="flex w-full items-center gap-2.5 rounded-xl px-3 py-2 text-sm font-semibold text-[#50080E] transition-colors hover:bg-[#50080E]/5 hover:text-[#D4AF37]"
+                        onClick={() => setProfileOpen(false)}
+                      >
+                        <LayoutDashboard className="h-4 w-4 text-[#D4AF37]" />
+                        Dashboard
+                      </Link>
+                      
+                      {(user as any).role === "ADMIN" && (
+                        <Link
+                          href="/admin"
+                          className="flex w-full items-center gap-2.5 rounded-xl px-3 py-2 text-sm font-semibold text-[#50080E] transition-colors hover:bg-[#50080E]/5 hover:text-[#D4AF37]"
+                          onClick={() => setProfileOpen(false)}
+                        >
+                          <Shield className="h-4 w-4 text-[#D4AF37]" />
+                          Admin Panel
+                        </Link>
+                      )}
+                      
+                      <div className="my-1 border-t border-[#DCCDCE]/45" />
+                      
+                      <button
+                        onClick={() => {
+                          setProfileOpen(false);
+                          handleLogout();
+                        }}
+                        className="flex w-full items-center gap-2.5 rounded-xl px-3 py-2 text-sm font-semibold text-red-700/85 transition-colors hover:bg-red-500/10 hover:text-red-700 cursor-pointer"
+                      >
+                        <LogOut className="h-4 w-4 text-red-600" />
+                        Logout
+                      </button>
+                    </div>
+                  )}
+                </div>
               ) : !authLoading ? (
                 <>
                   <Button
@@ -358,30 +396,67 @@ export function Navbar() {
                   ))}
                 </div>
 
-                <div className="mt-3 grid gap-2 border-t border-[#DCCDCE]/45 pt-3 sm:grid-cols-2">
+                <div className="mt-3 border-t border-[#DCCDCE]/45 pt-3">
                   {!authLoading && user ? (
-                    <>
-                      <div className="flex items-center justify-center gap-2 rounded-full border border-[#DCCDCE]/70 bg-white/40 px-3 py-2 text-sm font-bold text-[#50080E]">
-                        <div className="flex h-7 w-7 items-center justify-center rounded-full bg-[#902941] text-xs text-white">
+                    <div className="flex flex-col gap-2">
+                      <div className="flex items-center gap-3 rounded-2xl border border-[#DCCDCE]/60 bg-white/45 px-4 py-2.5 text-[#50080E]">
+                        <div className="flex h-9 w-9 items-center justify-center rounded-full bg-[#902941] text-sm font-bold text-white shadow-[0_4px_12px_rgba(80,8,14,0.12)]">
                           {user.name ? user.name.charAt(0).toUpperCase() : "A"}
                         </div>
-                        <span className="truncate">{user.name ? user.name.split(" ")[0] : "User"}</span>
+                        <div className="min-w-0 flex-1">
+                          <p className="truncate text-sm font-bold text-[#50080E]">{user.name || "User"}</p>
+                          <p className="truncate text-xs text-[#50080E]/70">{user.email}</p>
+                        </div>
                       </div>
-                      <Button
-                        onClick={() => {
-                          handleLogout();
-                          setOpen(false);
-                        }}
-                        variant="gold"
-                        size="sm"
-                        className="rounded-full"
-                      >
-                        <LogOut className="h-3.5 w-3.5" />
-                        Logout
-                      </Button>
-                    </>
+                      
+                      <div className="grid gap-2 sm:grid-cols-2">
+                        <Button
+                          asChild
+                          variant="outline"
+                          size="sm"
+                          onClick={() => setOpen(false)}
+                          className="rounded-full bg-white/35 border-[#DCCDCE]/70"
+                        >
+                          <Link href="/dashboard" className="flex items-center justify-center gap-2">
+                            <LayoutDashboard className="h-3.5 w-3.5" />
+                            Dashboard
+                          </Link>
+                        </Button>
+                        
+                        {(user as any).role === "ADMIN" && (
+                          <Button
+                            asChild
+                            variant="outline"
+                            size="sm"
+                            onClick={() => setOpen(false)}
+                            className="rounded-full bg-white/35 border-[#DCCDCE]/70"
+                          >
+                            <Link href="/admin" className="flex items-center justify-center gap-2">
+                              <Shield className="h-3.5 w-3.5" />
+                              Admin Panel
+                            </Link>
+                          </Button>
+                        )}
+                        
+                        <Button
+                          onClick={() => {
+                            handleLogout();
+                            setOpen(false);
+                          }}
+                          variant="gold"
+                          size="sm"
+                          className={cn(
+                            "rounded-full",
+                            (user as any).role !== "ADMIN" ? "sm:col-span-1" : "sm:col-span-2"
+                          )}
+                        >
+                          <LogOut className="h-3.5 w-3.5" />
+                          Logout
+                        </Button>
+                      </div>
+                    </div>
                   ) : !authLoading ? (
-                    <>
+                    <div className="grid gap-2 sm:grid-cols-2">
                       <Button
                         asChild
                         variant="outline"
@@ -403,9 +478,9 @@ export function Navbar() {
                           Dashboard
                         </Link>
                       </Button>
-                    </>
+                    </div>
                   ) : (
-                    <div className="h-10 animate-pulse rounded-full bg-[#DCCDCE]/35 sm:col-span-2" />
+                    <div className="h-10 animate-pulse rounded-full bg-[#DCCDCE]/35" />
                   )}
                 </div>
 
