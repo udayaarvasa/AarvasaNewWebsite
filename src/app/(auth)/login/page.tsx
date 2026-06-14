@@ -17,7 +17,7 @@ export default function LoginPage() {
       </div>
 
       {/* Left side - Auth Form */}
-      <div className="w-full lg:w-1/2 flex flex-col justify-center items-center p-8 z-10 relative">
+      <div className="w-full lg:w-1/2 flex flex-col justify-center items-center p-8 pt-28 z-10 relative">
         <div className="absolute top-8 left-8">
           <Link href="/" className="flex items-center gap-2">
             <span className="relative h-10 w-44 sm:h-12 sm:w-52">

@@ -37,7 +37,7 @@ export default function SignupPage() {
       </div>
 
       {/* Right side - Auth Form */}
-      <div className="w-full lg:w-1/2 flex flex-col justify-center items-center p-8 z-10 relative">
+      <div className="w-full lg:w-1/2 flex flex-col justify-center items-center p-8 pt-28 z-10 relative">
         <div className="absolute top-8 right-8">
           <Link href="/" className="flex items-center gap-2">
             <span className="text-2xl font-serif text-[#D4AF37] font-bold tracking-wider">AARVASA</span>
