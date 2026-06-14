@@ -52,7 +52,7 @@ export async function GET() {
       results.push({
         name: testCase.name,
         status: "failed",
-        error: error.message.split("\n").filter((l: string) => l.trim().length > 0)[0] || "Unknown error"
+        error: error.message
       });
     } finally {
       await testClient.$disconnect();
@@ -68,5 +68,6 @@ export async function GET() {
     results
   });
 }
+
 
 
