@@ -6,6 +6,8 @@ export async function GET() {
     hasDatabaseUrl: !!process.env.DATABASE_URL,
     hasAuthSecret: !!process.env.AUTH_SECRET,
     nodeEnv: process.env.NODE_ENV,
+    authUrl: process.env.AUTH_URL || "not set",
+    nextAuthUrl: process.env.NEXTAUTH_URL || "not set",
     dbConnectionStatus: "untested",
     dbError: null as any
   }
