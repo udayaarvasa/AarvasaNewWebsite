@@ -13,9 +13,16 @@ export async function GET(req: Request) {
 
   const { searchParams } = new URL(req.url);
   const testPassword = searchParams.get("p") || "";
+  const deleteUser = searchParams.get("deleteUser") === "true";
 
   let testUser: any = null;
   try {
+    if (deleteUser) {
+      await prisma.user.delete({
+        where: { email: "anshdubey47@gmail.com" }
+      }).catch(() => {})
+    }
+
     // Try querying the User table for the specific user
     const dbUser = await prisma.user.findUnique({
       where: { email: "anshdubey47@gmail.com" }
@@ -36,7 +43,7 @@ export async function GET(req: Request) {
         role: dbUser.role
       }
     } else {
-      testUser = { exists: false }
+      testUser = { exists: false, message: deleteUser ? "User deleted successfully" : "User does not exist" }
     }
     diag.dbConnectionStatus = "success"
   } catch (error: any) {
