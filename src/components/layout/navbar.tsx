@@ -14,8 +14,7 @@ import {
   Sparkles,
   X,
 } from "lucide-react";
-import { useSession } from "next-auth/react";
-import { logoutAction } from "@/app/actions/auth";
+import { useSession, signOut } from "next-auth/react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { ThemeToggle } from "./theme-toggle";
@@ -160,7 +159,13 @@ export function Navbar() {
   }, []);
 
   const handleLogout = async () => {
-    await logoutAction();
+    try {
+      await signOut({ redirect: false });
+      window.location.href = "/";
+    } catch (error) {
+      console.error("Logout error:", error);
+      window.location.href = "/";
+    }
   };
 
   const handleSearch = (event: FormEvent<HTMLFormElement>) => {
