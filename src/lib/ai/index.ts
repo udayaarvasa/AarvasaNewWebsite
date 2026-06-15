@@ -1,13 +1,12 @@
 // ─── Aarvasa AI — Multi-Source Intelligence Orchestrator ─────────────────────
-// Processes queries through: parse → aggregate → prompt → stream/mock.
+// Processes queries through: parse → aggregate → prompt → stream.
 
 import type { ChatMessage, QueryParameters, AiResult, AggregatedResult } from "./types";
 import { parseQuery } from "./query-parser";
 import { aggregateSources, formatAggregatedForPrompt } from "./source-aggregator";
-import { buildSystemPrompt, buildGreetingPrompt, buildOpenAIMessages } from "./prompt-builder";
-import { generateMockResponse } from "./mock-generator";
+import { buildSystemPrompt, buildGreetingPrompt, buildGeminiPayload } from "./prompt-builder";
 import { aiResponseCache, buildCacheKey } from "./cache";
-import { isRateLimited, OPENAI_LIMIT } from "./rate-limiter";
+import { isRateLimited, GEMINI_LIMIT } from "./rate-limiter";
 
 const EMPTY_AGGREGATION: AggregatedResult = {
   properties: [],
@@ -40,18 +39,26 @@ export async function processAdvisorQuery(
     aggregated = EMPTY_AGGREGATION;
   }
 
-  const apiKey = process.env.OPENAI_API_KEY;
+  const apiKey = process.env.GEMINI_API_KEY;
 
-  // No API key → mock mode
+  // No API key → user notification
   if (!apiKey) {
-    const text = generateMockResponse(aggregated, params);
-    return { text, mode: "mock", aggregatedResult: aggregated, parsedParams: params };
+    return {
+      text: "Aarvasa AI Advisor requires `GEMINI_API_KEY` to be configured in the environment variables. Please add your Gemini API key to `.env` to enable the advisor.",
+      mode: "gemini",
+      aggregatedResult: aggregated,
+      parsedParams: params,
+    };
   }
 
   // Rate limiting
-  if (isRateLimited("openai:global", OPENAI_LIMIT)) {
-    const text = generateMockResponse(aggregated, params);
-    return { text, mode: "mock", aggregatedResult: aggregated, parsedParams: params };
+  if (isRateLimited("gemini:global", GEMINI_LIMIT)) {
+    return {
+      text: "Aarvasa AI Advisor is currently experiencing high demand. Please try again in a few seconds.",
+      mode: "gemini",
+      aggregatedResult: aggregated,
+      parsedParams: params,
+    };
   }
 
   // Check AI response cache (avoid duplicate calls for same query context)
@@ -61,42 +68,48 @@ export async function processAdvisorQuery(
   });
   const cachedResponse = aiResponseCache.get<string>(responseCacheKey);
   if (cachedResponse) {
-    return { text: cachedResponse, mode: "openai", aggregatedResult: aggregated, parsedParams: params };
+    return { text: cachedResponse, mode: "gemini", aggregatedResult: aggregated, parsedParams: params };
   }
 
   // Build prompt with full multi-source context
   const aggregatedContext = formatAggregatedForPrompt(aggregated);
   const systemPrompt = buildSystemPrompt(aggregatedContext, params);
-  const openaiMessages = buildOpenAIMessages(systemPrompt, messages);
+  const geminiPayload = buildGeminiPayload(systemPrompt, messages);
+  const model = process.env.GEMINI_MODEL || "gemini-3.5-flash";
 
   try {
-    const response = await fetch("https://api.openai.com/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${apiKey}`,
-      },
-      body: JSON.stringify({
-        model: process.env.OPENAI_MODEL || "gpt-4o",
-        messages: openaiMessages,
-        max_tokens: 1500,
-        temperature: 0.72,
-        stream: true,
-      }),
-    });
+    const response = await fetch(
+      `https://generativelanguage.googleapis.com/v1beta/models/${model}:streamGenerateContent?alt=sse&key=${apiKey}`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(geminiPayload),
+      }
+    );
 
     if (!response.ok) {
-      console.error(`OpenAI API error: ${response.status} ${response.statusText}`);
-      const text = generateMockResponse(aggregated, params);
-      return { text, mode: "mock", aggregatedResult: aggregated, parsedParams: params };
+      const errorText = await response.text();
+      console.error(`Gemini API error: ${response.status} ${response.statusText} - ${errorText}`);
+      return {
+        text: "I encountered an error communicating with the Gemini AI service. Please try again shortly.",
+        mode: "gemini",
+        aggregatedResult: aggregated,
+        parsedParams: params,
+      };
     }
 
-    const stream = transformOpenAIStream(response.body!, responseCacheKey);
-    return { stream, mode: "openai", aggregatedResult: aggregated, parsedParams: params };
+    const stream = transformGeminiStream(response.body!, responseCacheKey);
+    return { stream, mode: "gemini", aggregatedResult: aggregated, parsedParams: params };
   } catch (error) {
-    console.error("OpenAI request failed:", error);
-    const text = generateMockResponse(aggregated, params);
-    return { text, mode: "mock", aggregatedResult: aggregated, parsedParams: params };
+    console.error("Gemini request failed:", error);
+    return {
+      text: "I encountered a network error while trying to reach the Gemini AI service. Please check your connection and try again.",
+      mode: "gemini",
+      aggregatedResult: aggregated,
+      parsedParams: params,
+    };
   }
 }
 
@@ -104,50 +117,59 @@ async function handleGreeting(
   messages: ChatMessage[],
   params: QueryParameters,
 ): Promise<AiResult> {
-  const apiKey = process.env.OPENAI_API_KEY;
+  const apiKey = process.env.GEMINI_API_KEY;
 
   if (!apiKey) {
-    const text = generateMockResponse(EMPTY_AGGREGATION, params);
-    return { text, mode: "mock", aggregatedResult: EMPTY_AGGREGATION, parsedParams: params };
+    return {
+      text: "Welcome to **Aarvasa AI** — India's multi-source real estate intelligence platform. To get started, please configure the `GEMINI_API_KEY` environment variable.",
+      mode: "gemini",
+      aggregatedResult: EMPTY_AGGREGATION,
+      parsedParams: params,
+    };
   }
 
   const systemPrompt = buildGreetingPrompt();
-  const openaiMessages = buildOpenAIMessages(systemPrompt, messages);
+  const geminiPayload = buildGeminiPayload(systemPrompt, messages);
+  const model = process.env.GEMINI_MODEL || "gemini-3.5-flash";
 
   try {
-    const response = await fetch("https://api.openai.com/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${apiKey}`,
-      },
-      body: JSON.stringify({
-        model: process.env.OPENAI_MODEL || "gpt-4o",
-        messages: openaiMessages,
-        max_tokens: 400,
-        temperature: 0.8,
-        stream: true,
-      }),
-    });
+    const response = await fetch(
+      `https://generativelanguage.googleapis.com/v1beta/models/${model}:streamGenerateContent?alt=sse&key=${apiKey}`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(geminiPayload),
+      }
+    );
 
     if (!response.ok) {
-      const text = generateMockResponse(EMPTY_AGGREGATION, params);
-      return { text, mode: "mock", aggregatedResult: EMPTY_AGGREGATION, parsedParams: params };
+      return {
+        text: "Welcome to **Aarvasa AI** — India's multi-source real estate intelligence platform. I combine our verified property database, real-time market signals, and AI-powered analysis to surface investment-grade opportunities. Ask for a city, budget, risk profile, or target ROI to get started.",
+        mode: "gemini",
+        aggregatedResult: EMPTY_AGGREGATION,
+        parsedParams: params,
+      };
     }
 
-    const stream = transformOpenAIStream(response.body!);
-    return { stream, mode: "openai", aggregatedResult: EMPTY_AGGREGATION, parsedParams: params };
+    const stream = transformGeminiStream(response.body!);
+    return { stream, mode: "gemini", aggregatedResult: EMPTY_AGGREGATION, parsedParams: params };
   } catch {
-    const text = generateMockResponse(EMPTY_AGGREGATION, params);
-    return { text, mode: "mock", aggregatedResult: EMPTY_AGGREGATION, parsedParams: params };
+    return {
+      text: "Welcome to **Aarvasa AI** — India's multi-source real estate intelligence platform. I combine our verified property database, real-time market signals, and AI-powered analysis to surface investment-grade opportunities. Ask for a city, budget, risk profile, or target ROI to get started.",
+      mode: "gemini",
+      aggregatedResult: EMPTY_AGGREGATION,
+      parsedParams: params,
+    };
   }
 }
 
 /**
- * Transform OpenAI SSE stream into a clean text stream.
+ * Transform Gemini SSE stream into a clean text stream.
  * Optionally caches the full response for dedup.
  */
-function transformOpenAIStream(
+function transformGeminiStream(
   inputStream: ReadableStream<Uint8Array>,
   cacheKey?: string,
 ): ReadableStream<Uint8Array> {
@@ -178,21 +200,14 @@ function transformOpenAIStream(
             const trimmed = line.trim();
             if (!trimmed || !trimmed.startsWith("data: ")) continue;
             const data = trimmed.slice(6);
-            if (data === "[DONE]") {
-              if (cacheKey && fullText.length > 0) {
-                aiResponseCache.set(cacheKey, fullText, 120);
-              }
-              controller.close();
-              return;
-            }
             try {
               const parsed = JSON.parse(data);
-              const content = parsed.choices?.[0]?.delta?.content;
+              const content = parsed.candidates?.[0]?.content?.parts?.[0]?.text;
               if (content) {
                 fullText += content;
                 controller.enqueue(encoder.encode(content));
               }
-            } catch { /* skip malformed chunks */ }
+            } catch { /* skip metadata or empty chunks */ }
           }
         }
       } catch (error) {

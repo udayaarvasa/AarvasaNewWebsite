@@ -178,7 +178,7 @@ export interface CacheEntry<T> {
 export interface AiResult {
   stream?: ReadableStream<Uint8Array>;
   text?: string;
-  mode: "openai" | "mock";
+  mode: "gemini";
   aggregatedResult: AggregatedResult;
   parsedParams: QueryParameters;
 }

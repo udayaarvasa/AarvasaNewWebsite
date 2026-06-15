@@ -42,11 +42,11 @@ Create `.env.local` from `.env.example`.
 MONGODB_URI=mongodb+srv://USER:PASSWORD@cluster.mongodb.net/aarvasa
 JWT_SECRET=replace-with-a-long-random-secret
 NEXT_PUBLIC_MAPBOX_TOKEN=
-OPENAI_API_KEY=
-OPENAI_MODEL=gpt-5.2
+GEMINI_API_KEY=
+GEMINI_MODEL=gemini-3.5-flash
 ```
 
-Without MongoDB configured, auth and blockchain transactions fall back to demo mode so the UI can be reviewed locally. Without `OPENAI_API_KEY`, `/api/chat` returns intelligent mock property suggestions.
+Without MongoDB configured, auth and blockchain transactions fall back to demo mode so the UI can be reviewed locally. Without a valid `GEMINI_API_KEY`, `/api/chat` returns a setup instruction response.
 
 ## Run
 

@@ -86,8 +86,8 @@ export const EXTERNAL_API_LIMIT = {
   refillRatePerSecond: 0.33, // ~20 requests per minute
 };
 
-/** Rate limit for OpenAI API calls */
-export const OPENAI_LIMIT = {
+/** Rate limit for Gemini API calls */
+export const GEMINI_LIMIT = {
   maxTokens: 15,
   refillRatePerSecond: 0.25, // ~15 requests per minute
 };

@@ -58,27 +58,27 @@ export async function POST(request: Request) {
       "X-Properties-Evaluated": String(result.aggregatedResult.totalCandidates),
     };
 
-    // Streaming response (OpenAI)
+    // Streaming response (Gemini)
     if (result.stream) {
       return new Response(result.stream, { headers });
     }
 
-    // Mock streaming — character-by-character for typing effect
-    const mockText = result.text || "I'm unable to process your request right now.";
+    // Text typing stream — character-by-character for typing effect (for cached responses or error info)
+    const textResponse = result.text || "I'm unable to process your request right now.";
     const encoder = new TextEncoder();
 
-    const mockStream = new ReadableStream<Uint8Array>({
+    const typingStream = new ReadableStream<Uint8Array>({
       async start(controller) {
         const chunkSize = 4;
-        for (let i = 0; i < mockText.length; i += chunkSize) {
-          controller.enqueue(encoder.encode(mockText.slice(i, i + chunkSize)));
+        for (let i = 0; i < textResponse.length; i += chunkSize) {
+          controller.enqueue(encoder.encode(textResponse.slice(i, i + chunkSize)));
           await new Promise((r) => setTimeout(r, 6));
         }
         controller.close();
       },
     });
 
-    return new Response(mockStream, { headers });
+    return new Response(typingStream, { headers });
   } catch (error) {
     console.error("AI advisor error:", error);
     return new Response(

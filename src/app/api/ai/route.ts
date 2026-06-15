@@ -13,14 +13,14 @@ import { apiCache } from "@/lib/ai/cache";
  */
 export async function GET() {
   const providers = getProviderStatus();
-  const hasOpenAI = !!process.env.OPENAI_API_KEY;
+  const hasGemini = !!process.env.GEMINI_API_KEY;
   const cacheStats = apiCache.stats();
 
   return NextResponse.json({
     status: "operational",
     version: "2.0.0",
-    mode: hasOpenAI ? "openai" : "mock",
-    model: process.env.OPENAI_MODEL || "gpt-4o",
+    mode: "gemini",
+    model: process.env.GEMINI_MODEL || "gemini-3.5-flash",
     providers: providers.map((p) => ({
       name: p.name,
       source: p.source,

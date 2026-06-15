@@ -115,14 +115,35 @@ Ask what kind of opportunity they're exploring. Keep it under 4 sentences. Sound
 }
 
 /**
- * Convert chat messages into OpenAI-compatible format.
+ * Convert chat messages into Gemini-compatible format.
  */
-export function buildOpenAIMessages(
+export function buildGeminiPayload(
   systemPrompt: string,
   conversationHistory: ChatMessage[],
-): Array<{ role: string; content: string }> {
-  return [
-    { role: "system", content: systemPrompt },
-    ...conversationHistory.map((m) => ({ role: m.role, content: m.content })),
-  ];
+): {
+  systemInstruction: { parts: Array<{ text: string }> };
+  contents: Array<{ role: string; parts: Array<{ text: string }> }>;
+} {
+  const contents: Array<{ role: string; parts: Array<{ text: string }> }> = [];
+
+  for (const msg of conversationHistory) {
+    const role = msg.role === "assistant" ? "model" : "user";
+    const text = msg.content;
+
+    if (contents.length > 0 && contents[contents.length - 1].role === role) {
+      contents[contents.length - 1].parts[0].text += "\n" + text;
+    } else {
+      contents.push({
+        role,
+        parts: [{ text }],
+      });
+    }
+  }
+
+  return {
+    systemInstruction: {
+      parts: [{ text: systemPrompt }],
+    },
+    contents,
+  };
 }
