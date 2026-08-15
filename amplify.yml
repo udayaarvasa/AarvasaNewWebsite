@@ -8,7 +8,10 @@ frontend:
     build:
       commands:
         - env | grep -E '^(DATABASE_URL|AUTH_|MONGODB_URI|GEMINI_|RAPIDAPI_|RERA_|GOOGLE_|NEWS_|RENTAL_|CLOUDINARY_)' >> .env.production || true
-        - npx prisma db push
+        # NOTE: `prisma db push` was removed from the build on purpose. It mutated the
+        # production schema on every deploy (it can drop columns/data on drift) and it
+        # made deploys fail whenever the database was unreachable. Apply schema changes
+        # deliberately instead — see README "Applying schema changes".
         - npm run build
   artifacts:
     baseDirectory: .next
