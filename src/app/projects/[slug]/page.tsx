@@ -8,6 +8,12 @@ import { MotionReveal } from "@/components/layout/motion-reveal";
 import { reefProjects, getReefProject } from "@/lib/reef-projects";
 import { formatCurrency, inrEstimate, AED_TO_INR } from "@/lib/currency";
 
+// Only projects listed by generateStaticParams resolve; anything else 404s at the
+// routing layer. Without this, unreleased projects (997/998 — no imagery yet) were
+// served as soft-404s: HTTP 200, with generateMetadata still emitting a real
+// "REEF 997 — Dubai Islands" title that search engines could index.
+export const dynamicParams = false;
+
 export function generateStaticParams() {
   return reefProjects
     .filter((p) => p.images.length > 0)
