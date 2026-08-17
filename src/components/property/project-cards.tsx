@@ -31,7 +31,9 @@ export function ProjectCards() {
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
         {items.map((project, i) => {
           const cover = project.images[0] ?? project.planImages[0] ?? null;
-          const isPlanOnly = project.images.length === 0;
+          // True only when the cover is actually a drawing — a project with no
+          // artwork at all shows the gradient panel and no badge.
+          const isPlanCover = !project.images[0] && !!project.planImages[0];
           const price =
             project.fromPrice > 0
               ? formatCompact(project.fromPrice, project.currency)
@@ -53,13 +55,13 @@ export function ProjectCards() {
                       fill
                       sizes="(min-width: 1024px) 33vw, (min-width: 768px) 50vw, 100vw"
                       className={
-                        isPlanOnly
+                        isPlanCover
                           ? "object-contain object-top opacity-90 p-2"
                           : "object-cover transition duration-500 group-hover:scale-105"
                       }
                     />
                   )}
-                  {isPlanOnly && (
+                  {isPlanCover && (
                     <span className="absolute bottom-3 left-3 rounded-full bg-black/60 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wide text-white/90 backdrop-blur-md">
                       Layout plan
                     </span>

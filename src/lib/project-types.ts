@@ -44,6 +44,14 @@ export type Project = {
   maxSqft: number;
   /** Headline rate, e.g. 3500 for plots sold per sq.ft. null when priced per unit. */
   ratePerSqft: number | null;
+  /** Extra pricing detail where a single rate understates it (tiered plot rates). */
+  rateNote: string | null;
+  /**
+   * Whether the project is live on the site. Explicit rather than inferred from
+   * imagery: a project can be worth publishing on its facts alone, with a
+   * typographic panel standing in for a photo it does not yet have.
+   */
+  published: boolean;
   unitTypes: ProjectUnitType[];
   views: string[];
   images: string[];

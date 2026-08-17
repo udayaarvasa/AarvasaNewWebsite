@@ -227,7 +227,10 @@ export default async function ProjectPage({
             <section className="mt-12 rounded-2xl border border-border bg-card p-6">
               <h2 className="text-2xl font-black text-foreground">Pricing</h2>
               <p className="mt-2 text-muted-foreground">
-                Plots are sold at {formatCurrency(project.ratePerSqft, project.currency)} per sq.ft.
+                {project.rateNote ??
+                  `Plots are sold at ${formatCurrency(project.ratePerSqft, project.currency)} per sq.ft.`}
+              </p>
+              <p className="mt-3 text-sm text-muted-foreground">
                 Individual plot dimensions vary across the layout — contact Aarvasa for the plot
                 schedule and exact pricing.
               </p>

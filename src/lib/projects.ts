@@ -15,9 +15,10 @@ import { reefProjects } from "./reef-projects";
  *    layout drawings. A project with neither stays unpublished.
  */
 
+// Shared across both Aaradhyam layouts. Road surfacing differs per project, so
+// each one states its own rather than duplicating a generic line.
 const PLOT_USPS = [
   "Gated colony with boundary wall and 24×7 security",
-  "9 m wide roads with street lighting",
   "Lab-tested drinking water supply",
   "Landscaped gardens and open play area",
 ];
@@ -41,6 +42,8 @@ const aaradhyamPearl: Project = {
   minSqft: 770,
   maxSqft: 880,
   ratePerSqft: 3500,
+  rateNote: null,
+  published: true,
   unitTypes: [
     {
       type: "22X35",
@@ -71,6 +74,7 @@ const aaradhyamPearl: Project = {
   nearby: [],
   usps: [
     ...PLOT_USPS,
+    "9 m wide roads with street lighting",
     "½ inch water supply line to every plot",
     "Dedicated commercial shop plots within the colony",
   ],
@@ -102,6 +106,9 @@ const aaradhyamPrime: Project = {
   minSqft: 0,
   maxSqft: 0,
   ratePerSqft: 5200,
+  rateNote:
+    "Plots 1–11 are ₹5,500/sq.ft and plots 12–21 are ₹5,200/sq.ft. Plots 28–37 are allocated under the LIG and EWS schemes.",
+  published: true,
   unitTypes: [],
   views: [],
   images: [],
@@ -116,7 +123,7 @@ const aaradhyamPrime: Project = {
   ],
   usps: [
     ...PLOT_USPS,
-    "9 m wide RCC roads",
+    "9 m wide RCC roads with street lighting",
     "Residential and commercial plots within one layout",
   ],
   approvals: ["Approved by Government Department"],
@@ -130,9 +137,8 @@ export const projects: Project[] = [
   aaradhyamPrime,
 ];
 
-/** A project is publishable once it has any imagery — photography or a plan. */
-export const isPublished = (p: Project): boolean =>
-  p.images.length > 0 || p.planImages.length > 0;
+/** Live on the site. Set per project rather than inferred from imagery. */
+export const isPublished = (p: Project): boolean => p.published;
 
 export const publishedProjects = (): Project[] => projects.filter(isPublished);
 

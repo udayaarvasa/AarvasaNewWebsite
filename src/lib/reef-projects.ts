@@ -20,6 +20,8 @@ export const reefProjects: Project[] = [
     "kind": "apartments",
     "completion": "Q3 2028",
     "ratePerSqft": null,
+    "rateNote": null,
+    "published": true,
     "planImages": [],
     "approvals": [],
     "contact": [
@@ -168,6 +170,8 @@ export const reefProjects: Project[] = [
     "kind": "apartments",
     "completion": "March 2028",
     "ratePerSqft": null,
+    "rateNote": null,
+    "published": false,
     "planImages": [],
     "approvals": [],
     "contact": [
@@ -244,6 +248,8 @@ export const reefProjects: Project[] = [
     "kind": "apartments",
     "completion": "June 2028",
     "ratePerSqft": null,
+    "rateNote": null,
+    "published": false,
     "planImages": [],
     "approvals": [],
     "contact": [
