@@ -1,5 +1,6 @@
 import {
   HeroSection,
+  ReefSpotlight,
   FeaturedListings,
   AIAnalytics,
   InvestorTrust,
@@ -17,7 +18,10 @@ export default function Home() {
       {/* 1. Cinematic full-viewport hero */}
       <HeroSection />
 
-      {/* 2. Featured luxury property listings */}
+      {/* 2. Exclusive Dubai launch — REEF 996 */}
+      <ReefSpotlight />
+
+      {/* 3. Featured luxury property listings */}
       <FeaturedListings />
 
       {/* 3. AI analytics showcase */}

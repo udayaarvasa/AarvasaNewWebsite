@@ -1,4 +1,5 @@
 export { HeroSection } from "./hero-section";
+export { ReefSpotlight } from "./reef-spotlight";
 export { FeaturedListings } from "./featured-listings";
 export { AIAnalytics } from "./ai-analytics";
 export { InvestorTrust } from "./investor-trust";
