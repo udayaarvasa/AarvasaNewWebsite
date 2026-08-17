@@ -2,6 +2,7 @@ import { Suspense } from "react";
 import { ListingExperience } from "@/components/property/listing-experience";
 import { ListingsGrid } from "@/components/property/listings-grid";
 import { ReefSpotlight } from "@/components/homepage/reef-spotlight";
+import { ProjectCards } from "@/components/property/project-cards";
 import { PropertyGridSkeleton } from "@/components/property/property-skeleton";
 import { Activity, BrainCircuit, Target } from "lucide-react";
 import Link from "next/link";
@@ -58,6 +59,9 @@ export default function ListingsPage() {
 
       {/* ── EXCLUSIVE DUBAI LAUNCH ── */}
       <ReefSpotlight />
+
+      {/* ── EXCLUSIVE DEVELOPER PROJECTS ── */}
+      <ProjectCards />
 
       {/* ── DATABASE-DRIVEN LISTINGS ── */}
       <section className="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8 relative z-0">

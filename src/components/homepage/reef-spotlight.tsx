@@ -3,13 +3,13 @@ import Link from "next/link";
 import { ArrowRight, BadgeCheck, Building2, CalendarClock, MapPin, Ruler, Wind } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { MotionReveal } from "@/components/layout/motion-reveal";
-import { getReefProject } from "@/lib/reef-projects";
+import { getProject } from "@/lib/projects";
 import { formatCurrency, inrEstimate } from "@/lib/currency";
 
 const SLUG = "reef-996-dubai-production-city";
 
 export function ReefSpotlight() {
-  const project = getReefProject(SLUG);
+  const project = getProject(SLUG);
   if (!project) return null;
 
   const hero = project.images[1] ?? project.images[0];
@@ -66,10 +66,10 @@ export function ReefSpotlight() {
               <div className="mt-7 flex flex-wrap items-baseline gap-x-4 gap-y-1">
                 <span className="text-sm uppercase tracking-widest text-white/50">Starting from</span>
                 <span className="text-3xl font-black text-white sm:text-4xl">
-                  {formatCurrency(project.fromAed, project.currency)}
+                  {formatCurrency(project.fromPrice, project.currency)}
                 </span>
                 <span className="text-lg font-medium text-[#f5d27a]">
-                  {inrEstimate(project.fromAed, project.currency)}
+                  {inrEstimate(project.fromPrice, project.currency)}
                 </span>
               </div>
 
@@ -97,7 +97,7 @@ export function ReefSpotlight() {
                     >
                       <span className="font-semibold text-white">{unit.label}</span>
                       <span className="mx-1.5 text-white/30">·</span>
-                      from {formatCurrency(unit.fromAed, project.currency)}
+                      from {formatCurrency(unit.fromPrice, project.currency)}
                     </span>
                   ))}
                 </div>

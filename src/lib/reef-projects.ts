@@ -1,55 +1,14 @@
-// GENERATED from the Reef inventory dated 28 June 2026 and the "Four Whys" brochure.
-// Figures are derived from the source documents — do not hand-edit; regenerate instead.
+// GENERATED from the Reef inventory dated 28 June 2026 and the "Four Whys"
+// brochure. Figures are derived from those documents — do not hand-edit,
+// regenerate instead.
 //
-// Prices are AED, the currency Reef contracts in. Each figure is the lowest of the
-// three published payment plans (see `planLabels`). `availableUnits` reflects the
-// inventory sheet, not the total project size.
+// Prices are AED, the currency Reef contracts in. Each figure is the lowest of
+// the three published payment plans (see `planLabels`). `availableUnits`
+// reflects the inventory sheet, not the total project size.
 
-export type ReefUnitType = {
-  type: string;
-  label: string;
-  bedrooms: number;
-  available: number;
-  minSqft: number;
-  maxSqft: number;
-  fromAed: number;
-  toAed: number;
-};
+import type { Project } from "./project-types";
 
-export type ReefPaymentPlan = {
-  name: string;
-  downPayment: string;
-  duringConstruction: string;
-  final: string;
-  note: string | null;
-};
-
-export type ReefProject = {
-  slug: string;
-  name: string;
-  developer: string;
-  location: string;
-  city: string;
-  country: string;
-  currency: "AED";
-  completion: string;
-  totalUnits: number | null;
-  buildingConfig: string | null;
-  availableUnits: number;
-  fromAed: number;
-  toAed: number;
-  minSqft: number;
-  maxSqft: number;
-  unitTypes: ReefUnitType[];
-  views: string[];
-  images: string[];
-  planLabels: string[];
-  paymentPlans: ReefPaymentPlan[];
-  nearby: { place: string; minutes: number }[];
-  usps: string[];
-};
-
-export const reefProjects: ReefProject[] = [
+export const reefProjects: Project[] = [
   {
     "slug": "reef-996-dubai-production-city",
     "name": "REEF 996",
@@ -58,12 +17,21 @@ export const reefProjects: ReefProject[] = [
     "city": "Dubai",
     "country": "UAE",
     "currency": "AED",
+    "kind": "apartments",
     "completion": "Q3 2028",
+    "ratePerSqft": null,
+    "planImages": [],
+    "approvals": [],
+    "contact": [
+      "+971 800 3 7333",
+      "info@reefdevelopments.ae"
+    ],
+    "coordinates": null,
     "totalUnits": 505,
     "buildingConfig": "1B + G + 3P + 20",
     "availableUnits": 64,
-    "fromAed": 679467,
-    "toAed": 2923848,
+    "fromPrice": 679467,
+    "toPrice": 2923848,
     "minSqft": 452,
     "maxSqft": 1901,
     "unitTypes": [
@@ -74,8 +42,8 @@ export const reefProjects: ReefProject[] = [
         "available": 34,
         "minSqft": 452,
         "maxSqft": 469,
-        "fromAed": 679467,
-        "toAed": 827038
+        "fromPrice": 679467,
+        "toPrice": 827038
       },
       {
         "type": "1BHK",
@@ -84,8 +52,8 @@ export const reefProjects: ReefProject[] = [
         "available": 14,
         "minSqft": 693,
         "maxSqft": 884,
-        "fromAed": 1015988,
-        "toAed": 1443402
+        "fromPrice": 1015988,
+        "toPrice": 1443402
       },
       {
         "type": "2BHK",
@@ -94,8 +62,8 @@ export const reefProjects: ReefProject[] = [
         "available": 11,
         "minSqft": 1045,
         "maxSqft": 1246,
-        "fromAed": 1427438,
-        "toAed": 1847916
+        "fromPrice": 1427438,
+        "toPrice": 1847916
       },
       {
         "type": "3BHK",
@@ -104,8 +72,8 @@ export const reefProjects: ReefProject[] = [
         "available": 5,
         "minSqft": 1423,
         "maxSqft": 1901,
-        "fromAed": 1882178,
-        "toAed": 2923848
+        "fromPrice": 1882178,
+        "toPrice": 2923848
       }
     ],
     "views": [
@@ -197,12 +165,21 @@ export const reefProjects: ReefProject[] = [
     "city": "Dubai",
     "country": "UAE",
     "currency": "AED",
+    "kind": "apartments",
     "completion": "March 2028",
+    "ratePerSqft": null,
+    "planImages": [],
+    "approvals": [],
+    "contact": [
+      "+971 800 3 7333",
+      "info@reefdevelopments.ae"
+    ],
+    "coordinates": null,
     "totalUnits": null,
     "buildingConfig": null,
     "availableUnits": 8,
-    "fromAed": 2699042,
-    "toAed": 7178682,
+    "fromPrice": 2699042,
+    "toPrice": 7178682,
     "minSqft": 1061,
     "maxSqft": 2536,
     "unitTypes": [
@@ -213,8 +190,8 @@ export const reefProjects: ReefProject[] = [
         "available": 1,
         "minSqft": 1061,
         "maxSqft": 1061,
-        "fromAed": 2699042,
-        "toAed": 2965980
+        "fromPrice": 2699042,
+        "toPrice": 2965980
       },
       {
         "type": "2BHK",
@@ -223,8 +200,8 @@ export const reefProjects: ReefProject[] = [
         "available": 6,
         "minSqft": 1220,
         "maxSqft": 2187,
-        "fromAed": 2938753,
-        "toAed": 5573768
+        "fromPrice": 2938753,
+        "toPrice": 5573768
       },
       {
         "type": "3BHK",
@@ -233,8 +210,8 @@ export const reefProjects: ReefProject[] = [
         "available": 1,
         "minSqft": 2536,
         "maxSqft": 2536,
-        "fromAed": 6532601,
-        "toAed": 7178682
+        "fromPrice": 6532601,
+        "toPrice": 7178682
       }
     ],
     "views": [
@@ -264,12 +241,21 @@ export const reefProjects: ReefProject[] = [
     "city": "Dubai",
     "country": "UAE",
     "currency": "AED",
+    "kind": "apartments",
     "completion": "June 2028",
+    "ratePerSqft": null,
+    "planImages": [],
+    "approvals": [],
+    "contact": [
+      "+971 800 3 7333",
+      "info@reefdevelopments.ae"
+    ],
+    "coordinates": null,
     "totalUnits": null,
     "buildingConfig": null,
     "availableUnits": 18,
-    "fromAed": 742070,
-    "toAed": 2048804,
+    "fromPrice": 742070,
+    "toPrice": 2048804,
     "minSqft": 477,
     "maxSqft": 1397,
     "unitTypes": [
@@ -280,8 +266,8 @@ export const reefProjects: ReefProject[] = [
         "available": 11,
         "minSqft": 477,
         "maxSqft": 478,
-        "fromAed": 742070,
-        "toAed": 875549
+        "fromPrice": 742070,
+        "toPrice": 875549
       },
       {
         "type": "1BHK",
@@ -290,8 +276,8 @@ export const reefProjects: ReefProject[] = [
         "available": 4,
         "minSqft": 645,
         "maxSqft": 672,
-        "fromAed": 977379,
-        "toAed": 1125680
+        "fromPrice": 977379,
+        "toPrice": 1125680
       },
       {
         "type": "2BHK",
@@ -300,8 +286,8 @@ export const reefProjects: ReefProject[] = [
         "available": 2,
         "minSqft": 1002,
         "maxSqft": 1002,
-        "fromAed": 1353192,
-        "toAed": 1596594
+        "fromPrice": 1353192,
+        "toPrice": 1596594
       },
       {
         "type": "3BHK",
@@ -310,8 +296,8 @@ export const reefProjects: ReefProject[] = [
         "available": 1,
         "minSqft": 1397,
         "maxSqft": 1397,
-        "fromAed": 1864411,
-        "toAed": 2048804
+        "fromPrice": 1864411,
+        "toPrice": 2048804
       }
     ],
     "views": [
@@ -334,6 +320,3 @@ export const reefProjects: ReefProject[] = [
     ]
   }
 ];
-
-export const getReefProject = (slug: string): ReefProject | undefined =>
-  reefProjects.find((p) => p.slug === slug);

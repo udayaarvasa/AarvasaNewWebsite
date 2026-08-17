@@ -31,7 +31,7 @@ function buildDescription(p) {
   lines.push("Current availability:");
   for (const t of p.unitTypes) {
     lines.push(
-      `• ${t.label} — ${t.available} available, ${t.minSqft.toLocaleString()}–${t.maxSqft.toLocaleString()} sq.ft, from ${aed(t.fromAed)}`
+      `• ${t.label} — ${t.available} available, ${t.minSqft.toLocaleString()}–${t.maxSqft.toLocaleString()} sq.ft, from ${aed(t.fromPrice)}`
     );
   }
   lines.push("");
@@ -66,7 +66,7 @@ async function main() {
     const data = {
       title: `${p.name} — ${p.location}`,
       description: buildDescription(p),
-      price: p.fromAed,
+      price: p.fromPrice,
       location: p.location,
       city: p.city,
       state: "Dubai",
@@ -90,7 +90,7 @@ async function main() {
     });
 
     console.log(
-      `  ${saved.id}  ${p.availableUnits} units  from ${aed(p.fromAed)}  images:${p.images.length}`
+      `  ${saved.id}  ${p.availableUnits} units  from ${aed(p.fromPrice)}  images:${p.images.length}`
     );
   }
 
