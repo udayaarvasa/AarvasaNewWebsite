@@ -15,6 +15,11 @@ export const mobileRegisterSchema = z.object({
   role: selfAssignableRoleSchema.default("USER"),
 });
 
+export const mobileGoogleSchema = z.object({
+  idToken: z.string().min(1, "Google ID token is required"),
+  role: selfAssignableRoleSchema.default("USER"),
+});
+
 export const mobileRefreshSchema = z.object({
   refreshToken: z.string().min(1, "Refresh token is required"),
 });
