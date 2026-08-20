@@ -1,12 +1,12 @@
 import { NextResponse } from "next/server"
-import { auth } from "@/auth"
+import { getAuthUser } from "@/lib/auth-context"
 import { createInquiry } from "@/lib/services/property.service"
 import { inquirySchema } from "@/lib/validations/property"
 
 // POST /api/inquiries
 export async function POST(req: Request) {
   try {
-    const session = await auth()
+    const user = await getAuthUser(req)
     const body = await req.json()
 
     const parsed = inquirySchema.safeParse(body)
@@ -18,7 +18,7 @@ export async function POST(req: Request) {
 
     const inquiry = await createInquiry({
       ...parsed.data,
-      userId: session?.user?.id,
+      userId: user?.id,
     })
 
     return NextResponse.json({ success: true, data: inquiry }, { status: 201 })

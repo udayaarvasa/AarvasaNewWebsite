@@ -1,11 +1,11 @@
 import { NextResponse } from "next/server"
-import { auth } from "@/auth"
+import { getAuthUser } from "@/lib/auth-context"
 
 // POST /api/upload — Cloudinary upload
 export async function POST(req: Request) {
   try {
-    const session = await auth()
-    if (!session?.user?.id)
+    const user = await getAuthUser(req)
+    if (!user)
       return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 })
 
     const formData = await req.formData()

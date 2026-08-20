@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server"
-import { auth } from "@/auth"
+import { getAuthUser } from "@/lib/auth-context"
 import { prisma } from "@/lib/prisma"
 import { z } from "zod"
 import bcrypt from "bcryptjs"
@@ -16,14 +16,14 @@ const changePasswordSchema = z.object({
 })
 
 // GET /api/user/profile — get current user profile
-export async function GET() {
+export async function GET(req: Request) {
   try {
-    const session = await auth()
-    if (!session?.user?.id)
+    const authUser = await getAuthUser(req)
+    if (!authUser)
       return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 })
 
     const user = await prisma.user.findUnique({
-      where: { id: session.user.id },
+      where: { id: authUser.id },
       select: {
         id: true,
         name: true,
@@ -62,8 +62,8 @@ export async function GET() {
 // PATCH /api/user/profile — update profile details
 export async function PATCH(req: Request) {
   try {
-    const session = await auth()
-    if (!session?.user?.id)
+    const authUser = await getAuthUser(req)
+    if (!authUser)
       return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 })
 
     const body = await req.json()
@@ -78,7 +78,7 @@ export async function PATCH(req: Request) {
         )
 
       const user = await prisma.user.findUnique({
-        where: { id: session.user.id },
+        where: { id: authUser.id },
         select: { password: true },
       })
 
@@ -97,7 +97,7 @@ export async function PATCH(req: Request) {
 
       const hashedPassword = await bcrypt.hash(parsed.data.newPassword, 12)
       await prisma.user.update({
-        where: { id: session.user.id },
+        where: { id: authUser.id },
         data: { password: hashedPassword },
       })
 
@@ -113,7 +113,7 @@ export async function PATCH(req: Request) {
       )
 
     const updated = await prisma.user.update({
-      where: { id: session.user.id },
+      where: { id: authUser.id },
       data: parsed.data,
       select: {
         id: true,

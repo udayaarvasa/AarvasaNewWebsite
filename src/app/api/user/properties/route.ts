@@ -1,17 +1,17 @@
 import { NextResponse } from "next/server"
-import { auth } from "@/auth"
+import { getAuthUser } from "@/lib/auth-context"
 import { getUserProperties, getPropertyStats } from "@/lib/services/property.service"
 
 // GET /api/user/properties — authenticated user's listings + stats
-export async function GET() {
+export async function GET(req: Request) {
   try {
-    const session = await auth()
-    if (!session?.user?.id)
+    const user = await getAuthUser(req)
+    if (!user)
       return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 })
 
     const [properties, stats] = await Promise.all([
-      getUserProperties(session.user.id),
-      getPropertyStats(session.user.id),
+      getUserProperties(user.id),
+      getPropertyStats(user.id),
     ])
 
     return NextResponse.json({ success: true, data: { properties, stats } })

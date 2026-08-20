@@ -1,10 +1,10 @@
 import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
 import { getRecommendations } from "@/lib/properties";
-import { auth } from "@/auth";
+import { getAuthUser } from "@/lib/auth-context";
 
 export async function GET(request: Request) {
-  const session = await auth();
+  const user = await getAuthUser(request);
   const url = new URL(request.url);
 
   const recommendations = getRecommendations({
@@ -16,14 +16,14 @@ export async function GET(request: Request) {
 
   return NextResponse.json(
     {
-      user: session,
+      user,
       model: "aarvasa-simulated-investment-ranker-v1",
       generatedAt: new Date().toISOString(),
       recommendations,
     },
     {
       headers: {
-        "Cache-Control": session
+        "Cache-Control": user
           ? "private, max-age=60"
           : "public, s-maxage=120, stale-while-revalidate=600",
       },

@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server"
-import { auth } from "@/auth"
+import { getAuthUser } from "@/lib/auth-context"
 import {
   getProperties,
   createProperty,
@@ -12,7 +12,7 @@ import {
 // GET /api/properties — list with filters & pagination
 export async function GET(req: Request) {
   try {
-    const session = await auth()
+    const user = await getAuthUser(req)
     const { searchParams } = new URL(req.url)
     const raw = Object.fromEntries(searchParams)
 
@@ -24,7 +24,7 @@ export async function GET(req: Request) {
       )
     }
 
-    const result = await getProperties(parsed.data, session?.user?.id)
+    const result = await getProperties(parsed.data, user?.id)
     return NextResponse.json({ success: true, ...result })
   } catch (err) {
     console.error("[GET /api/properties]", err)
@@ -35,8 +35,8 @@ export async function GET(req: Request) {
 // POST /api/properties — create (auth required)
 export async function POST(req: Request) {
   try {
-    const session = await auth()
-    if (!session?.user?.id)
+    const user = await getAuthUser(req)
+    if (!user)
       return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 })
 
     const body = await req.json()
@@ -48,7 +48,7 @@ export async function POST(req: Request) {
       )
     }
 
-    const property = await createProperty(parsed.data, session.user.id)
+    const property = await createProperty(parsed.data, user.id)
     return NextResponse.json({ success: true, data: property }, { status: 201 })
   } catch (err) {
     console.error("[POST /api/properties]", err)
