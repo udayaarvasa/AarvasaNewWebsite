@@ -8,6 +8,24 @@ import type { QueryParameters } from "./types";
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 const CITY_ALIASES: Record<string, string> = {
+  // Markets Aarvasa actually represents. These were absent, so "plots in Bhopal"
+  // and "what's in Dubai" parsed with no location at all and scored blind.
+  bhopal: "Bhopal",
+  jatkhedi: "Bhopal",
+  jatkheri: "Bhopal",
+  badwai: "Bhopal",
+  karond: "Bhopal",
+  "hoshangabad road": "Bhopal",
+  "ashima mall": "Bhopal",
+  dubai: "Dubai",
+  uae: "Dubai",
+  "united arab emirates": "Dubai",
+  impz: "Dubai",
+  "production city": "Dubai",
+  "dubai islands": "Dubai",
+  dlrc: "Dubai",
+  "dubai marina": "Dubai",
+  "palm jumeirah": "Dubai",
   bangalore: "Bengaluru",
   bengaluru: "Bengaluru",
   blr: "Bengaluru",

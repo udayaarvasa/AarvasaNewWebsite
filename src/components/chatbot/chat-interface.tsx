@@ -27,12 +27,15 @@ type Message = {
 
 // ─── Constants ───────────────────────────────────────────────────────────────
 
+// Prompts point at inventory Aarvasa actually represents. The previous set
+// (Bangalore, Goa villas, Pune vs Gurugram) came from the sample dataset, so
+// every suggestion led the advisor to answer "we have nothing matching that".
 const STARTERS = [
-  "Best investment under 50L in Bangalore",
-  "Which Goa villas have the best rental yield?",
-  "Show low-risk properties with 12%+ ROI",
-  "Compare apartments in Pune vs Gurugram",
-  "High ROI commercial properties in Bengaluru",
+  "What plots do you have in Bhopal?",
+  "Show me the Dubai project",
+  "Compare Aaradhyam Prime and Aaradhyam Pearl",
+  "What are the payment plans for REEF 996?",
+  "Which of your projects has government approvals?",
 ];
 
 const LOADING_MESSAGES = [
@@ -479,7 +482,7 @@ export function ChatInterface({ initialPrompt }: { initialPrompt?: string }) {
             <input
               value={input}
               onChange={(event) => setInput(event.target.value)}
-              placeholder="Ask: Best investment under 50L in Bangalore"
+              placeholder="Ask: What plots do you have in Bhopal?"
               className="min-h-12 flex-1 bg-transparent text-sm text-foreground outline-none placeholder:text-muted-foreground"
               disabled={loading}
             />

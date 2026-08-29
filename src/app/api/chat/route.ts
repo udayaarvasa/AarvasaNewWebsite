@@ -14,6 +14,11 @@ const ChatSchema = z.object({
   ),
 });
 
+// Streaming Gemini responses plus source aggregation can exceed the platform's
+// short default timeout; the first cold request was returning an empty 500.
+export const maxDuration = 60;
+export const dynamic = "force-dynamic";
+
 export async function POST(request: Request) {
   // Rate limiting
   if (isRateLimited("chat:global", AI_ENDPOINT_LIMIT)) {
