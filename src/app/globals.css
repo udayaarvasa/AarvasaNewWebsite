@@ -1,6 +1,9 @@
 @import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Playfair+Display:wght@400;500;600;700;800;900&display=swap");
 @config "../../tailwind.config.js";
 @import "tailwindcss";
+/* infra/ (CDK package) and shared/ (dependency-free contracts) contain no UI; keep their words out of class detection. */
+@source not "../../infra";
+@source not "../../shared";
 
 :root {
   /* New brand-aligned palette */

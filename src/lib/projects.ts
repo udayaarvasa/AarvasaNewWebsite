@@ -1,4 +1,4 @@
-import type { Project } from "./project-types";
+import type { Project, ProjectImmersiveMedia } from "./project-types";
 import { reefProjects } from "./reef-projects";
 
 /**
@@ -131,11 +131,36 @@ const aaradhyamPrime: Project = {
   coordinates: { lat: 23.17633, lng: 77.4694 },
 };
 
+/**
+ * Phase 3 immersive-media pilot. Copied from the pipeline manifest produced by
+ * `npm run media:pilot:stage` (keys are content-addressed, so re-running it gives
+ * the same values). The model is a placeholder that exercises the pipeline and
+ * viewer; it is not a model of REEF 996 and is never shown in production builds.
+ */
+const REEF_996_PILOT_MEDIA: ProjectImmersiveMedia = {
+  mediaId: "8ba87bf969112016e7905b6f",
+  kind: "MODEL",
+  format: "GLB",
+  storageKey: "m/8ba87bf969112016e7905b6f/de1d54d4e9da0d02",
+  entryFile: "scene.glb",
+  contentHash: "370418ddb037b189a64f4c1f761398b8fcf9974ca9028b9ab188bb3a37ba7ef2",
+  sizeBytes: 1840,
+  poster: { key: "m/8ba87bf969112016e7905b6f/de1d54d4e9da0d02/poster.webp", width: 1280, height: 720 },
+  processingVersion: "1.0.0/passthrough-v1",
+  altText: "Placeholder massing model: a single tower on a podium slab. Not a model of REEF 996.",
+  review: "placeholder",
+};
+
+// reef-projects.ts is generated, so immersive media is attached here instead.
+const IMMERSIVE_BY_SLUG: Readonly<Record<string, ProjectImmersiveMedia>> = {
+  "reef-996-dubai-production-city": REEF_996_PILOT_MEDIA,
+};
+
 export const projects: Project[] = [
   ...reefProjects,
   aaradhyamPearl,
   aaradhyamPrime,
-];
+].map((p) => (IMMERSIVE_BY_SLUG[p.slug] ? { ...p, immersive: IMMERSIVE_BY_SLUG[p.slug] } : p));
 
 /** Live on the site. Set per project rather than inferred from imagery. */
 export const isPublished = (p: Project): boolean => p.published;

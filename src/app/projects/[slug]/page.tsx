@@ -17,6 +17,8 @@ import { MotionReveal } from "@/components/layout/motion-reveal";
 import { getProject, publishedProjects } from "@/lib/projects";
 import type { Project } from "@/lib/project-types";
 import { formatCurrency, inrEstimate, AED_TO_INR } from "@/lib/currency";
+import { projectViewerConfig } from "@/lib/viewer/project-media";
+import ImmersiveSection from "./immersive-section";
 
 // Only slugs from generateStaticParams resolve; anything else 404s at the routing
 // layer. Without this, unpublished projects were served as soft-404s: HTTP 200,
@@ -73,6 +75,7 @@ export default async function ProjectPage({
   const price = headlinePrice(project);
   const hero = project.images[0] ?? null;
   const isPlots = project.kind === "plots";
+  const viewer = projectViewerConfig(project);
 
   return (
     <div className="min-h-screen pb-24">
@@ -348,6 +351,9 @@ export default async function ProjectPage({
             </section>
           </MotionReveal>
         )}
+
+        {/* Explore in 3D — optional progressive enhancement; the photography above and below stays primary */}
+        {viewer && <ImmersiveSection viewer={viewer} projectName={project.name} />}
 
         {/* Gallery */}
         {project.images.length > 1 && (

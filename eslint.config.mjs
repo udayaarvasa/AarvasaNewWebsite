@@ -12,6 +12,9 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
+    // Generated output of the separate infra/ CDK package.
+    "infra/dist/**",
+    "infra/cdk.out/**",
   ]),
 ]);
 

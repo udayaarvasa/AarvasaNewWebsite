@@ -1,0 +1,5 @@
+node_modules/
+dist/
+cdk.out/
+# Machine-local CDK context cache; it can contain account lookups.
+cdk.context.json

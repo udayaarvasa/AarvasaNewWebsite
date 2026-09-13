@@ -23,6 +23,34 @@ export type ProjectPaymentPlan = {
   note: string | null;
 };
 
+/**
+ * An immersive asset for a project, in the shape the media pipeline's manifest
+ * publishes (`npm run media:process`, Phase 2B-2). It holds object keys only,
+ * never URLs: where keys are served from is environment configuration, resolved
+ * in src/lib/viewer/project-media.ts.
+ */
+export type ProjectImmersiveMedia = {
+  mediaId: string;
+  kind: "MODEL";
+  format: "GLB";
+  /** Immutable version directory, m/{mediaId}/{keyHash}. */
+  storageKey: string;
+  /** Entry file inside storageKey, e.g. "scene.glb". */
+  entryFile: string;
+  /** SHA-256 of the entry file. */
+  contentHash: string;
+  sizeBytes: number;
+  poster: { key: string; width: number; height: number } | null;
+  processingVersion: string;
+  /** What the model shows, for screen readers. */
+  altText: string;
+  /**
+   * "placeholder": a pipeline test asset that does not depict the project, only
+   * ever shown outside production builds. "approved": reviewed real media.
+   */
+  review: "placeholder" | "approved";
+};
+
 export type Project = {
   slug: string;
   name: string;
@@ -65,4 +93,6 @@ export type Project = {
   approvals: string[];
   contact: string[];
   coordinates: { lat: number; lng: number } | null;
+  /** Optional interactive 3D media. Absent for most projects. */
+  immersive?: ProjectImmersiveMedia;
 };

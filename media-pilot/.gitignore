@@ -1,0 +1,2 @@
+# Pipeline output is regenerated with `npm run media:pilot:stage`; never commit it.
+.staging/
