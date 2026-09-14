@@ -42,6 +42,38 @@ enum RiskLevel {
   HIGH
 }
 
+// Immersive media. Values mirror shared/media-asset.ts (checked by infra/test/media-asset.test.ts).
+
+enum MediaSubjectType {
+  PROPERTY // propertyId → Property.id
+  PROJECT // projectSlug → a static project in src/lib/projects.ts (no table)
+}
+
+enum MediaAssetKind {
+  MODEL
+  PANORAMA
+  SPLAT
+}
+
+enum MediaAssetFormat {
+  GLB
+  EQUIRECT_JPEG
+  EQUIRECT_WEBP
+  SOG
+}
+
+/// One lifecycle: UPLOADED → PROCESSING → PENDING_REVIEW → PUBLISHED → ARCHIVED,
+/// with FAILED (processing) and REJECTED (review) as terminal outcomes.
+enum MediaAssetStatus {
+  UPLOADED
+  PROCESSING
+  PENDING_REVIEW
+  PUBLISHED
+  REJECTED
+  FAILED
+  ARCHIVED
+}
+
 // ─── Auth Models ──────────────────────────────────────────────────────────────
 
 model User {
@@ -60,6 +92,9 @@ model User {
   properties  Property[]
   favorites   Favorite[]
   inquiries   Inquiry[]
+
+  uploadedMediaAssets MediaAsset[] @relation("MediaAssetUploadedBy")
+  reviewedMediaAssets MediaAsset[] @relation("MediaAssetReviewedBy")
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -134,6 +169,8 @@ model Property {
   favorites Favorite[]
   inquiries Inquiry[]
 
+  mediaAssets MediaAsset[]
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
@@ -171,4 +208,76 @@ model Inquiry {
   user     User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
 
   @@index([propertyId])
+}
+
+// ─── Immersive Media ──────────────────────────────────────────────────────────
+
+/// One publishable immersive-media asset (3D model, panorama or splat) for exactly
+/// one subject: a Property row, or a static project identified by slug.
+///
+/// Stores object keys, never URLs: pages build URLs from the media CDN origin
+/// (application configuration). Key layout is defined in shared/media-contract.ts.
+///
+/// Enforced by CHECK constraints in the add_media_asset migration (Prisma cannot
+/// express them): exactly one subject matching subjectType; processed fields set
+/// once PENDING_REVIEW/PUBLISHED; PUBLISHED has reviewedAt, publishedAt and altText;
+/// REJECTED has rejectionReason; FAILED has processingError; keys are not URLs;
+/// sizes are non-negative.
+model MediaAsset {
+  id String @id @default(cuid()) // also the {mediaId} segment of its object keys
+
+  // Subject: exactly one of propertyId / projectSlug, matching subjectType.
+  subjectType MediaSubjectType
+  propertyId  String?
+  projectSlug String?
+
+  // Published asset. Null until processing succeeds.
+  kind        MediaAssetKind
+  format      MediaAssetFormat?
+  status      MediaAssetStatus  @default(UPLOADED)
+  storageKey  String? // version directory, e.g. m/{mediaId}/{hash16}
+  entryFile   String? // file inside storageKey, e.g. scene.glb
+  contentHash String? // SHA-256 hex of the entry file
+  mimeType    String?
+  sizeBytes   Int? // entry file bytes
+  fileCount   Int? // published objects under storageKey (entry, textures, chunks)
+  posterKey   String? // full object key, e.g. m/{mediaId}/{hash16}/poster.webp
+
+  // Renderer metadata. Shapes: MediaAssetDimensions, MediaAssetMetrics and
+  // MediaAssetViewDefaults in shared/media-asset.ts.
+  dimensions   Json?
+  metrics      Json?
+  viewDefaults Json?
+
+  title     String?
+  altText   String?
+  sortOrder Int     @default(0)
+
+  // Uploaded original: an ingest key (uploads/…) or a private original (originals/…).
+  sourceKey       String
+  sourceSizeBytes Int
+  sourceMimeType  String
+
+  uploadedById     String?
+  reviewedById     String?
+  reviewedAt       DateTime?
+  publishedAt      DateTime?
+  rejectionReason  String?   @db.Text
+  processingError  String?   @db.Text
+  processorVersion String? // e.g. 1.0.0/passthrough-v1
+
+  // Deleting a Property that has media rows (any status) is refused rather than
+  // cascading, so media records and their audit trail are never silently lost.
+  property   Property? @relation(fields: [propertyId], references: [id], onDelete: Restrict)
+  uploadedBy User?     @relation("MediaAssetUploadedBy", fields: [uploadedById], references: [id], onDelete: SetNull)
+  reviewedBy User?     @relation("MediaAssetReviewedBy", fields: [reviewedById], references: [id], onDelete: SetNull)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([propertyId, status, sortOrder])
+  @@index([projectSlug, status, sortOrder])
+  @@index([status, createdAt])
+  @@index([contentHash])
+  @@index([uploadedById])
 }

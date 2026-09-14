@@ -81,6 +81,20 @@ DATABASE_URL='postgresql://...' npx prisma migrate deploy
 
 Use `npx prisma db push` only against a local or throwaway database.
 
+Migrations start at `prisma/migrations/0_init`, a baseline of the schema that
+databases created with `db push` already have. Once per existing database, before
+the first `migrate deploy`, confirm the database matches that baseline (no output
+means it matches) and mark it as applied. Never run `0_init` against it:
+
+```bash
+git show 88d97cb:prisma/schema.prisma > /tmp/baseline.prisma
+DATABASE_URL='postgresql://...' npx prisma migrate diff --from-url "$DATABASE_URL" --to-schema-datamodel /tmp/baseline.prisma --script
+DATABASE_URL='postgresql://...' npx prisma migrate resolve --applied 0_init
+```
+
+Do not run `prisma migrate dev` or `db:reset` against a shared database: on drift
+they offer to reset it.
+
 ## Health check
 
 `GET /api/diag` reports whether each required variable is present and whether
