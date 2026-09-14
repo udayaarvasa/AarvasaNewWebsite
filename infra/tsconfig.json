@@ -19,6 +19,15 @@
     "sourceMap": false,
     "incremental": false
   },
-  "include": ["bin/**/*.ts", "src/**/*.ts", "scripts/**/*.ts", "test/**/*.ts", "../shared/**/*.ts"],
+  "include": [
+    "bin/**/*.ts",
+    "src/**/*.ts",
+    "scripts/**/*.ts",
+    "test/**/*.ts",
+    "../shared/**/*.ts",
+    "../src/lib/validations/media.ts",
+    "../src/lib/media/ingest-storage.ts",
+    "../src/lib/services/media-upload.service.ts"
+  ],
   "exclude": ["node_modules", "dist", "cdk.out"]
 }

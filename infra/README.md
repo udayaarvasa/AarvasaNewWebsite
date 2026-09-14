@@ -273,7 +273,10 @@ npx cdk deploy AarvasaMediaDev-Monitoring -c aarvasa:accountId=<dev-account-id> 
   require the Business tier. On Pro, switch to the managed CORS and security
   headers policies and accept `Access-Control-Allow-Origin: *`.
 
-### Future application environment variables (not added anywhere yet)
+### Application environment variables
+
+`MEDIA_REGION` and `MEDIA_INGEST_BUCKET` are read by `POST /api/media/upload-intent`
+(Phase 5A, `src/lib/media/ingest-storage.ts`). The others are not used yet.
 
 Follows the repository's `SERVICE_` prefix convention (`CLOUDINARY_*`, `AUTH_*`).
 All are **server-only**. Never prefix them with `NEXT_PUBLIC_`: the viewer
@@ -288,8 +291,8 @@ receives complete URLs from Server Components.
 
 - No AWS access keys: the app will use the Amplify SSR Compute role with the
   `app-upload-intents` policy.
-- When the first variable is introduced, `amplify.yml`'s forwarding regex must
-  gain `MEDIA_`. It is intentionally unchanged in this phase.
+- Before upload intents are used on a deployed environment, `amplify.yml`'s
+  forwarding regex must gain `MEDIA_`. It is intentionally unchanged so far.
 
 ### Repository integration
 

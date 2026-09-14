@@ -58,7 +58,14 @@ CLOUDINARY_CLOUD_NAME=
 CLOUDINARY_UPLOAD_PRESET=
 GEMINI_API_KEY=
 GEMINI_MODEL=gemini-3.5-flash
+MEDIA_REGION=ap-south-1   # optional; immersive media upload intents (server-only)
+MEDIA_INGEST_BUCKET=      # optional; Storage stack output IngestBucketName
 ```
+
+Immersive media upload intents also need AWS credentials from the SDK's default
+chain (a local profile, or the compute role when deployed) that are allowed to
+sign PUTs to the ingest bucket's `uploads/*`. Without `MEDIA_REGION` and
+`MEDIA_INGEST_BUCKET`, `POST /api/media/upload-intent` returns 503.
 
 Note that `amplify.yml` only forwards variables matching a fixed prefix list
 (`DATABASE_URL`, `AUTH_`, `MONGODB_URI`, `GEMINI_`, `CLOUDINARY_`, …). A new
@@ -117,6 +124,7 @@ npm run build
 - `GET /api/diag`
 - `GET /api/properties`
 - `GET /api/properties/:id`
+- `POST /api/media/upload-intent` (JSON; property owner or admin for a property, admin for a project; requires the file's base64 `sha256`; returns one presigned PUT to the ingest bucket, bound to the exact key, `Content-Type`, `Content-Length` and `x-amz-checksum-sha256`, and records the asset as `UPLOADED`, meaning not yet verified or processed)
 - `GET /api/ai/recommendations?budget=50000000&risk=Balanced&type=Villa`
 - `POST /api/chat`
 - `POST /api/blockchain/transaction`

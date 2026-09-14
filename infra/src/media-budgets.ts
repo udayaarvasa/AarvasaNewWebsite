@@ -4,7 +4,12 @@
  * in Phase 3, not measured device limits.
  *
  * Units: MB means decimal megabytes (1 MB = 1,000,000 bytes), the stricter reading.
+ *
+ * Source ceilings for uploadable kinds come from shared/media-asset.ts, which the
+ * application's upload intents also enforce, so the two can never disagree.
  */
+import { SOURCE_MAX_BYTES } from "../../shared/media-asset";
+
 export const MB = 1_000_000;
 
 export type MediaKind = "MODEL" | "PANORAMA" | "SPLAT" | "TEXTURE";
@@ -21,11 +26,11 @@ export interface ByteBudget {
 }
 
 export const BYTE_BUDGETS: Readonly<Record<"MODEL" | "PANORAMA" | "SPLAT" | "POSTER", ByteBudget>> = {
-  MODEL: { mobileTarget: 10 * MB, desktopTarget: 25 * MB, hardLimit: 50 * MB, sourceMax: 250 * MB },
-  PANORAMA: { mobileTarget: 2.5 * MB, desktopTarget: 8 * MB, hardLimit: 12 * MB, sourceMax: 50 * MB },
+  MODEL: { mobileTarget: 10 * MB, desktopTarget: 25 * MB, hardLimit: 50 * MB, sourceMax: SOURCE_MAX_BYTES.MODEL },
+  PANORAMA: { mobileTarget: 2.5 * MB, desktopTarget: 8 * MB, hardLimit: 12 * MB, sourceMax: SOURCE_MAX_BYTES.PANORAMA },
   // A .sog bundle is already the delivery format (no conversion offline), so its
   // source ceiling is the single-file hard limit. PLY sources are out of scope here.
-  SPLAT: { mobileTarget: 20 * MB, desktopTarget: 50 * MB, hardLimit: 80 * MB, sourceMax: 80 * MB },
+  SPLAT: { mobileTarget: 20 * MB, desktopTarget: 50 * MB, hardLimit: 80 * MB, sourceMax: SOURCE_MAX_BYTES.SPLAT },
   POSTER: { mobileTarget: 0.2 * MB, desktopTarget: 0.2 * MB, hardLimit: 0.5 * MB, sourceMax: 10 * MB },
 };
 

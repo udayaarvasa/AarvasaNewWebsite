@@ -10,11 +10,18 @@
  * The enum value lists must equal the Prisma enums; infra/test/media-asset.test.ts
  * checks that. The kind and format names are the media pipeline's (ItemManifest).
  */
-import { CONTENT_HASH_PATTERN, INGEST_PREFIX, MEDIA_ID_PATTERN, MEDIA_KEY_PATTERN, ORIGINAL_KEY_PATTERN, publishedObjectMetadata } from "./media-contract";
+import { CONTENT_HASH_PATTERN, INGEST_PREFIX, MEDIA_ID_PATTERN, MEDIA_KEY_PATTERN, ORIGINAL_KEY_PATTERN, PUBLISHED_CONTENT_TYPES, publishedObjectMetadata } from "./media-contract";
 
 export const MEDIA_SUBJECT_TYPES = ["PROPERTY", "PROJECT"] as const;
 export const MEDIA_ASSET_KINDS = ["MODEL", "PANORAMA", "SPLAT"] as const;
 export const MEDIA_ASSET_FORMATS = ["GLB", "EQUIRECT_JPEG", "EQUIRECT_WEBP", "SOG"] as const;
+/**
+ * UPLOADED means an upload was authorised and the row exists; the source bytes have
+ * NOT been verified or processed and may not exist yet. An UPLOADED asset is never
+ * processed, published or viewer-ready. Processing (Phase 5B/5C) must verify the
+ * ingest object (size, checksum) before moving it to PROCESSING. Only PUBLISHED
+ * assets may be shown.
+ */
 export const MEDIA_ASSET_STATUSES = ["UPLOADED", "PROCESSING", "PENDING_REVIEW", "PUBLISHED", "REJECTED", "FAILED", "ARCHIVED"] as const;
 
 export type MediaSubjectType = (typeof MEDIA_SUBJECT_TYPES)[number];
@@ -34,6 +41,142 @@ export const PROCESSED_STATUSES: readonly MediaAssetStatus[] = ["PENDING_REVIEW"
 /** Static project slugs, as used in src/lib/projects.ts. */
 export const PROJECT_SLUG_PATTERN = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
 const SHA256_HEX = /^[a-f0-9]{64}$/;
+
+// ── Source formats and upload limits ─────────────────────────────────────────
+
+/** Decimal megabytes, as in infra/src/media-budgets.ts. */
+const MB = 1_000_000;
+
+export interface MediaFormatSpec {
+  readonly kind: MediaAssetKind;
+  /** Extension used in object keys, e.g. uploads/{mediaId}/{uploadId}/source.jpg. */
+  readonly keyExtension: string;
+  /** Extensions accepted on a client filename (lowercase, without the dot). */
+  readonly filenameExtensions: readonly string[];
+  /** The only Content-Type an upload of this format is signed with. */
+  readonly contentType: string;
+  /**
+   * MIME types a browser may report for the file. Browsers have no registered type
+   * for .glb and .sog and usually send "" or application/octet-stream, so those are
+   * accepted for GLB and SOG. The client value is never used as the signed type.
+   */
+  readonly clientMimeTypes: readonly string[];
+}
+
+export const MEDIA_FORMAT_SPECS: Readonly<Record<MediaAssetFormat, MediaFormatSpec>> = {
+  GLB: {
+    kind: "MODEL",
+    keyExtension: "glb",
+    filenameExtensions: ["glb"],
+    contentType: PUBLISHED_CONTENT_TYPES.glb,
+    clientMimeTypes: ["model/gltf-binary", "application/octet-stream", ""],
+  },
+  EQUIRECT_JPEG: {
+    kind: "PANORAMA",
+    keyExtension: "jpg",
+    filenameExtensions: ["jpg", "jpeg"],
+    contentType: PUBLISHED_CONTENT_TYPES.jpg,
+    clientMimeTypes: ["image/jpeg"],
+  },
+  EQUIRECT_WEBP: {
+    kind: "PANORAMA",
+    keyExtension: "webp",
+    filenameExtensions: ["webp"],
+    contentType: PUBLISHED_CONTENT_TYPES.webp,
+    clientMimeTypes: ["image/webp"],
+  },
+  SOG: {
+    kind: "SPLAT",
+    keyExtension: "sog",
+    filenameExtensions: ["sog"],
+    contentType: PUBLISHED_CONTENT_TYPES.sog,
+    clientMimeTypes: ["application/zip", "application/x-zip-compressed", "application/octet-stream", ""],
+  },
+};
+
+/**
+ * Largest source file accepted per kind. The media pipeline's budgets
+ * (infra/src/media-budgets.ts, BYTE_BUDGETS.*.sourceMax) read these values.
+ */
+export const SOURCE_MAX_BYTES: Readonly<Record<MediaAssetKind, number>> = {
+  MODEL: 250 * MB,
+  PANORAMA: 50 * MB,
+  SPLAT: 80 * MB,
+};
+
+/**
+ * Phase 5A signs one presigned PUT per upload. S3 accepts single PUTs up to 5 GiB,
+ * but a browser request that large is unreliable, so this path stops at 100 MB.
+ * Larger sources (models up to SOURCE_MAX_BYTES.MODEL) need multipart upload, a
+ * Phase 5 follow-up; until then they are refused rather than attempted.
+ */
+export const SINGLE_PUT_UPLOAD_MAX_BYTES = 100 * MB;
+
+/** Lifetime of a presigned upload. S3 rejects the URL after this. */
+export const UPLOAD_INTENT_TTL_SECONDS = 10 * 60;
+
+/** At most this many UPLOADED assets per uploader created within the window. */
+export const UPLOAD_INTENT_QUOTA = { maxRecent: 20, windowSeconds: 24 * 60 * 60 } as const;
+
+export const UPLOAD_TEXT_LIMITS = { filename: 255, title: 150, altText: 500 } as const;
+
+/**
+ * Canonical base64 of a 32-byte SHA-256 digest, as S3's x-amz-checksum-sha256 expects.
+ * Every upload intent must declare one; it is signed as a header (never a query
+ * parameter), so S3 rejects any body whose digest differs.
+ */
+export const SHA256_BASE64_PATTERN = /^[A-Za-z0-9+/]{42}[AEIMQUYcgkosw048]=$/;
+
+/** Server-generated upload attempt id: the {uploadId} key segment. */
+export const UPLOAD_ID_PATTERN = /^[a-z0-9]{16,64}$/;
+
+/** uploads/{mediaId}/{uploadId}/source.{ext}: the only key shape an upload intent issues. */
+export const INGEST_SOURCE_KEY_PATTERN = new RegExp(
+  `^${INGEST_PREFIX}/[a-z0-9]{8,40}/[a-z0-9]{16,64}/source\\.(${[...new Set(Object.values(MEDIA_FORMAT_SPECS).map((s) => s.keyExtension))].join("|")})$`,
+);
+
+/** Builds the ingest key for a source upload. Every segment is server-generated; no client input reaches it. */
+export function buildIngestSourceKey(mediaId: string, uploadId: string, format: MediaAssetFormat): string {
+  if (!MEDIA_ID_PATTERN.test(mediaId)) throw new Error("Invalid media id");
+  if (!UPLOAD_ID_PATTERN.test(uploadId)) throw new Error("Invalid upload id");
+  return `${INGEST_PREFIX}/${mediaId}/${uploadId}/source.${MEDIA_FORMAT_SPECS[format].keyExtension}`;
+}
+
+export type UploadSourceCheck =
+  | { readonly ok: true; readonly contentType: string }
+  | { readonly ok: false; readonly status: 400 | 413; readonly error: string };
+
+/** Validates what a client declares about a source file before any upload is authorised. */
+export function checkUploadSource(source: {
+  readonly kind: MediaAssetKind;
+  readonly expectedFormat: MediaAssetFormat;
+  readonly filename: string;
+  readonly sourceSizeBytes: number;
+  readonly sourceMimeType?: string;
+}): UploadSourceCheck {
+  const spec = MEDIA_FORMAT_SPECS[source.expectedFormat];
+  if (!FORMATS_BY_KIND[source.kind].includes(source.expectedFormat) || spec.kind !== source.kind) {
+    return { ok: false, status: 400, error: `${source.expectedFormat} is not a ${source.kind} format` };
+  }
+  const dot = source.filename.lastIndexOf(".");
+  const extension = dot > 0 ? source.filename.slice(dot + 1).toLowerCase() : "";
+  if (!spec.filenameExtensions.includes(extension)) {
+    return { ok: false, status: 400, error: `filename must end in .${spec.filenameExtensions.join(" or .")} for ${source.expectedFormat}` };
+  }
+  if (source.sourceMimeType !== undefined && !spec.clientMimeTypes.includes(source.sourceMimeType.toLowerCase())) {
+    return { ok: false, status: 400, error: `sourceMimeType is not valid for ${source.expectedFormat}` };
+  }
+  if (!Number.isSafeInteger(source.sourceSizeBytes) || source.sourceSizeBytes <= 0) {
+    return { ok: false, status: 400, error: "sourceSizeBytes must be a positive integer" };
+  }
+  if (source.sourceSizeBytes > SOURCE_MAX_BYTES[source.kind]) {
+    return { ok: false, status: 413, error: `${source.kind} sources are limited to ${SOURCE_MAX_BYTES[source.kind] / MB} MB` };
+  }
+  if (source.sourceSizeBytes > SINGLE_PUT_UPLOAD_MAX_BYTES) {
+    return { ok: false, status: 413, error: `Uploads larger than ${SINGLE_PUT_UPLOAD_MAX_BYTES / MB} MB are not supported yet` };
+  }
+  return { ok: true, contentType: spec.contentType };
+}
 
 // ── JSON columns ─────────────────────────────────────────────────────────────
 
