@@ -13,7 +13,7 @@
  */
 export type ViewerSource = {
   kind: "model";
-  /** Same-origin, root-relative `.glb` path. See `resolveModelUrl`. */
+  /** Same-origin, root-relative `.glb` path, or a `.glb` URL on the media CDN. See `resolveModelUrl`. */
   url: string;
 };
 

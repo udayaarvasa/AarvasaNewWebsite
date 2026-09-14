@@ -11,6 +11,7 @@ import {
   TextureHandler,
   WebglGraphicsDevice,
 } from "playcanvas";
+import { MEDIA_CDN_ORIGIN } from "../media-origin";
 import { resolveModelUrl } from "../source";
 import type { RGB, ViewerEngine, ViewerEngineOptions, ViewerSource, ViewerTheme } from "../types";
 import { loadModel } from "./model-loader";
@@ -165,8 +166,8 @@ export function createViewerEngine(host: HTMLElement, options: ViewerEngineOptio
       } else {
         switch (source.kind) {
           case "model": {
-            const url = resolveModelUrl(source.url, window.location.origin);
-            if (!url) throw new Error("Model URL is not allowed: use a same-origin .glb path");
+            const url = resolveModelUrl(source.url, window.location.origin, MEDIA_CDN_ORIGIN ? [MEDIA_CDN_ORIGIN] : []);
+            if (!url) throw new Error("Model URL is not allowed: use a same-origin .glb path or the media CDN");
             next = await loadModel(app, url);
             break;
           }

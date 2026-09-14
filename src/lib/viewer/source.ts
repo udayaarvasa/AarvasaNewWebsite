@@ -3,29 +3,43 @@ import type { ViewerSource } from "./types";
 const MODEL_EXTENSION = ".glb";
 
 /**
- * Restricts model URLs to same-origin, root-relative `.glb` paths.
+ * Restricts model URLs to same-origin, root-relative `.glb` paths, or to
+ * absolute HTTPS `.glb` URLs on an explicitly allowed media CDN origin.
  *
  * This is deliberately not a general URL loader: nothing a user types can make
- * the viewer fetch from another host. Phase 2 extends this with an explicit CDN
- * allow-list rather than loosening it.
+ * the viewer fetch from a host outside `cdnOrigins`.
  *
- * Returns the normalised path, or null if the URL is not allowed.
+ * Returns the normalised path or URL, or null if the URL is not allowed.
  */
-export function resolveModelUrl(url: string, origin: string): string | null {
-  // "//host/x.glb" is protocol-relative, and backslashes are normalised to
-  // slashes by URL parsing, so both could escape the origin.
-  if (!url.startsWith("/") || url.startsWith("//") || url.includes("\\")) return null;
+export function resolveModelUrl(url: string, origin: string, cdnOrigins: readonly string[]): string | null {
+  // Backslashes are normalised to slashes by URL parsing, so they could change the host.
+  if (url.includes("\\")) return null;
+
+  if (url.startsWith("/")) {
+    // "//host/x.glb" is protocol-relative and would escape the origin.
+    if (url.startsWith("//")) return null;
+    let parsed: URL;
+    try {
+      parsed = new URL(url, origin);
+    } catch {
+      return null;
+    }
+    if (parsed.origin !== origin) return null;
+    if (!parsed.pathname.toLowerCase().endsWith(MODEL_EXTENSION)) return null;
+    return parsed.pathname;
+  }
 
   let parsed: URL;
   try {
-    parsed = new URL(url, origin);
+    parsed = new URL(url);
   } catch {
     return null;
   }
-
-  if (parsed.origin !== origin) return null;
+  // Media keys are content-addressed paths: no credentials, query or fragment is ever needed.
+  if (parsed.protocol !== "https:" || !cdnOrigins.includes(parsed.origin)) return null;
+  if (parsed.username || parsed.password || parsed.search || parsed.hash) return null;
   if (!parsed.pathname.toLowerCase().endsWith(MODEL_EXTENSION)) return null;
-  return parsed.pathname;
+  return parsed.href;
 }
 
 const PROCEDURAL_KEY = "procedural";

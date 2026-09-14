@@ -1,5 +1,6 @@
 import { MEDIA_KEY_PATTERN, publishedObjectMetadata } from "../../../shared/media-contract";
 import type { Project } from "@/lib/project-types";
+import { MEDIA_CDN_ORIGIN } from "./media-origin";
 import type { ViewerSource } from "./types";
 
 /**
@@ -9,18 +10,6 @@ import type { ViewerSource } from "./types";
  *
  * Server-safe: no PlayCanvas, no browser APIs.
  */
-
-/** Dev-only route that serves `npm run media:pilot:stage` output under the CDN's object keys. */
-export const LOCAL_MEDIA_ORIGIN = "/labs/media";
-
-/**
- * Where published media keys are served in this build, or null if nowhere.
- * Production has no media origin yet: the Phase 2B-1 CDN is not deployed, and the
- * viewer only accepts same-origin model URLs until a CDN allow-list is added.
- */
-export function mediaOrigin(nodeEnv: string | undefined = process.env.NODE_ENV): string | null {
-  return nodeEnv === "production" ? null : LOCAL_MEDIA_ORIGIN;
-}
 
 export type ProjectViewerConfig = {
   readonly label: string;
@@ -40,7 +29,8 @@ export function projectViewerConfig(
   if (!media) return null;
   if (media.review !== "approved" && nodeEnv === "production") return null;
 
-  const origin = mediaOrigin(nodeEnv);
+  // Development: the DEV media CDN. Production has no media origin yet, so nothing is shown.
+  const origin = nodeEnv === "production" ? null : MEDIA_CDN_ORIGIN;
   if (!origin) return null;
 
   // The data is hand-copied from a manifest, so re-check it against the storage
