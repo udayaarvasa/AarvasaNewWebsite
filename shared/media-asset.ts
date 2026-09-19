@@ -30,7 +30,29 @@ export const MEDIA_ASSET_FORMATS = ["GLB", "EQUIRECT_JPEG", "EQUIRECT_WEBP", "SO
  */
 export const MEDIA_ASSET_STATUSES = ["UPLOADED", "PROCESSING", "PENDING_REVIEW", "PUBLISHED", "REJECTED", "FAILED", "ARCHIVED"] as const;
 
+/**
+ * Why an asset is FAILED: MediaAsset.failureCode, set exactly when status is FAILED
+ * (CHECK constraint MediaAsset_processing_check). Each maps to a generic user-facing
+ * message in media-processing.ts; processingError keeps the internal diagnostic.
+ * Every FAILED state is terminal: a new upload is required.
+ */
+export const MEDIA_FAILURE_CODES = [
+  "UPLOAD_AUTHORIZATION_FAILED",
+  "UPLOAD_EXPIRED",
+  "UPLOAD_VERIFICATION_FAILED",
+  "INVALID_SOURCE",
+  "SOURCE_MISSING",
+  "SOURCE_INTEGRITY_FAILED",
+  "UNSUPPORTED_CONTENT",
+  "VALIDATION_FAILED",
+  "SIZE_LIMIT_EXCEEDED",
+  "PROCESSING_TIMEOUT",
+  "RETRIES_EXHAUSTED",
+  "INTERNAL_ERROR",
+] as const;
+
 export type MediaSubjectType = (typeof MEDIA_SUBJECT_TYPES)[number];
+export type MediaFailureCode = (typeof MEDIA_FAILURE_CODES)[number];
 export type MediaAssetKind = (typeof MEDIA_ASSET_KINDS)[number];
 export type MediaAssetFormat = (typeof MEDIA_ASSET_FORMATS)[number];
 export type MediaAssetStatus = (typeof MEDIA_ASSET_STATUSES)[number];
@@ -365,6 +387,14 @@ export interface MediaAssetRecord {
   readonly publishedAt: Date | null;
   readonly rejectionReason: string | null;
   readonly processingError: string | null;
+  /** Absent means null. Set exactly when status is FAILED. */
+  readonly failureCode?: string | null;
+  /** Absent means null. Required while PROCESSING. */
+  readonly processingStartedAt?: Date | null;
+  /** Absent means null. Only a PROCESSING asset may hold a lease. */
+  readonly processingLeaseExpiresAt?: Date | null;
+  /** Absent means 0. */
+  readonly processingAttempts?: number;
 }
 
 /**
@@ -428,6 +458,14 @@ export function validateMediaAssetRecord(r: MediaAssetRecord): string[] {
   if (r.status === "PUBLISHED" && (!r.reviewedAt || !r.publishedAt || !r.altText?.trim())) problem("PUBLISHED asset needs reviewedAt, publishedAt and altText");
   if (r.status === "REJECTED" && !r.rejectionReason) problem("REJECTED asset needs rejectionReason");
   if (r.status === "FAILED" && !r.processingError) problem("FAILED asset needs processingError");
+
+  // Processing (mirrors MediaAsset_processing_check)
+  const failureCode = r.failureCode ?? null;
+  if ((r.status === "FAILED") !== (failureCode !== null)) problem("failureCode is required exactly when status is FAILED");
+  if (failureCode !== null && !(MEDIA_FAILURE_CODES as readonly string[]).includes(failureCode)) problem(`failureCode ${failureCode} is not a known failure code`);
+  if (r.status === "PROCESSING" && !r.processingStartedAt) problem("PROCESSING asset needs processingStartedAt");
+  if ((r.processingLeaseExpiresAt ?? null) !== null && r.status !== "PROCESSING") problem("only a PROCESSING asset may hold a processing lease");
+  if ((r.processingAttempts ?? 0) < 0 || !Number.isInteger(r.processingAttempts ?? 0)) problem("processingAttempts must be a non-negative integer");
 
   return problems;
 }

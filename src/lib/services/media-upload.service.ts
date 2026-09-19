@@ -8,6 +8,7 @@ import {
   type MediaAssetKind,
   type MediaSubjectType,
 } from "../../../shared/media-asset";
+import { assertTransition } from "../../../shared/media-processing";
 import type { SignedUpload, UploadSigner } from "../media/ingest-storage";
 import { uploadIntentSchema } from "../validations/media";
 
@@ -67,7 +68,7 @@ export interface UploadIntentStore {
   /** Intents this uploader created since `since`, in ANY status (completion does not free a slot). */
   countRecentUploadIntents(uploadedById: string, since: Date): Promise<number>;
   createUploadedMediaAsset(data: UploadedMediaAssetData): Promise<void>;
-  /** Marks a still-UPLOADED row FAILED. Used only when no upload authorization was issued. */
+  /** Marks a still-UPLOADED row FAILED (failureCode UPLOAD_AUTHORIZATION_FAILED). Used only when no upload authorization was issued. */
   markUploadIntentFailed(id: string, processingError: string): Promise<void>;
 }
 
@@ -237,6 +238,7 @@ export async function handleUploadIntent(request: UploadIntentRequest, deps: Upl
     // Nothing was returned to the client, so the row must not look like a valid intent.
     deps.log("media upload could not be signed", { mediaAssetId, userId: user.id, error: errorName(error) });
     try {
+      assertTransition("UPLOAD_INTENT", "UPLOADED", "FAILED");
       await deps.store.markUploadIntentFailed(mediaAssetId, FAILED_INTENT_PROCESSING_ERROR);
     } catch (cleanupError) {
       deps.log("media upload row could not be marked FAILED", { mediaAssetId, error: errorName(cleanupError) });

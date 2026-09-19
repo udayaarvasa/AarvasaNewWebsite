@@ -158,11 +158,16 @@ the check uses comes from the `MediaAsset` row written at intent time.
 Errors are `{ success: false, error, code, retryable }` with generic messages; AWS
 details stay in server logs. Responses are `Cache-Control: no-store`.
 
-The committed `PROCESSING` row is the processing handoff. Phase 5B sends no queue
-message and processes nothing: dispatch, the worker, SQS and publishing are
-Phase 5C. There is no sweeper yet; abandoned `UPLOADED` rows stay until a later
-phase, and the ingest bucket's lifecycle rule (objects expire 7 days after upload)
-is the ultimate retention boundary for every source, completed or not.
+The committed `PROCESSING` row is the processing handoff. Only after it commits is
+a processing job sent (when a queue producer is configured; none is wired yet).
+The processing worker then re-verifies the source, runs the media pipeline,
+writes the derived files write-once and moves the asset to `PENDING_REVIEW`,
+never straight to `PUBLISHED`; failures end in `FAILED` with a `failureCode`
+whose generic message is the only text a user sees. A sweeper fails abandoned
+uploads and stuck processing. None of this is deployed: see
+[infra/README.md section 14](infra/README.md#14-processing-and-recovery-phase-5c).
+The ingest bucket's lifecycle rule (objects expire 7 days after upload) is the
+ultimate retention boundary for every source.
 
 ## Production Notes
 

@@ -2,6 +2,7 @@ import { type CfnElement, Validations } from "aws-cdk-lib";
 import type { IConstruct } from "constructs";
 import type { MediaEdgeStack } from "./stacks/media-edge-stack";
 import type { MediaMonitoringStack } from "./stacks/media-monitoring-stack";
+import type { MediaProcessingStack } from "./stacks/media-processing-stack";
 import type { MediaStorageStack } from "./stacks/media-storage-stack";
 
 /**
@@ -26,7 +27,10 @@ export function applyNagSuppressions(stacks: {
   edge: MediaEdgeStack;
   storage: MediaStorageStack;
   monitoring: MediaMonitoringStack;
+  processing: MediaProcessingStack;
 }): void {
+  // The processing stack needs no acknowledgements: both queues are encrypted, TLS-only
+  // and cdk-nag recognises the dead-letter queue as one (no SQS3 finding).
   const { storage } = stacks;
 
   for (const bucket of [storage.ingestBucket, storage.publishedBucket]) {
@@ -74,6 +78,5 @@ export function applyNagSuppressions(stacks: {
   Validations.of(resourceOf(storage.node.findChild("ProcessorPolicy"))).acknowledge(
     { id: objectWildcardId(storage, storage.ingestBucket, "uploads"), reason: wildcardReason },
     { id: objectWildcardId(storage, storage.publishedBucket, "m"), reason: wildcardReason },
-    { id: objectWildcardId(storage, storage.publishedBucket, "originals"), reason: wildcardReason },
   );
 }

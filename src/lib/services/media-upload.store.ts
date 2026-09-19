@@ -14,6 +14,9 @@ export const prismaUploadIntentStore: UploadIntentStore = {
   },
 
   async markUploadIntentFailed(id, processingError) {
-    await prisma.mediaAsset.updateMany({ where: { id, status: "UPLOADED" }, data: { status: "FAILED", processingError } });
+    await prisma.mediaAsset.updateMany({
+      where: { id, status: "UPLOADED" },
+      data: { status: "FAILED", processingError, failureCode: "UPLOAD_AUTHORIZATION_FAILED" },
+    });
   },
 };

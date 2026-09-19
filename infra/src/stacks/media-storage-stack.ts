@@ -293,7 +293,7 @@ export class MediaStorageStack extends Stack {
     });
     const processorPolicy = new ManagedPolicy(this, "ProcessorPolicy", {
       managedPolicyName: `${prefix}-processor`,
-      description: "FUTURE: media processing worker. Read uploads, write-once derivatives and originals. Not attached.",
+      description: "FUTURE: media processing worker. Read uploads, write-once derivatives under m/. Not attached.",
       statements: processorStatements(this.ingestBucket.bucketArn, this.publishedBucket.bucketArn),
     });
 

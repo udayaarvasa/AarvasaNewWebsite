@@ -7,6 +7,7 @@ import {
   MEDIA_ASSET_FORMATS,
   MEDIA_ASSET_KINDS,
   MEDIA_ASSET_STATUSES,
+  MEDIA_FAILURE_CODES,
   MEDIA_SUBJECT_TYPES,
   SHA256_BASE64_PATTERN,
   type MediaAssetRecord,
@@ -162,7 +163,7 @@ describe("MediaAsset migrations", () => {
 
   it("baselines the pre-existing schema, then adds MediaAsset", () => {
     assert.ok(existsSync(join(MIGRATIONS, "migration_lock.toml")));
-    assert.deepEqual(dirs, ["0_init", "20260914120000_add_media_asset", "20260914140000_add_media_source_checksum"]);
+    assert.deepEqual(dirs, ["0_init", "20260914120000_add_media_asset", "20260914140000_add_media_source_checksum", "20260919120000_add_media_processing_state"]);
     const init = sql("0_init");
     assert.match(init, /NEVER execute this against an existing database/);
     assert.deepEqual([...init.matchAll(/CREATE TABLE "(\w+)"/g)].map((m) => m[1]), ["User", "Account", "Session", "VerificationToken", "Property", "Favorite", "Inquiry"]);
@@ -203,6 +204,30 @@ describe("MediaAsset source checksum migration", () => {
 
   it("enforces the same canonical base64 SHA-256 shape as the application", () => {
     assert.equal(pattern, SHA256_BASE64_PATTERN.source);
+  });
+});
+
+describe("MediaAsset processing-state migration", () => {
+  const add = readFileSync(join(MIGRATIONS, "20260919120000_add_media_processing_state", "migration.sql"), "utf8");
+
+  it("adds the processing columns additively and one CHECK constraint", () => {
+    assert.doesNotMatch(add, /\bDROP\b|\bTRUNCATE\b|^\s*DELETE\b|^\s*UPDATE\s+"/im);
+    for (const column of ['"failureCode" TEXT', '"processingAttempts" INTEGER NOT NULL DEFAULT 0', '"processingLeaseExpiresAt" TIMESTAMP(3)', '"processingStartedAt" TIMESTAMP(3)']) {
+      assert.ok(add.includes(`ADD COLUMN     ${column}`), column);
+    }
+    assert.match(add, /ADD CONSTRAINT "MediaAsset_processing_check" CHECK/);
+  });
+
+  it("lists exactly the shared failure codes", () => {
+    const listed = [...add.slice(add.indexOf('"failureCode" IN (')).matchAll(/'([A-Z_]+)'/g)].map((m) => m[1]);
+    assert.deepEqual(listed, [...MEDIA_FAILURE_CODES]);
+  });
+
+  it("matches the schema", () => {
+    assert.equal(mediaFields.get("processingStartedAt"), "DateTime?");
+    assert.equal(mediaFields.get("processingAttempts"), "Int @default(0)");
+    assert.equal(mediaFields.get("processingLeaseExpiresAt"), "DateTime?");
+    assert.equal(mediaFields.get("failureCode"), "String?");
   });
 });
 
@@ -248,8 +273,8 @@ describe("validateMediaAssetRecord", () => {
     assert.ok(validateMediaAssetRecord({ ...publishedModel, altText: " " }).length > 0, "published without alt text");
     assert.ok(validateMediaAssetRecord({ ...uploadedProjectPanorama, status: "REJECTED" }).length > 0, "rejected without reason");
     assert.ok(validateMediaAssetRecord({ ...uploadedProjectPanorama, status: "FAILED" }).length > 0, "failed without error");
-    assert.deepEqual(validateMediaAssetRecord({ ...uploadedProjectPanorama, status: "FAILED", processingError: "GPS EXIF" }), []);
-    assert.deepEqual(validateMediaAssetRecord({ ...uploadedProjectPanorama, status: "PROCESSING" }), []);
+    assert.deepEqual(validateMediaAssetRecord({ ...uploadedProjectPanorama, status: "FAILED", processingError: "GPS EXIF", failureCode: "VALIDATION_FAILED" }), []);
+    assert.deepEqual(validateMediaAssetRecord({ ...uploadedProjectPanorama, status: "PROCESSING", processingStartedAt: new Date("2026-09-19T10:00:00Z") }), []);
     assert.deepEqual(validateMediaAssetRecord({ ...publishedModel, status: "ARCHIVED" }), []);
   });
 
@@ -259,6 +284,19 @@ describe("validateMediaAssetRecord", () => {
     assert.ok(validateMediaAssetRecord({ ...publishedModel, contentHash: VERSION }).length > 0, "content hash is a full SHA-256");
     assert.ok(validateMediaAssetRecord({ ...publishedModel, sizeBytes: -1 }).length > 0);
     assert.ok(validateMediaAssetRecord({ ...publishedModel, fileCount: 0 }).length > 0);
+  });
+
+  it("requires a known failureCode exactly when FAILED, a start time while PROCESSING, and leases only while PROCESSING", () => {
+    const failed = { ...uploadedProjectPanorama, status: "FAILED" as const, processingError: "x" };
+    assert.ok(validateMediaAssetRecord(failed).some((p) => /failureCode/.test(p)), "FAILED without a code");
+    assert.deepEqual(validateMediaAssetRecord({ ...failed, failureCode: "VALIDATION_FAILED" }), []);
+    assert.ok(validateMediaAssetRecord({ ...failed, failureCode: "WHATEVER" }).length > 0);
+    assert.ok(validateMediaAssetRecord({ ...uploadedProjectPanorama, failureCode: "VALIDATION_FAILED" }).length > 0, "code on a non-FAILED asset");
+    const processing = { ...uploadedProjectPanorama, status: "PROCESSING" as const };
+    assert.ok(validateMediaAssetRecord({ ...processing, processingStartedAt: null }).length > 0);
+    assert.deepEqual(validateMediaAssetRecord({ ...processing, processingStartedAt: new Date(), processingLeaseExpiresAt: new Date(), processingAttempts: 1 }), []);
+    assert.ok(validateMediaAssetRecord({ ...uploadedProjectPanorama, processingLeaseExpiresAt: new Date() }).length > 0, "lease outside PROCESSING");
+    assert.ok(validateMediaAssetRecord({ ...uploadedProjectPanorama, processingAttempts: -1 }).length > 0);
   });
 
   it("accepts only a canonical base64 SHA-256 as the source checksum, never contentHash's hex", () => {

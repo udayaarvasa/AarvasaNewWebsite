@@ -312,13 +312,15 @@ describe("storage stack: IAM policies for later phases", () => {
     assert.ok(!actions.some((a) => /ListBucket|DeleteObject/.test(a)));
   });
 
-  it("limits the processor to reading uploads and write-once derivatives/originals", () => {
+  it("limits the processor to reading uploads and writing/reading back derivatives under m/", () => {
     const statements = statementsOf(byName("aarvasa-media-dev-processor"));
     const grants = statements.flatMap((s) => asArray(s.Resource).map((r) => `${asArray(s.Action).join("|")} ${renderToken(r)}`));
-    assert.ok(grants.some((g) => g.startsWith("s3:GetObject|s3:GetObjectAttributes <IngestBucket2B3522FA.Arn>/uploads/*")));
-    assert.ok(!grants.some((g) => g.includes("s3:PutObject") && g.includes("IngestBucket")), "processor does not write uploads");
+    assert.deepEqual(grants.sort(), [
+      "s3:AbortMultipartUpload|s3:ListMultipartUploadParts|s3:PutObject <PublishedBucket054BAF30.Arn>/m/*",
+      "s3:GetObject|s3:GetObjectAttributes <IngestBucket2B3522FA.Arn>/uploads/*",
+      "s3:GetObject|s3:GetObjectAttributes <PublishedBucket054BAF30.Arn>/m/*",
+    ].sort());
+    assert.ok(!grants.some((g) => g.includes("/originals/*")), "passthrough-v1 keeps no separate originals");
     assert.ok(!grants.some((g) => g.includes("/lib/*")), "decoders are not writable by the processor");
-    assert.ok(grants.some((g) => g.includes("s3:PutObject") && g.endsWith("/m/*")));
-    assert.ok(grants.some((g) => g.includes("s3:PutObject") && g.endsWith("/originals/*")));
   });
 });

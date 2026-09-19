@@ -6,9 +6,11 @@ import {
   verifyIngestObject,
   type MediaAssetKind,
   type MediaAssetStatus,
+  type MediaFailureCode,
   type MediaSubjectType,
 } from "../../../shared/media-asset";
 import { MEDIA_ID_PATTERN } from "../../../shared/media-contract";
+import { assertTransition, buildProcessingJob, type ProcessingJob } from "../../../shared/media-processing";
 import type { IngestObjectInspection, IngestObjectInspector } from "../media/ingest-storage";
 import { uploadCompletionSchema } from "../validations/media";
 
@@ -18,8 +20,10 @@ import { uploadCompletionSchema } from "../validations/media";
  * UPLOADED to PROCESSING. The browser's word that an upload succeeded is never
  * trusted; the request body is `{}` and every value comes from the MediaAsset row.
  *
- * The committed PROCESSING row is the processing handoff. Nothing is queued or
- * processed here: Phase 5C owns dispatch, the worker and publishing.
+ * The committed PROCESSING row is the processing handoff. Only after that update
+ * has committed is a processing job sent (best effort): a lost or unsent job is
+ * re-sent by the sweeper, and the worker is idempotent, so the job can never run
+ * ahead of the transition and never needs to be sent exactly once.
  *
  * Authorization (approved policy), always with the role re-read from the database:
  *   PROPERTY  ADMIN, or a caller who is BOTH the property's current owner AND the
@@ -87,10 +91,19 @@ export interface UploadCompletionStore {
   findUser(id: string): Promise<CompletionUser | null>;
   findMediaAsset(id: string): Promise<CompletionMediaAsset | null>;
   findPropertyOwner(propertyId: string): Promise<{ readonly ownerId: string } | null>;
-  /** UPLOADED → PROCESSING when every predicate holds. Returns the number of rows updated (0 or 1). */
-  transitionToProcessing(id: string, verified: VerifiedSource, authorization: CompletionAuthorization): Promise<number>;
+  /**
+   * UPLOADED → PROCESSING when every predicate holds, recording processingStartedAt
+   * and resetting the processing lease and attempts. Returns the number of rows updated (0 or 1).
+   */
+  transitionToProcessing(id: string, verified: VerifiedSource, authorization: CompletionAuthorization, startedAt: Date): Promise<number>;
   /** UPLOADED → FAILED for this exact sourceKey. Returns the number of rows updated (0 or 1). */
-  markFailed(id: string, sourceKey: string, processingError: string, authorization: CompletionAuthorization): Promise<number>;
+  markFailed(
+    id: string,
+    sourceKey: string,
+    processingError: string,
+    authorization: CompletionAuthorization,
+    failureCode: Extract<MediaFailureCode, "UPLOAD_EXPIRED" | "UPLOAD_VERIFICATION_FAILED">,
+  ): Promise<number>;
 }
 
 export interface UploadCompletionDependencies {
@@ -101,6 +114,13 @@ export interface UploadCompletionDependencies {
   readonly now: () => Date;
   /** Server-side diagnostics. Never passed URLs, credentials, AWS messages or request bodies. */
   readonly log: (message: string, context: Readonly<Record<string, string | number | null>>) => void;
+  /**
+   * Sends the processing job, called only after UPLOADED → PROCESSING has committed.
+   * Optional: without a queue the PROCESSING row waits for the sweeper's redispatch.
+   */
+  readonly dispatchProcessing?: (job: ProcessingJob) => Promise<void>;
+  /** Random UUID v4 per dispatch. */
+  readonly newJobId?: () => string;
 }
 
 export interface UploadCompletionRequest {
@@ -249,16 +269,33 @@ export async function handleUploadCompletion(request: UploadCompletionRequest, d
   }
 
   // 7. Conditional transition: only one request can move the row, and only if nothing changed.
+  assertTransition("UPLOAD_COMPLETION", "UPLOADED", "PROCESSING");
+  const startedAt = deps.now();
   let updated: number;
   try {
-    updated = await deps.store.transitionToProcessing(asset.id, expected, authorization);
+    updated = await deps.store.transitionToProcessing(asset.id, expected, authorization, startedAt);
   } catch (error) {
     // The commit outcome is unknown; a retry converges (PROCESSING → 200, or verified again).
     deps.log("media completion transition failed", { mediaAssetId: asset.id, error: errorName(error) });
     return fail("SERVER_ERROR");
   }
-  if (updated === 1) return completed(asset.id, "PROCESSING", true);
+  if (updated === 1) {
+    await dispatchAfterCommit(asset, deps);
+    return completed(asset.id, "PROCESSING", true);
+  }
   return respondToCurrentState(asset.id, user, deps);
+}
+
+/** Post-commit, best effort. A failure is logged and left to the sweeper; the completion itself succeeded. */
+async function dispatchAfterCommit(asset: CompletionMediaAsset, deps: UploadCompletionDependencies): Promise<void> {
+  if (!deps.dispatchProcessing || !deps.newJobId) return;
+  try {
+    const job = buildProcessingJob(asset, deps.newJobId(), deps.now());
+    await deps.dispatchProcessing(job);
+    deps.log("media processing job dispatched", { mediaAssetId: asset.id, jobId: job.jobId });
+  } catch (error) {
+    deps.log("media processing dispatch failed; the sweeper will re-send it", { mediaAssetId: asset.id, error: errorName(error) });
+  }
 }
 
 /** The asset if it exists, its subject still exists, and the caller may complete it. */
@@ -289,9 +326,10 @@ async function failAsset(
   code: "UPLOAD_EXPIRED" | "UPLOAD_VERIFICATION_FAILED",
   deps: UploadCompletionDependencies,
 ): Promise<UploadCompletionResult> {
+  assertTransition("UPLOAD_COMPLETION", "UPLOADED", "FAILED");
   let updated: number;
   try {
-    updated = await deps.store.markFailed(asset.id, asset.sourceKey, processingError, authorization);
+    updated = await deps.store.markFailed(asset.id, asset.sourceKey, processingError, authorization, code);
   } catch (error) {
     deps.log("media completion could not mark the asset FAILED", { mediaAssetId: asset.id, error: errorName(error) });
     return fail("SERVER_ERROR");

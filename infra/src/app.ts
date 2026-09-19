@@ -4,12 +4,14 @@ import { assertDeployTarget, loadDevConfig, type MediaEnvironmentConfig } from "
 import { applyNagSuppressions } from "./nag-suppressions";
 import { MediaEdgeStack } from "./stacks/media-edge-stack";
 import { MediaMonitoringStack } from "./stacks/media-monitoring-stack";
+import { MediaProcessingStack } from "./stacks/media-processing-stack";
 import { MediaStorageStack } from "./stacks/media-storage-stack";
 
 export const STACK_IDS = {
   edge: "AarvasaMediaDev-Edge",
   storage: "AarvasaMediaDev-Storage",
   monitoring: "AarvasaMediaDev-Monitoring",
+  processing: "AarvasaMediaDev-Processing",
 } as const;
 
 export interface MediaApp {
@@ -17,6 +19,7 @@ export interface MediaApp {
   readonly edge: MediaEdgeStack;
   readonly storage: MediaStorageStack;
   readonly monitoring: MediaMonitoringStack;
+  readonly processing: MediaProcessingStack;
 }
 
 /**
@@ -63,11 +66,18 @@ export function buildMediaApp(app: App, env: NodeJS.ProcessEnv): MediaApp {
     config,
   });
 
+  const processing = new MediaProcessingStack(app, STACK_IDS.processing, {
+    env: storageEnv,
+    synthesizer: new LegacyStackSynthesizer(),
+    description: "Aarvasa immersive media (dev): processing queue, dead-letter queue, unattached producer/consumer policies",
+    config,
+  });
+
   for (const [key, value] of Object.entries(config.tags)) Tags.of(app).add(key, value);
 
   // cdk-nag v3 runs as a CDK policy-validation plugin; findings fail synthesis.
   Validations.of(app).addPlugins(new AwsSolutionsChecks(app, { verbose: true }));
-  applyNagSuppressions({ edge, storage, monitoring });
+  applyNagSuppressions({ edge, storage, monitoring, processing });
 
-  return { config, edge, storage, monitoring };
+  return { config, edge, storage, monitoring, processing };
 }

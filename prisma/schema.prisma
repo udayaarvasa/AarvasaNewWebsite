@@ -266,8 +266,15 @@ model MediaAsset {
   reviewedAt       DateTime?
   publishedAt      DateTime?
   rejectionReason  String?   @db.Text
-  processingError  String?   @db.Text
+  processingError  String?   @db.Text // internal diagnostic only; never shown to users
   processorVersion String? // e.g. 1.0.0/passthrough-v1
+
+  // Processing lifecycle (Phase 5C, shared/media-processing.ts). failureCode is set
+  // exactly when status is FAILED and maps to the only user-facing failure text.
+  processingStartedAt      DateTime? // when the asset entered PROCESSING
+  processingAttempts       Int       @default(0) // worker claims, capped by PROCESSING_POLICY.maxAttempts
+  processingLeaseExpiresAt DateTime? // a worker holds the asset until then
+  failureCode              String?
 
   // Deleting a Property that has media rows (any status) is refused rather than
   // cascading, so media records and their audit trail are never silently lost.

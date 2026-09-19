@@ -43,15 +43,18 @@ export function appUploadIntentStatements(ingestBucketArn: string): PolicyStatem
 }
 
 /**
- * For the future processing worker. Reads uploads, writes derivatives and
- * originals (write-once, enforced by the published bucket's policy), and reads
- * back what it wrote for verification. It cannot write decoders under lib/,
- * delete objects, or list buckets.
+ * For the processing worker (Phase 5C, infra/src/processing). It reads verified
+ * uploads, writes derived objects under m/ (write-once: the published bucket's
+ * policy denies any PutObject without If-None-Match), and reads back an existing
+ * m/ object to confirm a rerun found identical bytes. It cannot touch originals/
+ * (the passthrough-v1 profile publishes the verified source byte-for-byte, so no
+ * separate original is kept; a transforming profile must add it back explicitly),
+ * write decoders under lib/, delete anything or list buckets. Queue access is a
+ * separate policy in the processing stack.
  */
 export function processorStatements(ingestBucketArn: string, publishedBucketArn: string): PolicyStatement[] {
   const uploads = objects(ingestBucketArn, INGEST_PREFIX);
   const derivatives = objects(publishedBucketArn, "m");
-  const originals = objects(publishedBucketArn, "originals");
   return [
     new PolicyStatement({
       sid: "ReadIngestUploads",
@@ -60,16 +63,16 @@ export function processorStatements(ingestBucketArn: string, publishedBucketArn:
       resources: [uploads],
     }),
     new PolicyStatement({
-      sid: "WritePublishedDerivativesAndOriginals",
+      sid: "WriteOncePublishedDerivatives",
       effect: Effect.ALLOW,
       actions: ["s3:PutObject", "s3:AbortMultipartUpload", "s3:ListMultipartUploadParts"],
-      resources: [derivatives, originals],
+      resources: [derivatives],
     }),
     new PolicyStatement({
-      sid: "ReadBackPublishedObjects",
+      sid: "ReadBackPublishedDerivatives",
       effect: Effect.ALLOW,
       actions: ["s3:GetObject", "s3:GetObjectAttributes"],
-      resources: [derivatives, originals],
+      resources: [derivatives],
     }),
   ];
 }

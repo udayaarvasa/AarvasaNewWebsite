@@ -38,7 +38,7 @@ export const prismaUploadCompletionStore: UploadCompletionStore = {
 
   findPropertyOwner: (propertyId) => prisma.property.findUnique({ where: { id: propertyId }, select: { ownerId: true } }),
 
-  async transitionToProcessing(id, verified, authorization) {
+  async transitionToProcessing(id, verified, authorization, startedAt) {
     const { count } = await prisma.mediaAsset.updateMany({
       where: {
         id,
@@ -49,15 +49,15 @@ export const prismaUploadCompletionStore: UploadCompletionStore = {
         sourceChecksumSha256: verified.sourceChecksumSha256,
         ...authorizationWhere(authorization),
       },
-      data: { status: "PROCESSING", processingError: null },
+      data: { status: "PROCESSING", processingError: null, processingStartedAt: startedAt, processingAttempts: 0, processingLeaseExpiresAt: null },
     });
     return count;
   },
 
-  async markFailed(id, sourceKey, processingError, authorization) {
+  async markFailed(id, sourceKey, processingError, authorization, failureCode) {
     const { count } = await prisma.mediaAsset.updateMany({
       where: { id, status: "UPLOADED", sourceKey, ...authorizationWhere(authorization) },
-      data: { status: "FAILED", processingError },
+      data: { status: "FAILED", processingError, failureCode },
     });
     return count;
   },

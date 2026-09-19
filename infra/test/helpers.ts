@@ -14,7 +14,7 @@ function cdkJsonContext(): Record<string, unknown> {
 
 export interface SynthesizedMediaApp extends MediaApp {
   readonly app: App;
-  readonly templates: { readonly edge: Template; readonly storage: Template; readonly monitoring: Template };
+  readonly templates: { readonly edge: Template; readonly storage: Template; readonly monitoring: Template; readonly processing: Template };
 }
 
 /** Builds and synthesizes the app offline. cdk-nag and CloudFormation schema validation run as part of synth. */
@@ -28,6 +28,7 @@ export function synthMediaApp(context: Record<string, string> = {}, env: NodeJS.
       edge: Template.fromStack(built.edge),
       storage: Template.fromStack(built.storage),
       monitoring: Template.fromStack(built.monitoring),
+      processing: Template.fromStack(built.processing),
     },
   };
 }

@@ -10,9 +10,9 @@ describe("app: synthesis without AWS access", () => {
   const synthesized = synthMediaApp();
   const assembly = synthesized.app.synth();
 
-  it("synthesizes all three stacks with cdk-nag and schema validation passing", () => {
+  it("synthesizes all four stacks with cdk-nag and schema validation passing", () => {
     const ids = assembly.stacks.map((s) => s.stackName).sort();
-    assert.deepEqual(ids, [STACK_IDS.edge, STACK_IDS.monitoring, STACK_IDS.storage].sort());
+    assert.deepEqual(ids, [STACK_IDS.edge, STACK_IDS.monitoring, STACK_IDS.processing, STACK_IDS.storage].sort());
   });
 
   it("places stacks in the intended regions without pinning an account", () => {
@@ -20,6 +20,7 @@ describe("app: synthesis without AWS access", () => {
     assert.equal(env[STACK_IDS.edge].region, "us-east-1");
     assert.equal(env[STACK_IDS.monitoring].region, "us-east-1");
     assert.equal(env[STACK_IDS.storage].region, "ap-south-1");
+    assert.equal(env[STACK_IDS.processing].region, "ap-south-1");
     for (const e of Object.values(env)) assert.equal(e.account, "unknown-account");
   });
 
