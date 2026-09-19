@@ -75,7 +75,7 @@ function harness(options: { signer?: UploadSigner | null; recentIntents?: number
     store: {
       findUser: async (id) => USERS[id] ?? null,
       findProperty: async (id) => PROPERTIES[id] ?? null,
-      countRecentUploadedIntents: async (uploadedById, since) => {
+      countRecentUploadIntents: async (uploadedById, since) => {
         h.quotaQueries.push({ uploadedById, since });
         return options.recentIntents ?? 0;
       },
@@ -389,6 +389,7 @@ describe("upload intent: MediaAsset row and response", () => {
         sourceKey: `uploads/${MEDIA_ID}/${UPLOAD_ID}/source.glb`,
         sourceSizeBytes: 1840,
         sourceMimeType: "model/gltf-binary",
+        sourceChecksumSha256: SHA256,
         uploadedById: "owner",
         title: "Tower",
         altText: "Massing model",
@@ -428,7 +429,15 @@ describe("upload intent: MediaAsset row and response", () => {
     assert.doesNotMatch(JSON.stringify(result.body), /cloudfront|aarvasa-media-dev|secret|credential/i);
   });
 
-  it("applies the outstanding-intent guard per uploader", async () => {
+  it("stores the declared SHA-256 exactly as signed: canonical base64, not hex, not a URL", async () => {
+    const h = harness();
+    await send(h, propertyBody(), "owner");
+    assert.equal(h.created[0]?.sourceChecksumSha256, SHA256);
+    assert.equal(h.signed[0]?.sha256, h.created[0]?.sourceChecksumSha256);
+    assert.doesNotMatch(JSON.stringify(h.created[0]), /https?:|signed\.invalid/);
+  });
+
+  it("applies the intent quota per uploader", async () => {
     const h = harness({ recentIntents: UPLOAD_INTENT_QUOTA.maxRecent });
     assert.equal((await send(h, propertyBody(), "owner")).status, 429);
     assert.equal(h.created.length, 0);

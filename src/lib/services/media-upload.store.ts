@@ -7,8 +7,7 @@ export const prismaUploadIntentStore: UploadIntentStore = {
 
   findProperty: (id) => prisma.property.findUnique({ where: { id }, select: { id: true, ownerId: true } }),
 
-  countRecentUploadedIntents: (uploadedById, since) =>
-    prisma.mediaAsset.count({ where: { uploadedById, status: "UPLOADED", createdAt: { gte: since } } }),
+  countRecentUploadIntents: (uploadedById, since) => prisma.mediaAsset.count({ where: { uploadedById, createdAt: { gte: since } } }),
 
   async createUploadedMediaAsset(data) {
     await prisma.mediaAsset.create({ data, select: { id: true } });

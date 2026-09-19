@@ -254,9 +254,12 @@ model MediaAsset {
   sortOrder Int     @default(0)
 
   // Uploaded original: an ingest key (uploads/…) or a private original (originals/…).
-  sourceKey       String
-  sourceSizeBytes Int
-  sourceMimeType  String
+  sourceKey            String
+  sourceSizeBytes      Int
+  sourceMimeType       String
+  // Canonical base64 SHA-256 declared at upload intent and enforced by S3; verified on
+  // completion. Not contentHash, which is the processed entry file's hex SHA-256.
+  sourceChecksumSha256 String?
 
   uploadedById     String?
   reviewedById     String?

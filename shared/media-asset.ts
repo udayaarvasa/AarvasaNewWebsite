@@ -18,9 +18,15 @@ export const MEDIA_ASSET_FORMATS = ["GLB", "EQUIRECT_JPEG", "EQUIRECT_WEBP", "SO
 /**
  * UPLOADED means an upload was authorised and the row exists; the source bytes have
  * NOT been verified or processed and may not exist yet. An UPLOADED asset is never
- * processed, published or viewer-ready. Processing (Phase 5B/5C) must verify the
- * ingest object (size, checksum) before moving it to PROCESSING. Only PUBLISHED
- * assets may be shown.
+ * processed, published or viewer-ready.
+ *
+ * PROCESSING means the server has independently verified the ingest object against
+ * the row (POST /api/media/{id}/complete: size, Content-Type, SHA-256) and the
+ * asset is eligible for, or undergoing, processing. The committed PROCESSING row is
+ * the processing handoff; Phase 5C owns dispatch and the worker. Nothing is
+ * processed yet, so a PROCESSING asset is never viewer-ready either.
+ *
+ * Only PUBLISHED assets may be shown.
  */
 export const MEDIA_ASSET_STATUSES = ["UPLOADED", "PROCESSING", "PENDING_REVIEW", "PUBLISHED", "REJECTED", "FAILED", "ARCHIVED"] as const;
 
@@ -115,7 +121,10 @@ export const SINGLE_PUT_UPLOAD_MAX_BYTES = 100 * MB;
 /** Lifetime of a presigned upload. S3 rejects the URL after this. */
 export const UPLOAD_INTENT_TTL_SECONDS = 10 * 60;
 
-/** At most this many UPLOADED assets per uploader created within the window. */
+/**
+ * At most this many upload intents per uploader created within the window, whatever
+ * their status now: completing an upload (UPLOADED → PROCESSING) does not free a slot.
+ */
 export const UPLOAD_INTENT_QUOTA = { maxRecent: 20, windowSeconds: 24 * 60 * 60 } as const;
 
 export const UPLOAD_TEXT_LIMITS = { filename: 255, title: 150, altText: 500 } as const;
@@ -126,6 +135,27 @@ export const UPLOAD_TEXT_LIMITS = { filename: 255, title: 150, altText: 500 } as
  * parameter), so S3 rejects any body whose digest differs.
  */
 export const SHA256_BASE64_PATTERN = /^[A-Za-z0-9+/]{42}[AEIMQUYcgkosw048]=$/;
+
+/**
+ * How long after an intent's URL expires a completion may still find the object. S3
+ * checks a presigned URL's expiry when the request starts, so a slow upload can
+ * finish well after UPLOAD_INTENT_TTL_SECONDS. Past createdAt + TTL + grace, a
+ * missing object can never arrive and the asset is marked FAILED on completion.
+ *
+ * The ingest bucket's lifecycle rule (7 days after object creation, infra config)
+ * is the ultimate retention boundary for every source, completed or not.
+ */
+export const UPLOAD_COMPLETION_GRACE_SECONDS = 60 * 60;
+
+/** The last moment a completion may report a missing object as "not received yet". */
+export function uploadCompletionDeadline(createdAt: Date): Date {
+  return new Date(createdAt.getTime() + (UPLOAD_INTENT_TTL_SECONDS + UPLOAD_COMPLETION_GRACE_SECONDS) * 1000);
+}
+
+/** Statuses that are only reachable after a successful completion; completing again is a no-op. */
+export const COMPLETED_UPLOAD_STATUSES: readonly MediaAssetStatus[] = ["PROCESSING", "PENDING_REVIEW", "PUBLISHED", "REJECTED"];
+/** Statuses that can never be completed. */
+export const NOT_COMPLETABLE_STATUSES: readonly MediaAssetStatus[] = ["FAILED", "ARCHIVED"];
 
 /** Server-generated upload attempt id: the {uploadId} key segment. */
 export const UPLOAD_ID_PATTERN = /^[a-z0-9]{16,64}$/;
@@ -176,6 +206,95 @@ export function checkUploadSource(source: {
     return { ok: false, status: 413, error: `Uploads larger than ${SINGLE_PUT_UPLOAD_MAX_BYTES / MB} MB are not supported yet` };
   }
   return { ok: true, contentType: spec.contentType };
+}
+
+// ── Upload completion: source key and object verification ───────────────────
+
+/** The row fields a completion verifies against. All of them were written by the server at intent time. */
+export interface CompletableSource {
+  readonly id: string;
+  readonly kind: MediaAssetKind;
+  readonly sourceKey: string;
+  readonly sourceSizeBytes: number;
+  readonly sourceMimeType: string;
+  readonly sourceChecksumSha256: string | null;
+}
+
+/**
+ * Why a row cannot be verified at all, or null when it is consistent with the Phase 5A
+ * contract. The key is never repaired or reconstructed: only the stored key is inspected.
+ */
+export function checkCompletableSource(row: CompletableSource): string | null {
+  if (!INGEST_SOURCE_KEY_PATTERN.test(row.sourceKey)) return "sourceKey is not an ingest source key";
+  const [, mediaId, , file] = row.sourceKey.split("/");
+  if (mediaId !== row.id) return "sourceKey belongs to another media asset";
+  const extension = file.slice(file.lastIndexOf(".") + 1);
+  const spec = Object.values(MEDIA_FORMAT_SPECS).find((s) => s.keyExtension === extension && s.kind === row.kind);
+  if (!spec) return "sourceKey extension does not match the asset kind";
+  if (spec.contentType !== row.sourceMimeType) return "sourceMimeType does not match the sourceKey format";
+  if (!Number.isSafeInteger(row.sourceSizeBytes) || row.sourceSizeBytes <= 0 || row.sourceSizeBytes > SINGLE_PUT_UPLOAD_MAX_BYTES) {
+    return "sourceSizeBytes is outside the single-PUT upload range";
+  }
+  if (row.sourceChecksumSha256 === null) return "sourceChecksumSha256 is missing";
+  if (!SHA256_BASE64_PATTERN.test(row.sourceChecksumSha256)) return "sourceChecksumSha256 is not canonical base64 SHA-256";
+  return null;
+}
+
+/** Server-side encryption every ingest object carries (the bucket default, SSE-S3). */
+export const INGEST_SERVER_SIDE_ENCRYPTION = "AES256";
+
+/** What HeadObject (ChecksumMode ENABLED) reports about an ingest object. ETag is deliberately absent. */
+export interface IngestObjectHead {
+  readonly contentLength?: number;
+  readonly contentType?: string;
+  readonly checksumSha256?: string;
+  readonly checksumType?: string;
+  readonly serverSideEncryption?: string;
+  readonly contentEncoding?: string;
+  readonly contentDisposition?: string;
+  readonly cacheControl?: string;
+  readonly metadata?: Readonly<Record<string, string>>;
+}
+
+export type IngestObjectMismatch =
+  | "content-length"
+  | "content-type"
+  | "checksum-missing"
+  | "checksum"
+  | "checksum-type"
+  | "content-encoding"
+  | "content-disposition"
+  | "cache-control"
+  | "metadata";
+
+export type IngestObjectVerdict =
+  | { readonly ok: true }
+  /** The object is not the bytes that were authorised. Terminal for the asset. */
+  | { readonly ok: false; readonly outcome: "MISMATCH"; readonly mismatch: IngestObjectMismatch }
+  /** The object looks right but the bucket does not: configuration drift, never the uploader's fault. */
+  | { readonly ok: false; readonly outcome: "MISCONFIGURED"; readonly problem: "server-side-encryption" };
+
+const isBlank = (value: string | undefined) => value === undefined || value === "";
+
+/**
+ * Compares an ingest object with the row it was authorised for. Pure: no AWS, no
+ * database. The SHA-256 is compared as the exact canonical base64 string S3 returns
+ * and the intent stored (both are canonical, so no conversion is involved). ETag is
+ * never used for integrity: it is not a SHA-256 and not even an MD5 for every upload.
+ */
+export function verifyIngestObject(expected: CompletableSource, head: IngestObjectHead): IngestObjectVerdict {
+  const mismatch = (m: IngestObjectMismatch): IngestObjectVerdict => ({ ok: false, outcome: "MISMATCH", mismatch: m });
+  if (head.contentLength !== expected.sourceSizeBytes) return mismatch("content-length");
+  if (head.contentType !== expected.sourceMimeType) return mismatch("content-type");
+  if (isBlank(head.checksumSha256)) return mismatch("checksum-missing");
+  if (expected.sourceChecksumSha256 === null || head.checksumSha256 !== expected.sourceChecksumSha256) return mismatch("checksum");
+  if (head.checksumType !== undefined && head.checksumType !== "FULL_OBJECT") return mismatch("checksum-type");
+  if (!isBlank(head.contentEncoding)) return mismatch("content-encoding");
+  if (!isBlank(head.contentDisposition)) return mismatch("content-disposition");
+  if (!isBlank(head.cacheControl)) return mismatch("cache-control");
+  if (head.metadata !== undefined && Object.keys(head.metadata).length > 0) return mismatch("metadata");
+  if (head.serverSideEncryption !== INGEST_SERVER_SIDE_ENCRYPTION) return { ok: false, outcome: "MISCONFIGURED", problem: "server-side-encryption" };
+  return { ok: true };
 }
 
 // ── JSON columns ─────────────────────────────────────────────────────────────
@@ -240,6 +359,8 @@ export interface MediaAssetRecord {
   readonly sourceKey: string;
   readonly sourceSizeBytes: number;
   readonly sourceMimeType: string;
+  /** Canonical base64 SHA-256 the uploader declared and S3 enforced; null for sources not uploaded through an intent. */
+  readonly sourceChecksumSha256: string | null;
   readonly reviewedAt: Date | null;
   readonly publishedAt: Date | null;
   readonly rejectionReason: string | null;
@@ -272,6 +393,9 @@ export function validateMediaAssetRecord(r: MediaAssetRecord): string[] {
   const ownOriginal = ORIGINAL_KEY_PATTERN.test(r.sourceKey) && r.sourceKey.split("/")[1] === r.id;
   if (!ownIngest && !ownOriginal) problem(`sourceKey must be ${INGEST_PREFIX}/${r.id}/… or originals/${r.id}/…`);
   if (r.sourceSizeBytes < 0) problem("sourceSizeBytes must be non-negative");
+  if (r.sourceChecksumSha256 !== null && !SHA256_BASE64_PATTERN.test(r.sourceChecksumSha256)) {
+    problem("sourceChecksumSha256 must be a canonical base64 SHA-256 digest (not hex, not contentHash)");
+  }
 
   // Processed asset
   const processed = [r.format, r.storageKey, r.entryFile, r.contentHash, r.mimeType, r.sizeBytes, r.fileCount];

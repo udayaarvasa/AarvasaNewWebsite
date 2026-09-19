@@ -51,3 +51,7 @@ export const uploadIntentSchema = z.discriminatedUnion("subjectType", [
 ]);
 
 export type UploadIntentInput = z.infer<typeof uploadIntentSchema>;
+
+// POST /api/media/{mediaAssetId}/complete: exactly {}. Every value completion needs
+// (key, size, type, checksum, subject, status) is read from the MediaAsset row.
+export const uploadCompletionSchema = z.strictObject({});

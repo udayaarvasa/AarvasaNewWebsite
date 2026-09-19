@@ -16,9 +16,13 @@ const objects = (bucketArn: string, prefix: string) => `${bucketArn}/${prefix}/*
  *
  * Presigned URLs carry the signer's permissions, so the role needs PutObject on
  * the upload prefix to issue them. It can abort and inspect its own multipart
- * uploads, and read object attributes (size, checksum) to verify a completed
- * upload, but it cannot read object bodies, touch the published bucket, delete
- * anything, or change infrastructure.
+ * uploads, and verify a completed upload (POST /api/media/{id}/complete).
+ *
+ * Verification uses HeadObject, and S3 authorizes HeadObject (and GetObjectAttributes)
+ * with s3:GetObject: there is no header-only permission. So the role can technically
+ * read upload bodies under uploads/*, and only there. It still cannot list the
+ * bucket (a missing key therefore answers 403, which the app treats as "verification
+ * unavailable"), touch the published bucket, delete anything, or change infrastructure.
  */
 export function appUploadIntentStatements(ingestBucketArn: string): PolicyStatement[] {
   const uploads = objects(ingestBucketArn, INGEST_PREFIX);
@@ -30,9 +34,9 @@ export function appUploadIntentStatements(ingestBucketArn: string): PolicyStatem
       resources: [uploads],
     }),
     new PolicyStatement({
-      sid: "InspectIngestUploadAttributes",
+      sid: "VerifyIngestUploads",
       effect: Effect.ALLOW,
-      actions: ["s3:GetObjectAttributes"],
+      actions: ["s3:GetObject", "s3:GetObjectAttributes"],
       resources: [uploads],
     }),
   ];

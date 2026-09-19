@@ -169,8 +169,17 @@ Two customer-managed policies are **created but attached to nothing**:
 
 | Policy | Future principal | Allows | Does not allow |
 |---|---|---|---|
-| `aarvasa-media-dev-app-upload-intents` | Amplify SSR Compute role | `PutObject`, `AbortMultipartUpload`, `ListMultipartUploadParts`, `GetObjectAttributes` on `ingest/uploads/*` (presign, complete and inspect uploads) | Reading object bodies, anything in the published bucket, deletes, listing, infrastructure changes |
+| `aarvasa-media-dev-app-upload-intents` | Amplify SSR Compute role | `PutObject`, `AbortMultipartUpload`, `ListMultipartUploadParts`, `GetObject`, `GetObjectAttributes` on `ingest/uploads/*` (presign, complete and verify uploads) | Anything outside `ingest/uploads/*`, anything in the published bucket, deletes, listing, infrastructure changes |
 | `aarvasa-media-dev-processor` | Future processing worker | Read `ingest/uploads/*`; write-once `PutObject` plus multipart on `published/m/*` and `published/originals/*`; read those back | Writing `lib/*`, deletes, listing, other buckets |
+
+`s3:GetObject` on `uploads/*` is there for upload completion: S3 authorizes
+`HeadObject` (and `GetObjectAttributes`) with `s3:GetObject`, and there is no
+header-only permission, so verifying an upload's size, type and SHA-256 technically
+lets the app read upload bodies, under `uploads/*` only. `s3:ListBucket` is
+deliberately not granted, so S3 answers 403 rather than 404 for a missing key
+under this policy; the app treats 403 as "verification unavailable" (retryable),
+never as proof that an upload is missing. The policy change exists only in code:
+it is not deployed and not attached.
 
 Bucket policies add defence in depth: TLS enforcement, prefix confinement,
 write-once, and CloudFront-only reads. No roles, users or access keys are defined.
@@ -276,7 +285,8 @@ npx cdk deploy AarvasaMediaDev-Monitoring -c aarvasa:accountId=<dev-account-id> 
 ### Application environment variables
 
 `MEDIA_REGION` and `MEDIA_INGEST_BUCKET` are read by `POST /api/media/upload-intent`
-(Phase 5A, `src/lib/media/ingest-storage.ts`). The others are not used yet.
+(Phase 5A) and `POST /api/media/{mediaAssetId}/complete` (Phase 5B), both through
+`src/lib/media/ingest-storage.ts`. The others are not used yet.
 
 Follows the repository's `SERVICE_` prefix convention (`CLOUDINARY_*`, `AUTH_*`).
 All are **server-only**. Never prefix them with `NEXT_PUBLIC_`: the viewer
@@ -285,7 +295,7 @@ receives complete URLs from Server Components.
 | Variable | Example | Notes |
 |---|---|---|
 | `MEDIA_REGION` | `ap-south-1` | Region of both buckets |
-| `MEDIA_INGEST_BUCKET` | Storage output `IngestBucketName` | Presign target |
+| `MEDIA_INGEST_BUCKET` | Storage output `IngestBucketName` | Presign and verification (HeadObject) target |
 | `MEDIA_PUBLISHED_BUCKET` | Storage output `PublishedBucketName` | Named explicitly because there are two buckets |
 | `MEDIA_CDN_ORIGIN` | Storage output `MediaCdnOrigin` (`https://d….cloudfront.net`) | Used both to build asset URLs and as the viewer's single allowed remote origin. A separate `MEDIA_CDN_URL` would duplicate it and could drift |
 
@@ -505,14 +515,18 @@ Profile `passthrough-v1`:
 - **Budgets** are Phase 2A starting points, not measured device limits.
 - **Scanning:** no malware or antivirus scanning.
 
-### How this later connects to S3 and SQS (not implemented)
+### How this connects to uploads, S3 and SQS
 
-1. **Upload intent** (future API): the SSR role presigns `uploads/{mediaId}/{uploadId}/source.{ext}` in the ingest bucket.
-2. **S3 event → SQS → processing worker** (future; runs this same `processAssets` code on the downloaded object):
+1. **Upload intent** (Phase 5A, implemented): the SSR role presigns `uploads/{mediaId}/{uploadId}/source.{ext}` in the ingest bucket, bound to the size, type and SHA-256, which the `MediaAsset` row stores (`sourceChecksumSha256`, canonical base64).
+2. **Upload completion** (Phase 5B, implemented): `POST /api/media/{mediaId}/complete` verifies the ingest object with `HeadObject` against the row and moves it `UPLOADED` → `PROCESSING` with one conditional update. The committed `PROCESSING` row is the handoff. There are no S3 event notifications, queues or workers, and S3 events are not planned as the processing trigger.
+3. **Processing dispatch → worker** (Phase 5C, not implemented; runs this same `processAssets` code on the downloaded object):
+   - Dispatch claims `PROCESSING` rows atomically (directly, or through SQS with a DLQ), so each row is processed once.
+   - The worker re-hashes the downloaded bytes against `sourceChecksumSha256` before processing (hex `sha256Hex` values are converted from base64 there, nowhere else).
    - Validation, budgets, keys and manifest are identical to local runs.
    - The worker implements the `ObjectPublisher` adapter:
      - `PutObject` each `objects[]` entry to the published bucket with `If-None-Match: *`, plus the manifest's `Content-Type` and `Cache-Control`.
      - HTTP 412 means already published.
    - Originals are copied to `originals/{mediaId}/{keyHash}/`.
-3. **Database** (future `MediaAsset` row): stores `storageKey`, `entryFile`, `contentHash`, poster fields, metrics and validation status from the manifest, plus moderation state.
-4. **Delivery:** Server Components build URLs as `MEDIA_CDN_ORIGIN + "/" + key`. The origin is server configuration and never part of the manifest.
+   - It must finish, or copy the source to `originals/`, within the ingest bucket's 7-day lifecycle.
+4. **Database** (`MediaAsset` row): processing fills `storageKey`, `entryFile`, `contentHash` (the processed entry file's hex SHA-256, unrelated to `sourceChecksumSha256`), poster fields, metrics and validation status from the manifest, plus moderation state.
+5. **Delivery:** Server Components build URLs as `MEDIA_CDN_ORIGIN + "/" + key`. The origin is server configuration and never part of the manifest.

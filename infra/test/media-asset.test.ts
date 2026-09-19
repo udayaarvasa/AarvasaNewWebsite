@@ -8,6 +8,7 @@ import {
   MEDIA_ASSET_KINDS,
   MEDIA_ASSET_STATUSES,
   MEDIA_SUBJECT_TYPES,
+  SHA256_BASE64_PATTERN,
   type MediaAssetRecord,
   validateMediaAssetRecord,
 } from "../../shared/media-asset";
@@ -46,6 +47,8 @@ const mediaIndexes = block("model", "MediaAsset")
 const MEDIA_ID = "cm1abcd2ef3gh4ij5kl6mn7op";
 const VERSION = "de1d54d4e9da0d02";
 const SHA = "370418ddb037b189a64f4c1f761398b8fcf9974ca9028b9ab188bb3a37ba7ef2";
+/** The same digest as S3 carries it: canonical base64. */
+const SHA_BASE64 = Buffer.from(SHA, "hex").toString("base64");
 
 const publishedModel: MediaAssetRecord = {
   id: MEDIA_ID,
@@ -66,6 +69,7 @@ const publishedModel: MediaAssetRecord = {
   sourceKey: `originals/${MEDIA_ID}/${VERSION}/tower.glb`,
   sourceSizeBytes: 1840,
   sourceMimeType: "model/gltf-binary",
+  sourceChecksumSha256: null,
   reviewedAt: new Date("2026-09-14T10:00:00Z"),
   publishedAt: new Date("2026-09-14T10:05:00Z"),
   rejectionReason: null,
@@ -91,6 +95,7 @@ const uploadedProjectPanorama: MediaAssetRecord = {
   sourceKey: `uploads/${MEDIA_ID}/upl01/terrace.jpg`,
   sourceSizeBytes: 9_000_000,
   sourceMimeType: "image/jpeg",
+  sourceChecksumSha256: SHA_BASE64,
   reviewedAt: null,
   publishedAt: null,
 };
@@ -125,6 +130,7 @@ describe("MediaAsset Prisma schema", () => {
   it("stores object keys as plain strings and never a URL or CDN origin", () => {
     for (const field of ["storageKey", "entryFile", "posterKey"]) assert.equal(mediaFields.get(field), "String?", field);
     assert.equal(mediaFields.get("sourceKey"), "String");
+    assert.equal(mediaFields.get("sourceChecksumSha256"), "String?", "declared source SHA-256, separate from contentHash");
     assert.ok(![...mediaFields.keys()].some((f) => /url|origin|cdn/i.test(f)), "no URL-shaped columns");
     assert.doesNotMatch(block("model", "MediaAsset"), /https?:|cloudfront|media\.aarvasa/i);
   });
@@ -156,7 +162,7 @@ describe("MediaAsset migrations", () => {
 
   it("baselines the pre-existing schema, then adds MediaAsset", () => {
     assert.ok(existsSync(join(MIGRATIONS, "migration_lock.toml")));
-    assert.deepEqual(dirs, ["0_init", "20260914120000_add_media_asset"]);
+    assert.deepEqual(dirs, ["0_init", "20260914120000_add_media_asset", "20260914140000_add_media_source_checksum"]);
     const init = sql("0_init");
     assert.match(init, /NEVER execute this against an existing database/);
     assert.deepEqual([...init.matchAll(/CREATE TABLE "(\w+)"/g)].map((m) => m[1]), ["User", "Account", "Session", "VerificationToken", "Property", "Favorite", "Inquiry"]);
@@ -180,6 +186,23 @@ describe("MediaAsset migrations", () => {
     assert.match(add, /"subjectType" = 'PROJECT' AND "projectSlug" IS NOT NULL AND "propertyId" IS NULL/);
     assert.match(add, /FOREIGN KEY \("propertyId"\) REFERENCES "Property"\("id"\) ON DELETE RESTRICT/);
     assert.doesNotMatch(add, /projectSlug"\) REFERENCES/, "no project foreign key");
+  });
+});
+
+describe("MediaAsset source checksum migration", () => {
+  const add = readFileSync(join(MIGRATIONS, "20260914140000_add_media_source_checksum", "migration.sql"), "utf8");
+  const pattern = add.match(/"sourceChecksumSha256" ~ '([^']+)'/)?.[1];
+
+  it("only adds one nullable column and one CHECK constraint to MediaAsset", () => {
+    const statements = add.split(";").map((st) => st.replace(/--.*$/gm, "").trim()).filter(Boolean);
+    assert.equal(statements.length, 2);
+    assert.match(statements[0], /^ALTER TABLE "MediaAsset" ADD COLUMN "sourceChecksumSha256" TEXT$/);
+    assert.match(statements[1], /^ALTER TABLE "MediaAsset" ADD CONSTRAINT "MediaAsset_source_checksum_check" CHECK \(/);
+    assert.doesNotMatch(add, /\bDROP\b|\bTRUNCATE\b|\bDELETE\b|\bUPDATE\b|NOT NULL|DEFAULT|https?:\/\//i);
+  });
+
+  it("enforces the same canonical base64 SHA-256 shape as the application", () => {
+    assert.equal(pattern, SHA256_BASE64_PATTERN.source);
   });
 });
 
@@ -236,5 +259,12 @@ describe("validateMediaAssetRecord", () => {
     assert.ok(validateMediaAssetRecord({ ...publishedModel, contentHash: VERSION }).length > 0, "content hash is a full SHA-256");
     assert.ok(validateMediaAssetRecord({ ...publishedModel, sizeBytes: -1 }).length > 0);
     assert.ok(validateMediaAssetRecord({ ...publishedModel, fileCount: 0 }).length > 0);
+  });
+
+  it("accepts only a canonical base64 SHA-256 as the source checksum, never contentHash's hex", () => {
+    assert.deepEqual(validateMediaAssetRecord({ ...uploadedProjectPanorama, sourceChecksumSha256: null }), []);
+    for (const bad of [SHA, SHA_BASE64.replace(/=$/, ""), `${SHA_BASE64.slice(0, 42)}B=`, "https://example.com/x", ""]) {
+      assert.ok(validateMediaAssetRecord({ ...uploadedProjectPanorama, sourceChecksumSha256: bad }).length > 0, bad);
+    }
   });
 });

@@ -18,7 +18,8 @@ import { uploadIntentSchema } from "../validations/media";
  * The row is created with status UPLOADED, which here means: an upload was
  * authorised and the row exists, but the source bytes have NOT been verified or
  * processed and may never arrive. It must not be treated as processed, published
- * or viewer-ready. Phase 5B/5C must verify the ingest object before PROCESSING.
+ * or viewer-ready. Upload completion (media-completion.service.ts) verifies the
+ * ingest object against this row before it may become PROCESSING.
  *
  * Authorization (approved policy):
  *   PROPERTY  owner (Property.ownerId) or ADMIN, as in property.service.ts updateProperty
@@ -28,7 +29,8 @@ import { uploadIntentSchema } from "../validations/media";
  * Everything security-sensitive is derived here, never taken from the client:
  * the caller's current role (re-read from the database), media and upload ids, the
  * object key, the signed Content-Type, uploadedById and status. The client must
- * declare the file's SHA-256, which is signed so S3 accepts only those bytes.
+ * declare the file's SHA-256, which is signed so S3 accepts only those bytes, and
+ * stored (sourceChecksumSha256) so completion can compare it with what S3 holds.
  *
  * The data store, signer and project lookup are injected so this module has no
  * Prisma, Next.js or AWS side effects of its own and can be tested directly.
@@ -52,6 +54,8 @@ export interface UploadedMediaAssetData {
   readonly sourceKey: string;
   readonly sourceSizeBytes: number;
   readonly sourceMimeType: string;
+  /** The declared SHA-256, canonical base64, exactly as signed into the PUT. */
+  readonly sourceChecksumSha256: string;
   readonly uploadedById: string;
   readonly title: string | null;
   readonly altText: string | null;
@@ -60,7 +64,8 @@ export interface UploadedMediaAssetData {
 export interface UploadIntentStore {
   findUser(id: string): Promise<UploadIntentUser | null>;
   findProperty(id: string): Promise<{ readonly id: string; readonly ownerId: string } | null>;
-  countRecentUploadedIntents(uploadedById: string, since: Date): Promise<number>;
+  /** Intents this uploader created since `since`, in ANY status (completion does not free a slot). */
+  countRecentUploadIntents(uploadedById: string, since: Date): Promise<number>;
   createUploadedMediaAsset(data: UploadedMediaAssetData): Promise<void>;
   /** Marks a still-UPLOADED row FAILED. Used only when no upload authorization was issued. */
   markUploadIntentFailed(id: string, processingError: string): Promise<void>;
@@ -144,10 +149,10 @@ export async function handleUploadIntent(request: UploadIntentRequest, deps: Upl
     if (!canCreateMediaFor(user, { type: "PROJECT" })) return fail(403, "Forbidden");
   }
 
-  // 5. Outstanding-intent guard (database-backed, per uploader).
+  // 5. Intent quota (database-backed, per uploader, every status counts).
   const now = deps.now();
   const since = new Date(now.getTime() - UPLOAD_INTENT_QUOTA.windowSeconds * 1000);
-  if ((await deps.store.countRecentUploadedIntents(user.id, since)) >= UPLOAD_INTENT_QUOTA.maxRecent) {
+  if ((await deps.store.countRecentUploadIntents(user.id, since)) >= UPLOAD_INTENT_QUOTA.maxRecent) {
     return fail(429, "Too many pending uploads. Please try again later.");
   }
 
@@ -185,6 +190,7 @@ export async function handleUploadIntent(request: UploadIntentRequest, deps: Upl
     sourceKey: objectKey,
     sourceSizeBytes: input.sourceSizeBytes,
     sourceMimeType: source.contentType,
+    sourceChecksumSha256: input.sha256,
     uploadedById: user.id,
     title: input.title ?? null,
     altText: input.altText ?? null,
@@ -224,7 +230,7 @@ export async function handleUploadIntent(request: UploadIntentRequest, deps: Upl
       key: objectKey,
       contentType: source.contentType,
       contentLength: input.sourceSizeBytes,
-      sha256: input.sha256,
+      sha256: data.sourceChecksumSha256,
       expiresInSeconds: UPLOAD_INTENT_TTL_SECONDS,
     });
   } catch (error) {

@@ -62,10 +62,11 @@ MEDIA_REGION=ap-south-1   # optional; immersive media upload intents (server-onl
 MEDIA_INGEST_BUCKET=      # optional; Storage stack output IngestBucketName
 ```
 
-Immersive media upload intents also need AWS credentials from the SDK's default
-chain (a local profile, or the compute role when deployed) that are allowed to
-sign PUTs to the ingest bucket's `uploads/*`. Without `MEDIA_REGION` and
-`MEDIA_INGEST_BUCKET`, `POST /api/media/upload-intent` returns 503.
+Immersive media uploads also need AWS credentials from the SDK's default chain
+(a local profile, or the compute role when deployed) that are allowed to sign
+PUTs to, and HeadObject (`s3:GetObject`), the ingest bucket's `uploads/*`.
+Without `MEDIA_REGION` and `MEDIA_INGEST_BUCKET`, `POST /api/media/upload-intent`
+and `POST /api/media/:id/complete` return 503.
 
 Note that `amplify.yml` only forwards variables matching a fixed prefix list
 (`DATABASE_URL`, `AUTH_`, `MONGODB_URI`, `GEMINI_`, `CLOUDINARY_`, …). A new
@@ -124,11 +125,44 @@ npm run build
 - `GET /api/diag`
 - `GET /api/properties`
 - `GET /api/properties/:id`
-- `POST /api/media/upload-intent` (JSON; property owner or admin for a property, admin for a project; requires the file's base64 `sha256`; returns one presigned PUT to the ingest bucket, bound to the exact key, `Content-Type`, `Content-Length` and `x-amz-checksum-sha256`, and records the asset as `UPLOADED`, meaning not yet verified or processed)
+- `POST /api/media/upload-intent` (JSON; property owner or admin for a property, admin for a project; requires the file's base64 `sha256`, which is stored; returns one presigned PUT to the ingest bucket, bound to the exact key, `Content-Type`, `Content-Length` and `x-amz-checksum-sha256`, and records the asset as `UPLOADED`, meaning not yet verified or processed; at most 20 intents per uploader per 24 hours, whatever their status)
+- `POST /api/media/:mediaAssetId/complete` (`Content-Type: application/json`, body exactly `{}`; an admin, or for a property asset the current property owner who is also the uploader; otherwise 404. The server checks the ingest object with HeadObject against the stored key, size, `Content-Type` and SHA-256, then moves the asset `UPLOADED` → `PROCESSING` exactly once. `PROCESSING` means verified and waiting for processing, which is not built yet. See [Media upload completion](#media-upload-completion))
 - `GET /api/ai/recommendations?budget=50000000&risk=Balanced&type=Villa`
 - `POST /api/chat`
 - `POST /api/blockchain/transaction`
 - `GET /api/blockchain/status?hash=0x...`
+
+### Media upload completion
+
+The browser's report that an upload succeeded is never trusted. After the presigned
+PUT, the client calls `POST /api/media/:mediaAssetId/complete` with `{}`. Every value
+the check uses comes from the `MediaAsset` row written at intent time.
+
+1. Authenticate (session cookie or Bearer token) and re-read the user from the database; the token's role is ignored.
+2. Load the asset and authorize against its stored subject: `ADMIN`, or for a property asset a caller who is both the property's current owner and the uploader. Project assets are admin-only. Anything else is a 404, like a missing asset.
+3. Refuse (409, no S3 call) a row whose `sourceKey` is not `uploads/{mediaAssetId}/{uploadId}/source.{ext}` for this asset, or which has no stored checksum.
+4. `HeadObject` (`ChecksumMode: ENABLED`) on that key and require: `ContentLength` = `sourceSizeBytes`, `ContentType` = `sourceMimeType`, `ChecksumSHA256` = `sourceChecksumSha256` (canonical base64, compared as stored), `ChecksumType` `FULL_OBJECT` when reported, `ServerSideEncryption` `AES256`, and no `Content-Encoding`, `Content-Disposition`, `Cache-Control` or user metadata. `ETag` is never used for integrity.
+5. One conditional update (`status = UPLOADED` plus every verified value and the authorization) sets `PROCESSING`. Concurrent requests converge: exactly one reports `transitioned: true`.
+
+| Response | Meaning | Row |
+|---|---|---|
+| 200 `{ status: "PROCESSING", transitioned: true }` | Verified and handed to processing | `UPLOADED` → `PROCESSING` |
+| 200 `{ status, transitioned: false }` | Already `PROCESSING`, `PENDING_REVIEW`, `PUBLISHED` or `REJECTED`; no S3 call | unchanged |
+| 409 `UPLOAD_NOT_FOUND` (retryable) | No object yet, before `createdAt` + 10 min URL lifetime + 1 h grace | unchanged |
+| 409 `UPLOAD_EXPIRED` | Still no object after that deadline | → `FAILED` |
+| 409 `NOT_COMPLETABLE` | `FAILED`, `ARCHIVED`, or an inconsistent row | unchanged |
+| 422 `UPLOAD_VERIFICATION_FAILED` | The object is not what was authorised | → `FAILED` |
+| 503 `VERIFICATION_UNAVAILABLE` (retryable) | S3 denied (403), throttled, 5xx or unreachable; uploads not configured; unexpected bucket encryption | unchanged |
+| 401 / 404 / 400 / 413 / 415 / 500 | Unauthenticated / not found or not allowed / body not `{}` / body too large / not JSON / server error (retryable) | unchanged |
+
+Errors are `{ success: false, error, code, retryable }` with generic messages; AWS
+details stay in server logs. Responses are `Cache-Control: no-store`.
+
+The committed `PROCESSING` row is the processing handoff. Phase 5B sends no queue
+message and processes nothing: dispatch, the worker, SQS and publishing are
+Phase 5C. There is no sweeper yet; abandoned `UPLOADED` rows stay until a later
+phase, and the ingest bucket's lifecycle rule (objects expire 7 days after upload)
+is the ultimate retention boundary for every source, completed or not.
 
 ## Production Notes
 

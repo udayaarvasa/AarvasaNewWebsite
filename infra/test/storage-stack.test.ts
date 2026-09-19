@@ -299,13 +299,17 @@ describe("storage stack: IAM policies for later phases", () => {
     }
   });
 
-  it("limits the app role to presigning, completing and inspecting ingest uploads", () => {
+  it("limits the app role to presigning, completing and verifying ingest uploads", () => {
     const statements = statementsOf(byName("aarvasa-media-dev-app-upload-intents"));
     const actions = statements.flatMap((s) => asArray(s.Action)).sort();
-    assert.deepEqual(actions, ["s3:AbortMultipartUpload", "s3:GetObjectAttributes", "s3:ListMultipartUploadParts", "s3:PutObject"]);
+    assert.deepEqual(actions, ["s3:AbortMultipartUpload", "s3:GetObject", "s3:GetObjectAttributes", "s3:ListMultipartUploadParts", "s3:PutObject"]);
     const resources = statements.flatMap((s) => asArray(s.Resource).map(renderToken));
-    assert.ok(resources.every((r) => r === "<IngestBucket2B3522FA.Arn>/uploads/*"), "no published-bucket access");
-    assert.ok(!actions.includes("s3:GetObject"), "app cannot read object bodies");
+    assert.ok(resources.every((r) => r === "<IngestBucket2B3522FA.Arn>/uploads/*"), "no published-bucket or bucket-wide access");
+    // HeadObject verification needs s3:GetObject; it is granted on uploads/* only, and never listing.
+    const getObject = statements.filter((s) => asArray(s.Action).includes("s3:GetObject"));
+    assert.equal(getObject.length, 1);
+    assert.deepEqual(asArray(getObject[0].Resource).map(renderToken), ["<IngestBucket2B3522FA.Arn>/uploads/*"]);
+    assert.ok(!actions.some((a) => /ListBucket|DeleteObject/.test(a)));
   });
 
   it("limits the processor to reading uploads and write-once derivatives/originals", () => {
