@@ -28,7 +28,12 @@
     "../src/lib/validations/media.ts",
     "../src/lib/media/ingest-storage.ts",
     "../src/lib/services/media-upload.service.ts",
-    "../src/lib/services/media-completion.service.ts"
+    "../src/lib/services/media-completion.service.ts",
+    "../src/lib/services/media-processing.store.ts",
+    "../src/lib/services/media-review.service.ts",
+    "../src/lib/media/processing-queue.ts",
+    "../src/lib/media/published-storage.ts",
+    "../src/lib/media/admin-upload-client.ts"
   ],
   "exclude": ["node_modules", "dist", "cdk.out"]
 }

@@ -34,8 +34,8 @@ import {
 import type { Construct } from "constructs";
 import type { MediaEnvironmentConfig } from "../config";
 import { renderViewerRequestFunction } from "../edge-function";
-import { appUploadIntentStatements, processorStatements } from "../iam-policies";
-import { CDN_PREFIXES, INGEST_PREFIX, PUBLISHED_BUCKET_PREFIXES } from "../../../shared/media-contract";
+import { appMediaReviewStatements, appUploadIntentStatements, processorStatements } from "../iam-policies";
+import { CDN_PREFIXES, INGEST_PREFIX, PUBLISHED_BUCKET_PREFIXES, REVIEW_PREFIX } from "../../../shared/media-contract";
 import { createAlertTopic } from "./alarm-topic";
 
 export interface MediaStorageStackProps extends StackProps {
@@ -105,7 +105,7 @@ export class MediaStorageStack extends Stack {
       }),
     );
 
-    // ── Published bucket: immutable derivatives + private originals ─────────────
+    // ── Published bucket: immutable derivatives + private originals and review copies ─
     this.publishedBucket = new Bucket(this, "PublishedBucket", {
       bucketName: `${prefix}-published-${this.account}-${this.region}`,
       blockPublicAccess: BlockPublicAccess.BLOCK_ALL,
@@ -128,6 +128,13 @@ export class MediaStorageStack extends Stack {
           id: "abort-incomplete-multipart",
           enabled: true,
           abortIncompleteMultipartUploadAfter: Duration.days(cfg.published.abortIncompleteMultipartAfterDays),
+        },
+        {
+          // Review copies of rejected or never-reviewed assets do not stay forever.
+          id: "expire-review-copies",
+          enabled: true,
+          prefix: `${REVIEW_PREFIX}/`,
+          expiration: Duration.days(cfg.published.reviewExpireAfterDays),
         },
       ],
     });
@@ -270,11 +277,11 @@ export class MediaStorageStack extends Stack {
     );
     this.publishedBucket.addToResourcePolicy(
       new PolicyStatement({
-        sid: "DenyCloudFrontReadOriginals",
+        sid: "DenyCloudFrontReadPrivatePrefixes",
         effect: Effect.DENY,
         principals: [new ServicePrincipal("cloudfront.amazonaws.com")],
         actions: ["s3:GetObject"],
-        resources: [this.publishedBucket.arnForObjects("originals/*")],
+        resources: [this.publishedBucket.arnForObjects("originals/*"), this.publishedBucket.arnForObjects(`${REVIEW_PREFIX}/*`)],
       }),
     );
 
@@ -291,9 +298,14 @@ export class MediaStorageStack extends Stack {
       description: "FUTURE: Amplify SSR compute role. Presign/complete/inspect ingest uploads only. Not attached.",
       statements: appUploadIntentStatements(this.ingestBucket.bucketArn),
     });
+    const reviewPolicy = new ManagedPolicy(this, "AppMediaReviewPolicy", {
+      managedPolicyName: `${prefix}-app-media-review`,
+      description: "Amplify SSR compute role: admin preview of review/ copies and write-once publication to m/. Not attached.",
+      statements: appMediaReviewStatements(this.publishedBucket.bucketArn),
+    });
     const processorPolicy = new ManagedPolicy(this, "ProcessorPolicy", {
       managedPolicyName: `${prefix}-processor`,
-      description: "FUTURE: media processing worker. Read uploads, write-once derivatives under m/. Not attached.",
+      description: "Media processing worker: read uploads, write-once review copies under review/. Attached by the processing stack's worker role.",
       statements: processorStatements(this.ingestBucket.bucketArn, this.publishedBucket.bucketArn),
     });
 
@@ -345,6 +357,7 @@ export class MediaStorageStack extends Stack {
     new CfnOutput(this, "MediaCdnOrigin", { value: `https://${this.distribution.distributionDomainName}` });
     new CfnOutput(this, "AppUploadIntentPolicyArn", { value: appPolicy.managedPolicyArn });
     new CfnOutput(this, "ProcessorPolicyArn", { value: processorPolicy.managedPolicyArn });
+    new CfnOutput(this, "AppMediaReviewPolicyArn", { value: reviewPolicy.managedPolicyArn });
     new CfnOutput(this, "StorageAlertTopicArn", { value: storageTopic.topicArn });
   }
 }

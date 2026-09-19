@@ -1,9 +1,7 @@
-import { GetObjectCommand, HeadObjectCommand, PutObjectCommand, S3Client, type S3ClientConfig } from "@aws-sdk/client-s3";
+import { GetObjectCommand, S3Client, type S3ClientConfig } from "@aws-sdk/client-s3";
 import { INGEST_SOURCE_KEY_PATTERN } from "../../../shared/media-asset";
-import { MEDIA_KEY_PATTERN, publishedObjectMetadata } from "../../../shared/media-contract";
+import { createWriteOncePublisher } from "../../../src/lib/media/published-storage";
 import type { ObjectPublisher } from "../pipeline/adapters";
-import { sha256Hex } from "../pipeline/formats";
-import { ImmutableObjectConflictError, RetryableProcessingError } from "./errors";
 import type { SourceRead, SourceReader } from "./ports";
 
 /**
@@ -11,8 +9,8 @@ import type { SourceRead, SourceReader } from "./ports";
  * a runtime yet; tests drive them offline through a stub transport.
  *
  * IAM (processor policy, infra/src/iam-policies.ts): GetObject on ingest uploads/*,
- * PutObject + GetObject on published m/*. Nothing else: no listing, no deletes, no
- * originals/, no lib/.
+ * PutObject + GetObject on published review/*. Nothing else: no m/, no listing, no
+ * deletes, no originals/, no lib/.
  */
 
 export interface S3AdapterConfig {
@@ -90,46 +88,10 @@ export function createS3SourceReader(config: S3AdapterConfig, options: S3Adapter
 }
 
 /**
- * Write-once publisher for m/{mediaId}/{keyHash}/… objects. PutObject carries
- * If-None-Match: * (the published bucket's policy denies writes without it) and the
- * object's SHA-256, so S3 verifies the bytes. HTTP 412 means the key exists: it is
- * accepted only if the stored object is byte-identical (same SHA-256, size and type);
- * otherwise ImmutableObjectConflictError. Everything else transient is retryable.
+ * Write-once publisher (src/lib/media/published-storage.ts, shared with the admin
+ * publication path). The worker uses it for review/ copies only; its IAM policy
+ * cannot write m/.
  */
 export function createS3ObjectPublisher(config: S3AdapterConfig, options: S3AdapterOptions = {}): ObjectPublisher {
-  const s3 = client(config, options);
-  return {
-    async publish({ key, bytes, contentType, cacheControl, sha256 }) {
-      const metadata = publishedObjectMetadata(key);
-      if (!MEDIA_KEY_PATTERN.test(key) || !metadata) throw new Error("Refusing to publish outside m/{mediaId}/{contentHash}/");
-      if (metadata.contentType !== contentType || metadata.cacheControl !== cacheControl) throw new Error("Refusing to publish with metadata the media contract does not assign");
-      if (sha256Hex(bytes) !== sha256) throw new Error("Refusing to publish bytes that do not match their SHA-256");
-      const checksum = Buffer.from(sha256, "hex").toString("base64");
-      try {
-        await s3.send(
-          new PutObjectCommand({
-            Bucket: config.bucket,
-            Key: key,
-            Body: bytes,
-            ContentLength: bytes.length,
-            ContentType: contentType,
-            CacheControl: cacheControl,
-            ChecksumSHA256: checksum,
-            IfNoneMatch: "*",
-          }),
-        );
-        return "created";
-      } catch (error) {
-        if (httpStatusOf(error) !== 412) throw new RetryableProcessingError(`publish failed: ${describe(error)}`);
-      }
-      let existing;
-      try {
-        existing = await s3.send(new HeadObjectCommand({ Bucket: config.bucket, Key: key, ChecksumMode: "ENABLED" }));
-      } catch (error) {
-        throw new RetryableProcessingError(`existing object check failed: ${describe(error)}`);
-      }
-      if (existing.ChecksumSHA256 === checksum && existing.ContentLength === bytes.length && existing.ContentType === contentType) return "exists";
-      throw new ImmutableObjectConflictError("An immutable published key already holds different content");
-    },
-  };
+  return createWriteOncePublisher(config, options);
 }

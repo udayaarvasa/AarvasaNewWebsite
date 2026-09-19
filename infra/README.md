@@ -1,8 +1,16 @@
 # Aarvasa immersive media infrastructure (development)
 
 AWS CDK (TypeScript) definitions for the private S3 + CloudFront media platform
-approved in Phase 2A. **Nothing in this directory has been deployed**, and no
-script in this repository deploys it.
+approved in Phase 2A, and the Phase 5 upload, processing and review pipeline.
+No script in this repository deploys anything.
+
+**Deployment status** (DEV account only; production has none of this):
+
+| Stack | Status |
+|---|---|
+| `AarvasaMediaDev-Edge`, `-Storage`, `-Monitoring` | **Deployed to DEV** (Phase 3.5, September 2026) by an operator, reviewed stack by stack. The DEV CDN serves the Phase 3 pilot (a placeholder model). The Phase 5 changes to Storage (private `review/` prefix, `app-media-review` policy, processor narrowed to `review/`) are **not deployed yet**. |
+| `AarvasaMediaDev-Processing` | **Not deployed.** Blocked on a DEV database (section 14): the worker and sweeper must never point at production. |
+| Production | Nothing exists: no buckets, CDN, queues, functions, DNS or IAM. |
 
 Cloudinary remains the system for normal 2D property photos. Immersive media
 never goes through `/api/upload`.
@@ -12,11 +20,12 @@ never goes through `/api/upload`.
 ## 1. Architecture
 
 ```
-Browser (future upload flow)                     Aarvasa pages (future viewer)
-   │ presigned PUT/POST                                   │ GET (CORS, no credentials)
+Admin upload UI (Phase 5)                        Aarvasa pages (future viewer)
+   │ presigned PUT                                        │ GET (CORS, no credentials)
    ▼                                                      ▼
-S3  aarvasa-media-dev-ingest-*  ── processor ──►  S3  aarvasa-media-dev-published-*
-    uploads/… (expires 7 d)      (later phase)        m/…  lib/…  (CDN)   originals/… (never CDN)
+S3  aarvasa-media-dev-ingest-*  ── worker ──►  S3  aarvasa-media-dev-published-*
+    uploads/… (expires 7 d)    (section 14)      review/… (private) ─approve─► m/…  lib/…  (CDN)
+                                                 originals/… (never CDN)
                                                           ▲
                                                           │ OAC (SigV4), m/* and lib/* only
                                           CloudFront  d….cloudfront.net
@@ -32,7 +41,7 @@ S3  aarvasa-media-dev-ingest-*  ── processor ──►  S3  aarvasa-media-de
 | `AarvasaMediaDev-Edge` | us-east-1 | WAF web ACL (CloudFront scope must be us-east-1) |
 | `AarvasaMediaDev-Storage` | ap-south-1 | Both buckets and their policies, OAC, cache policy, response headers policy, CloudFront Function, distribution, **unattached** IAM policies, S3 storage alarms + topic |
 | `AarvasaMediaDev-Monitoring` | us-east-1 | Budgets, CloudFront and WAF alarms, alert topic |
-| `AarvasaMediaDev-Processing` | ap-south-1 | Processing queue, dead-letter queue, **unattached** producer/consumer IAM policies (Phase 5C, section 14) |
+| `AarvasaMediaDev-Processing` | ap-south-1 | Processing queue + DLQ, worker and sweeper Lambdas (code from a private artifact bucket), SQS event source, 15-minute EventBridge schedule, roles, alarms (section 14) |
 
 The stacks have **no cross-stack references**. The WAF ARN and distribution id
 are passed explicitly (`-c`) after review, so each stack deploys on its own and
@@ -41,15 +50,17 @@ no hidden custom-resource Lambdas are generated.
 ## 2. Required AWS services
 
 S3, CloudFront (distribution, Functions, OAC, cache and response headers
-policies), WAFv2, CloudWatch alarms, SNS, AWS Budgets, SQS, IAM (managed policies
-only). No Lambda, no schedules, no custom resources, no CDK bootstrap resources.
+policies), WAFv2, CloudWatch alarms and Logs, SNS, AWS Budgets, SQS, Lambda,
+EventBridge, Secrets Manager (read only), IAM. No custom resources and no CDK
+bootstrap resources: the Lambdas load code from the processing stack's own
+artifact bucket, not from CDK assets.
 
 ## 3. Bucket purposes
 
 | Bucket | Purpose | Versioning | Lifecycle |
 |---|---|---|---|
 | `aarvasa-media-dev-ingest-{account}-{region}` | Temporary browser uploads, never served | Off (transient) | Expire after 7 days; abort incomplete multipart after 1 day |
-| `aarvasa-media-dev-published-{account}-{region}` | Immutable derivatives, decoders, private originals | On (recovery from accidental delete) | Noncurrent versions expire after 30 days; expired delete markers removed; abort incomplete multipart after 1 day |
+| `aarvasa-media-dev-published-{account}-{region}` | Immutable derivatives, decoders, private originals, private review copies | On (recovery from accidental delete) | `review/` expires after 30 days; noncurrent versions expire after 30 days; expired delete markers removed; abort incomplete multipart after 1 day |
 
 Both buckets: Block Public Access on all four settings, SSE-S3 encryption, bucket
 owner enforced (ACLs disabled), TLS 1.2+ required, `RemovalPolicy.RETAIN`, no
@@ -65,6 +76,7 @@ published bucket
   m/{mediaId}/{contentHash}/{file…}         CDN-served, immutable
   lib/{library}/{version}/{file…}           CDN-served, immutable decoders (Draco/Basis)
   originals/{mediaId}/{contentHash}/{file…} private source files, never CDN-served
+  review/{mediaId}/{contentHash}/{file…}    private processed files awaiting review, never CDN-served
 ingest bucket
   uploads/{mediaId}/{uploadId}/{file…}      temporary
 ```
@@ -166,30 +178,28 @@ load, which is meaningless for binary assets.
 
 ## 8. IAM model
 
-Four customer-managed policies are **created but attached to nothing**:
-
-| Policy | Future principal | Allows | Does not allow |
+| Policy / role | Principal | Allows | Does not allow |
 |---|---|---|---|
-| `aarvasa-media-dev-app-upload-intents` | Amplify SSR Compute role | `PutObject`, `AbortMultipartUpload`, `ListMultipartUploadParts`, `GetObject`, `GetObjectAttributes` on `ingest/uploads/*` (presign, complete and verify uploads) | Anything outside `ingest/uploads/*`, anything in the published bucket, deletes, listing, infrastructure changes |
-| `aarvasa-media-dev-processor` | Processing worker | `GetObject`/`GetObjectAttributes` on `ingest/uploads/*`; write-once `PutObject` plus multipart on `published/m/*`; `GetObject`/`GetObjectAttributes` on `published/m/*` (to confirm a rerun found identical bytes) | `originals/*` (passthrough-v1 keeps no separate original), `lib/*`, deletes, listing, other buckets, queues |
-| `aarvasa-media-dev-processing-producer` | Amplify SSR compute role (completion) and the sweeper | `sqs:SendMessage` on the processing queue | Receiving, deleting, purging, the dead-letter queue, anything else |
-| `aarvasa-media-dev-processing-consumer` | Processing worker | `sqs:ReceiveMessage`, `DeleteMessage`, `ChangeMessageVisibility`, `GetQueueAttributes` on the processing queue | Sending, purging, queue changes, the dead-letter queue, anything else |
+| `aarvasa-media-dev-app-upload-intents` (managed, unattached) | Amplify SSR compute role | `PutObject`, `AbortMultipartUpload`, `ListMultipartUploadParts`, `GetObject`, `GetObjectAttributes` on `ingest/uploads/*` (presign, complete and verify uploads) | Anything outside `ingest/uploads/*`, deletes, listing |
+| `aarvasa-media-dev-app-media-review` (managed, unattached) | Amplify SSR compute role | `GetObject`/`GetObjectAttributes` on `published/review/*` (presigned previews, publication source); write-once `PutObject` on `published/m/*`; `GetObject`/`GetObjectAttributes` on `published/m/*` (idempotent re-publish check) | `originals/*`, `lib/*`, ingest, deletes, listing |
+| `aarvasa-media-dev-processing-producer` (managed, unattached) | Amplify SSR compute role; the sweeper role | `sqs:SendMessage` on the processing queue | Receiving, purging, the DLQ, anything else |
+| `aarvasa-media-dev-processor` (managed) | Worker role | `GetObject`/`GetObjectAttributes` on `ingest/uploads/*`; write-once `PutObject` and read-back on `published/review/*` | `m/*` (only approval publishes), `originals/*`, `lib/*`, deletes, listing |
+| `aarvasa-media-dev-processing-consumer` (managed) | Worker role | Receive, delete, change visibility, get attributes on the processing queue | Sending, purging, the DLQ |
+| Role `aarvasa-media-dev-processing-worker` | Worker Lambda | processor + consumer policies; `secretsmanager:GetSecretValue` on the one DEV database secret; its own log group | Everything else |
+| Role `aarvasa-media-dev-processing-sweeper` | Sweeper Lambda | producer policy; `s3:GetObject` (HeadObject) on `ingest/uploads/*`; the database secret; its own log group | Writes to S3, receiving jobs, everything else |
 
-The worker's database writes go through the application's database role only
-(conditional updates in `src/lib/services/media-processing.store.ts`); it has no
-separate database privileges.
+Database writes (worker, sweeper, app) go through the application database role
+only, as single conditional updates (`src/lib/services/media-*.store.ts`).
 
-`s3:GetObject` on `uploads/*` is there for upload completion: S3 authorizes
-`HeadObject` (and `GetObjectAttributes`) with `s3:GetObject`, and there is no
-header-only permission, so verifying an upload's size, type and SHA-256 technically
-lets the app read upload bodies, under `uploads/*` only. `s3:ListBucket` is
-deliberately not granted, so S3 answers 403 rather than 404 for a missing key
-under this policy; the app treats 403 as "verification unavailable" (retryable),
-never as proof that an upload is missing. The policy change exists only in code:
-it is not deployed and not attached.
+`s3:GetObject` appears wherever HeadObject is used: S3 has no header-only
+permission. `s3:ListBucket` is never granted, so S3 answers 403 rather than 404 for
+a missing key under these policies; code treats 403 as "unavailable" (retryable),
+never as proof of absence.
 
-Bucket policies add defence in depth: TLS enforcement, prefix confinement,
-write-once, and CloudFront-only reads. No roles, users or access keys are defined.
+Bucket policies add defence in depth: TLS enforcement, prefix confinement (only
+`m/`, `lib/`, `originals/`, `review/` may be written), write-once (If-None-Match),
+CloudFront reads of `m/` and `lib/` only, and an explicit CloudFront deny on
+`originals/*` and `review/*`.
 
 ## 9. Cost monitoring
 
@@ -260,11 +270,12 @@ npm run media:infra:diff -- -c aarvasa:accountId=<dev-account-id>
 
 CDK CLI telemetry, notices and version reporting are disabled in `cdk.json`.
 
-## 11. How deployment will eventually work (not now)
+## 11. Deployment (DEV only)
 
-There is **no deploy script**. When deployment is approved, a person with
-credentials for the **development** account runs, stack by stack, reviewing
-each change set (`requireApproval: any-change`):
+There is **no deploy script**. Edge, Storage and Monitoring were deployed to DEV
+this way; Processing (section 14) follows the same steps once its prerequisites
+exist. A person with credentials for the **development** account runs, stack by
+stack, reviewing each change set (`requireApproval: any-change`):
 
 ```bash
 cd infra && npm run build
@@ -291,25 +302,26 @@ npx cdk deploy AarvasaMediaDev-Monitoring -c aarvasa:accountId=<dev-account-id> 
 
 ### Application environment variables
 
-`MEDIA_REGION` and `MEDIA_INGEST_BUCKET` are read by `POST /api/media/upload-intent`
-(Phase 5A) and `POST /api/media/{mediaAssetId}/complete` (Phase 5B), both through
-`src/lib/media/ingest-storage.ts`. The others are not used yet.
+All server-only: never `NEXT_PUBLIC_`, never in client bundles (checked by a build
+scan). `amplify.yml` forwards `MEDIA_*` into the Next.js server build **only when
+set** in the Amplify console; unset, the media routes return 503.
 
-Follows the repository's `SERVICE_` prefix convention (`CLOUDINARY_*`, `AUTH_*`).
-All are **server-only**. Never prefix them with `NEXT_PUBLIC_`: the viewer
-receives complete URLs from Server Components.
+| Variable | Consumed by | Value | Purpose |
+|---|---|---|---|
+| `MEDIA_REGION` | Next.js server, worker, sweeper | `ap-south-1` | Region of buckets and queue |
+| `MEDIA_INGEST_BUCKET` | Next.js server, worker, sweeper | Storage output `IngestBucketName` | Presigned uploads, HeadObject verification, source reads |
+| `MEDIA_PUBLISHED_BUCKET` | Next.js server (admin review), worker | Storage output `PublishedBucketName` | Review copies, previews, publication |
+| `MEDIA_PROCESSING_QUEUE_URL` | Next.js server (completion), worker, sweeper | Processing output `ProcessingQueueUrl` | Job dispatch; without it completion still succeeds and the sweeper re-sends |
+| `MEDIA_DATABASE_SECRET_ARN` | Worker, sweeper (set by CDK) | A Secrets Manager secret holding a **DEV** `DATABASE_URL` | The database URL is read at cold start; never in env or templates |
+| `MEDIA_CDN_ORIGIN` | (compile-time constant in `src/lib/viewer/media-origin.ts`) | DEV CDN origin in dev builds, `null` in production | Viewer origin allow-list |
 
-| Variable | Example | Notes |
-|---|---|---|
-| `MEDIA_REGION` | `ap-south-1` | Region of both buckets |
-| `MEDIA_INGEST_BUCKET` | Storage output `IngestBucketName` | Presign and verification (HeadObject) target |
-| `MEDIA_PUBLISHED_BUCKET` | Storage output `PublishedBucketName` | Named explicitly because there are two buckets |
-| `MEDIA_CDN_ORIGIN` | Storage output `MediaCdnOrigin` (`https://d….cloudfront.net`) | Used both to build asset URLs and as the viewer's single allowed remote origin. A separate `MEDIA_CDN_URL` would duplicate it and could drift |
+CDK deploy-time context (not application env): `aarvasa:accountId`,
+`aarvasa:webAclArn`, `aarvasa:distributionId`, `aarvasa:databaseSecretArn`,
+`aarvasa:processingArtifactKey`, `aarvasa:processingArtifactVersion`.
 
-- No AWS access keys: the app will use the Amplify SSR Compute role with the
-  `app-upload-intents` policy.
-- Before upload intents are used on a deployed environment, `amplify.yml`'s
-  forwarding regex must gain `MEDIA_`. It is intentionally unchanged so far.
+No AWS access keys anywhere: the app uses the Amplify SSR compute role (attach
+`app-upload-intents`, `app-media-review` and `processing-producer`), the Lambdas
+their own roles.
 
 ### Repository integration
 
@@ -326,16 +338,15 @@ touched to keep it isolated:
 
 ## 12. What is intentionally NOT deployed or implemented
 
-- No AWS resources exist from this work. Nothing has been deployed.
-- No production buckets, distribution, WAF, DNS records, certificates or IAM
-  attachments.
-- The processing queue, worker and sweeper (section 14) exist as code, CDK and
-  tests only: no queue is deployed, no Lambda or container runs the worker, no
-  schedule runs the sweeper, and no SQS producer is wired into the app.
-- No multipart uploads. The pipeline does not optimise GLBs, convert PLY to SOG,
-  or render model/splat posters.
-- No changes to `/api/upload`, Prisma, property or project pages, `amplify.yml`,
-  or the Phase 1 viewer.
+- Production: no buckets, distribution, WAF, queues, functions, DNS records,
+  certificates or IAM exist. Production builds have no media origin.
+- DEV: the Phase 5 Storage changes and the whole Processing stack are not deployed
+  (no DEV database exists; section 14). No IAM policy is attached to the Amplify
+  compute role, and the ingest CORS rule still allows `http://localhost:3000` only.
+- No multipart uploads (single PUT up to 100 MB). The pipeline does not optimise
+  GLBs, convert PLY to SOG, or render model/splat posters.
+- No viewer integration of MediaAsset rows (Phase 6+); `/api/upload` and the Phase 1
+  viewer are unchanged.
 - S3 server access logs and CloudFront standard logs are off in dev (acknowledged
   in `src/nag-suppressions.ts`; enable for production).
 
@@ -527,29 +538,40 @@ Profile `passthrough-v1`:
 
 1. **Upload intent** (Phase 5A, implemented): the SSR role presigns `uploads/{mediaId}/{uploadId}/source.{ext}` in the ingest bucket, bound to the size, type and SHA-256, which the `MediaAsset` row stores (`sourceChecksumSha256`, canonical base64).
 2. **Upload completion** (Phase 5B, implemented): `POST /api/media/{mediaId}/complete` verifies the ingest object with `HeadObject` against the row and moves it `UPLOADED` → `PROCESSING` with one conditional update. The committed `PROCESSING` row is the handoff. There are no S3 event notifications, queues or workers, and S3 events are not planned as the processing trigger.
-3. **Processing** (Phase 5C, implemented as code and tests, not deployed; section 14): after the completion commits, a job goes to the processing queue; the worker claims the row, re-verifies the source, runs this same `processAssets` code, publishes write-once under `m/`, and moves the row to `PENDING_REVIEW`.
+3. **Processing** (Phase 5, section 14; not deployed): after the completion commits, a job goes to the processing queue; the worker claims the row, re-verifies the source, runs this same `processAssets` code, writes the outputs write-once to the private `review/` prefix, and moves the row to `PENDING_REVIEW`. An admin approval publishes them to `m/`.
 4. **Database** (`MediaAsset` row): processing fills `storageKey`, `entryFile`, `contentHash` (the processed entry file's hex SHA-256, unrelated to `sourceChecksumSha256`), poster fields, metrics and validation status from the manifest, plus moderation state.
 5. **Delivery:** Server Components build URLs as `MEDIA_CDN_ORIGIN + "/" + key`. The origin is server configuration and never part of the manifest.
 
-## 14. Processing and recovery (Phase 5C)
+## 14. Upload, processing and review (Phase 5)
 
-Code: `shared/media-processing.ts` (contract, state machine, policy),
-`infra/src/processing/` (worker, sweeper, SQS handler, S3 adapters),
-`src/lib/services/media-processing.store.ts` (Prisma store),
-`infra/src/stacks/media-processing-stack.ts` (queue). Tests: `infra/test/processing/`.
-**Not deployed**: no queue exists in AWS, nothing runs the worker or the sweeper.
+Code: `shared/media-processing.ts` (job contract, state machine, policy),
+`src/lib/services/media-*.ts` (intent, completion, review services and Prisma
+stores), `src/lib/media/*.ts` (S3 signer/inspector, SQS producer, published-bucket
+access, admin upload flow), `infra/src/processing/` (worker, sweeper, SQS handler,
+S3 adapters), `infra/src/runtime/` (Lambda entry points),
+`infra/src/stacks/media-processing-stack.ts`, admin UI
+`src/components/admin/media-manager.tsx` (Admin panel → Media). Tests:
+`infra/test/media-upload-*.test.ts`, `infra/test/processing/`.
+
+**Status:** implemented and validated offline and on disposable PostgreSQL.
+**Not deployed** (section 11 header): the Processing stack needs a DEV database.
 
 ```
-POST /complete ── commit UPLOADED→PROCESSING ──► send job (best effort, after commit)
-                                                        │
-sweeper (every 15 min, not scheduled yet) ─ re-send ────┤
-                                                        ▼
-                          aarvasa-media-dev-processing (SQS) ──5 receives──► …-processing-dlq
-                                                        │
-                                                        ▼
-worker: parse job → re-read row → claim lease (attempt n) → read + re-verify source
-        → processAssets (Phase 2B-2, unchanged) → write-once PutObject under m/
-        → PROCESSING → PENDING_REVIEW        (or → FAILED with a failure code)
+Admin UI ── POST /api/media/upload-intent ──► presigned PUT ──► S3 ingest uploads/{id}/{uploadId}/source.ext
+   │                                          (browser → S3 directly; exact size, type, SHA-256 signed)
+   └── POST /api/media/{id}/complete ── HeadObject verify ── UPLOADED → PROCESSING (commit) ── send job ─┐
+                                                                                                         ▼
+   sweeper (EventBridge, 15 min) ── re-send unclaimed ──────────────────► SQS processing ──5 receives──► DLQ
+                                                                                │ batch 1, partial failures
+                                                                                ▼
+   worker Lambda: claim lease → re-read + re-hash source → processAssets (Phase 2B-2, unchanged)
+                  → write-once copies to published review/{id}/{hash}/… (private) → PENDING_REVIEW
+                                                                                │
+   Admin UI ── preview (5-minute presigned GET of review/ copies) ──────────────┤
+            ── approve: PENDING_REVIEW → PUBLISHED (commit), then stream review/ → m/{id}/{hash}/… write-once
+            ── reject:  PENDING_REVIEW → REJECTED (review/ copies expire after 30 days)
+                                                                                ▼
+                                                     CloudFront serves m/ only (never review/, originals/, uploads/)
 ```
 
 ### Processing job (schema version 1)
@@ -560,116 +582,166 @@ worker: parse job → re-read row → claim lease (attempt n) → read + re-veri
   "idempotencyKey": "<id>:1.0.0/passthrough-v1", "dispatchedAt": "<ISO-8601>" }
 ```
 
-Identifiers only, parsed strictly (unknown fields, other versions, another asset's
-key, a forged idempotency key or anything over 1 KiB are rejected and end in the
-DLQ). Owner, subject, status, MIME type, size, checksum and output keys are never
-in a job: the worker reads them from `MediaAsset`. Only server code builds jobs,
-and only from a committed `PROCESSING` row; no route accepts one from a browser.
-The job is sent **after** the transition commits, so it can never run ahead of it;
-if the send fails or the message is lost, the sweeper re-sends it.
+Identifiers only, parsed strictly; anything else (unknown fields, other versions,
+another asset's key, a forged idempotency key, over 1 KiB) is rejected and ends in
+the DLQ. The worker reads owner, subject, status, type, size and checksum from the
+database. Only server code sends jobs: the completion route after its update
+commits (`src/lib/media/processing-queue.ts`, `SendMessage` with the job as the
+body) and the sweeper. A failed send leaves the row PROCESSING for the sweeper.
 
 ### State machine
 
 | From | To | Who |
 |---|---|---|
 | UPLOADED | PROCESSING | upload completion (verified) |
-| UPLOADED | FAILED | upload intent (signing failed), completion (mismatch/expired), sweeper (expired/abandoned) |
-| PROCESSING | PENDING_REVIEW | worker (processed) |
+| UPLOADED | FAILED | upload intent (signing failed), completion (mismatch/expired), sweeper |
+| PROCESSING | PENDING_REVIEW | worker |
 | PROCESSING | FAILED | worker (permanent failure, retries exhausted), sweeper (timeout, retries exhausted, inconsistent) |
-| PENDING_REVIEW | PUBLISHED / REJECTED | review (later phase, not implemented) |
+| PENDING_REVIEW | PUBLISHED | admin approval (`POST /api/admin/media/{id}/approve`) |
+| PENDING_REVIEW | REJECTED | admin rejection (`POST /api/admin/media/{id}/reject`) |
 | PENDING_REVIEW, PUBLISHED, REJECTED, FAILED | ARCHIVED | archival (later phase, not implemented) |
 
-No VERIFIED state. Processing success never publishes. Every writer calls
-`assertTransition` and makes its change with one conditional update on the
-current status. `MediaAsset_processing_check` enforces: `failureCode` exactly when
-FAILED, `processingStartedAt` while PROCESSING, a lease only while PROCESSING.
+No VERIFIED state. The worker cannot publish; only the REVIEW actor (an ADMIN,
+role re-read from the database) can. Every change is one conditional update
+through `assertTransition`; CHECK constraints enforce the fields each state needs
+(PUBLISHED: reviewedAt, publishedAt, alt text; REJECTED: reason; FAILED: failure
+code and diagnostic; PROCESSING: start time).
+
+### Review and publication
+
+- **Preview:** `POST /api/admin/media/{id}/preview` returns presigned GETs (300 s,
+  `Cache-Control: private, no-store`) for the entry file and poster **under
+  `review/` only**, never the ingest source.
+- **Approve:** requires alt text (on the asset or in the body). Review copies are
+  checked (HEAD) first; then PENDING_REVIEW → PUBLISHED commits; then each file is
+  streamed review/ → m/ with If-None-Match and the SHA-256 (the entry's must equal
+  `contentHash`). Committing first means a racing rejection can never leave
+  CDN-reachable files. If publication fails after the commit, the API answers 502
+  and approving again completes it; approving a PUBLISHED asset is always an
+  idempotent re-check.
+- **Reject:** records the reason and reviewer; nothing is published; the review
+  copies expire with the bucket lifecycle rule (30 days).
+- Pending assets must be reviewed within 30 days; after that approval answers
+  `REVIEW_COPY_MISSING` and the asset must be re-uploaded.
 
 ### Retry policy
 
 | Class | Examples | Result |
 |---|---|---|
-| Retryable | S3 5xx, throttling, 403, network, credentials; 409 conditional-write conflict; database errors; unexpected worker exceptions; ingest encryption drift | lease released, message kept, SQS redelivers after 15 min |
-| Permanent | invalid/unsupported format, MIME mismatch, external glTF URI, data URI, meshopt, unsupported required extension, other validation failures, hard size limit, source missing, size/SHA-256 mismatch, invalid source key, immutable-object conflict | FAILED at once, message deleted, never retried |
+| Retryable | S3 5xx, throttling, 403, network, credentials; 409 conditional-write conflict; database errors; unexpected worker exceptions; ingest encryption drift | lease released, message kept, SQS redelivers after 30 min |
+| Permanent | unsupported format, MIME mismatch, external glTF URI, data URI, meshopt, unsupported required extension, other validation failures, hard size limit, source missing, size/SHA-256 mismatch, invalid source key, immutable-object conflict | FAILED at once, message deleted |
 
-Attempts are counted in the database (`processingAttempts`, max 3); a transient
-failure on the last attempt fails the asset with `RETRIES_EXHAUSTED`. SQS moves a
-message to the DLQ after 5 receives, which only happens to messages the worker
-refuses outright (invalid jobs).
-
-| Failure code | Meaning |
-|---|---|
-| `UPLOAD_AUTHORIZATION_FAILED`, `UPLOAD_EXPIRED`, `UPLOAD_VERIFICATION_FAILED` | upload phase (5A/5B, sweeper) |
-| `INVALID_SOURCE`, `SOURCE_MISSING`, `SOURCE_INTEGRITY_FAILED` | the stored source is unusable |
-| `UNSUPPORTED_CONTENT`, `VALIDATION_FAILED`, `SIZE_LIMIT_EXCEEDED` | the pipeline's findings |
-| `PROCESSING_TIMEOUT`, `RETRIES_EXHAUSTED`, `INTERNAL_ERROR` | processing did not finish |
-
-Users only ever see `PUBLIC_FAILURE_MESSAGES[failureCode]`; `processingError`
-keeps the internal diagnostic (rule ids and validator messages, bounded to 2,000
-characters), which can quote file content and is never shown or logged.
+Attempts are counted in the database (max 3; a transient failure on the last one
+fails the asset with `RETRIES_EXHAUSTED`). Only invalid jobs reach the DLQ (after 5
+receives). Users only see `PUBLIC_FAILURE_MESSAGES[failureCode]`; `processingError`
+(rule ids and validator messages, bounded, may quote file content) is shown to
+admins only and never logged.
 
 ### Idempotency
 
-- **Lease**: `claim` is one conditional update (PROCESSING, same source, lease free,
-  attempts < 3) that increments `processingAttempts` and sets a 10-minute lease.
-  The attempt number is the lease token: completion and failure updates require it,
-  so a worker that lost its lease can never overwrite the newer outcome.
-- **Timing**: worker ≤ 5 min < lease 10 min < SQS visibility 15 min, so SQS never
-  hands a message to a second worker while the first may hold the asset.
-- **Outputs**: keys are content-addressed (`m/{id}/{hash16}/…`, the pipeline's
-  deterministic key hash). `PutObject` sends `If-None-Match: *` and the SHA-256;
-  412 is accepted only when the stored object is byte-identical, otherwise the
-  asset fails with `INTERNAL_ERROR` and nothing is overwritten.
-- Duplicate or concurrent deliveries, a crash before or after publishing, and a
-  racing sweeper all converge on exactly one terminal state (tested offline and
-  on PostgreSQL).
+- **Lease:** `claim` is one conditional update (PROCESSING, same source, lease free,
+  attempts < 3) that increments `processingAttempts` and sets a 10-minute lease; the
+  attempt number is the token every later update requires.
+- **Timing:** worker ≤ 5 min < lease 10 min < SQS visibility 30 min (6 × the Lambda
+  timeout, as AWS recommends for SQS event sources).
+- **Outputs:** content-addressed keys, written with If-None-Match and the SHA-256;
+  an existing key is accepted only when byte-identical. Duplicate or concurrent
+  deliveries, crashes before/after writing, a racing sweeper and concurrent
+  approve/reject all converge on exactly one outcome (tested offline and on
+  PostgreSQL).
 
-### Sweeper
-
-A bounded, conditional pass (`runSweep`), safe to run concurrently:
+### Sweeper (Lambda, every 15 minutes)
 
 | | Candidate | Action |
 |---|---|---|
-| A | UPLOADED, older than the completion deadline (10 min URL + 1 h grace), object missing | FAILED `UPLOAD_EXPIRED` |
-| A | UPLOADED, never completed, older than 24 h (object present or S3 unknown) | FAILED `UPLOAD_EXPIRED` |
+| A | UPLOADED past the completion deadline (10 min URL + 1 h grace), object missing | FAILED `UPLOAD_EXPIRED` |
+| A | UPLOADED, never completed, older than 24 h | FAILED `UPLOAD_EXPIRED` |
 | B | PROCESSING for more than 6 h, lease free | FAILED `PROCESSING_TIMEOUT` |
 | C | PROCESSING, lease free, 3 attempts used | FAILED `RETRIES_EXHAUSTED` |
-| C | PROCESSING, lease free, inconsistent row (bad key, no checksum) | FAILED `INVALID_SOURCE` |
-| D | PROCESSING, lease free, attempts left, started > 15 min ago | job re-sent (no write) |
+| C | PROCESSING, lease free, inconsistent row | FAILED `INVALID_SOURCE` |
+| D | PROCESSING, lease free, attempts left, started over 30 min ago | job re-sent (no write) |
 
-Every update re-states its condition in SQL; a row that moved on is skipped. It
-never touches PENDING_REVIEW, PUBLISHED, REJECTED, FAILED or ARCHIVED rows and
-never deletes objects. **Scheduling (not deployed):** an EventBridge Scheduler
-rule every 15 minutes invoking a function that runs `runSweep` with the app's
-database role, the upload-intents policy (HeadObject) and the producer policy.
+Conditional updates only; it never touches PENDING_REVIEW or later states and
+never deletes objects. The EventBridge rule has no retries (the next run is 15
+minutes later); a failed run raises the sweeper-errors alarm.
 
 ### Source retention
 
-- Ingest objects expire 7 days after upload (bucket lifecycle rule
-  `expire-uploads-and-abort-multipart`, unchanged); incomplete multipart uploads
-  after 1 day. Nothing deletes a source earlier, including FAILED ones.
-- Every processing deadline is far inside that window: completion 70 min,
-  abandonment 24 h, processing timeout 6 h, queue retention 4 days (tested against
-  the CDK config).
-- passthrough-v1 publishes the verified source byte-for-byte as the entry, so no
-  separate original is kept and the processor has no `originals/` access. A future
-  transforming profile must copy originals before the 7-day expiry.
-- Published derivatives are write-once and kept (versioned bucket). Objects of an
-  asset that later fails its database update are orphaned but harmless;
-  cleaning them up is a later phase.
+- Ingest objects expire 7 days after upload; incomplete multipart uploads after 1
+  day. Nothing deletes a source earlier. Every processing deadline is far inside
+  that window (70 min, 24 h, 6 h; queue retention 4 days).
+- Review copies expire 30 days after processing. Published `m/` objects are
+  write-once and kept (versioned bucket).
+- passthrough-v1 publishes the verified source byte-for-byte, so no separate
+  original is kept; a transforming profile must copy originals first.
 
-### Observability
+### Monitoring (DEV thresholds, SNS topic `aarvasa-media-dev-processing-alerts`, no subscribers yet)
 
-One structured record per job, `media.processing.job`: `mediaAssetId`, `jobId`,
-`messageId`, `receiveCount`, `attempt`, `processingVersion`, `durationMs`,
-`result`, final `status`, `errorCategory`, failing rule ids. One per sweep,
-`media.processing.sweep`, with counts. Never URLs, credentials, object bytes,
-validator messages or S3 error bodies.
+| Alarm | Condition |
+|---|---|
+| `processing-queue-oldest-message` | a job older than 1 hour |
+| `processing-queue-depth` | 100+ jobs waiting |
+| `processing-dead-letters` | any message in the DLQ |
+| `processing-worker-errors` | a worker error or timeout in 15 minutes |
+| `processing-worker-duration` | a run over 90% of the 5-minute timeout |
+| `processing-failures` | 5+ FAILED results in an hour (metric filter on the worker's JSON logs) |
+| `processing-sweeper-errors` | a failed sweep in an hour |
 
-### How the worker would run (not deployed)
+Logs (30 days) are one JSON object per line: `media.processing.job` (media id, job
+id, attempt, receive count, processing version, duration, result, status, error
+category, failing rule ids) and `media.processing.sweep` (counts). Never URLs,
+credentials, object bytes, validator messages or S3 error bodies.
 
-A Lambda (or container) with the processor and consumer policies and the app's
-database role, fed by an SQS event source mapping with `ReportBatchItemFailures`
-and batch size 1, timeout 5 min; `handleProcessingBatch` is that handler. The
-app's completion route would pass an SQS producer as `dispatchProcessing`; that
-adapter needs `@aws-sdk/client-sqs`, which is not installed yet, so the route
-does not dispatch today and PROCESSING rows would wait for the sweeper.
+### Admin workflow (Admin panel → Media)
+
+1. Choose a property or project, a media type and a file (GLB up to 100 MB,
+   panorama up to 50 MB, SOG up to 80 MB). Add alt text.
+2. The browser hashes the file, requests an upload intent, uploads directly to S3
+   with progress, and calls complete. The asset shows PROCESSING, then
+   PENDING_REVIEW (or FAILED with a generic reason; admins can open the internal
+   diagnostic).
+3. In "Awaiting review", open the asset: metadata, validation warnings, secure
+   preview (poster and a private link to the processed file).
+4. Approve and publish (alt text required), or reject with a reason.
+
+Uploads work only from origins in the ingest bucket's CORS rule (DEV:
+`http://localhost:3000`).
+
+### Deploying the Processing stack (DEV, when approved)
+
+Prerequisites, none of which exist yet:
+
+1. **A DEV database** reachable from Lambda, with the migrations applied
+   (`prisma migrate deploy` against that database only). Never production.
+2. **A Secrets Manager secret** holding that DEV `DATABASE_URL`.
+3. **The Lambda bundle** uploaded to the artifact bucket as
+   `processing/processing-lambdas.zip`: `infra/src/runtime/handlers.ts` bundled
+   for Node.js 24 on arm64 (exports `workerHandler` and `sweeperHandler` from
+   `index.js`), with the Prisma client and a `linux-arm64-openssl-3.0.x` query
+   engine, and `sharp` for linux-arm64 (panorama posters). Packaging is not
+   automated in this repository yet; it needs a bundler (for example esbuild) and
+   a Prisma `binaryTargets` entry for Lambda, both deliberately not added to the
+   app's production build.
+4. Deploy Storage first (review prefix, narrowed processor policy), then:
+
+```bash
+npx cdk deploy AarvasaMediaDev-Processing -c aarvasa:accountId=<dev-account-id> \
+  -c aarvasa:databaseSecretArn=<secret ARN> -c aarvasa:processingArtifactKey=processing/processing-lambdas.zip \
+  -c aarvasa:processingArtifactVersion=<S3 version id of the uploaded zip>
+```
+
+5. Attach `app-upload-intents`, `app-media-review` and `processing-producer` to the
+   DEV app role, set the `MEDIA_*` variables for the DEV app, subscribe the alert
+   topic, and run the end-to-end check with a harmless pilot asset.
+
+### Known limitations
+
+- Not deployed; no DEV database; Lambda packaging not automated.
+- The admin preview shows the poster and a private link to the processed file; the
+  3D viewer only loads same-origin or CDN URLs, so it does not render review copies.
+- The original client filename is not stored (it is never trusted); the asset's
+  title identifies it.
+- Validation warnings are stored as rule ids (`metrics["validation.warnings"]`).
+- A PUBLISHED asset whose publication failed after the decision stays PUBLISHED
+  with files missing until an admin approves again (the API says so).
+- Published derivatives of an asset archived later are kept (no cleanup yet).

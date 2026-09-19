@@ -58,20 +58,24 @@ CLOUDINARY_CLOUD_NAME=
 CLOUDINARY_UPLOAD_PRESET=
 GEMINI_API_KEY=
 GEMINI_MODEL=gemini-3.5-flash
-MEDIA_REGION=ap-south-1   # optional; immersive media upload intents (server-only)
+MEDIA_REGION=ap-south-1   # optional; immersive media (server-only)
 MEDIA_INGEST_BUCKET=      # optional; Storage stack output IngestBucketName
+MEDIA_PUBLISHED_BUCKET=   # optional; Storage stack output PublishedBucketName (admin review/publish)
+MEDIA_PROCESSING_QUEUE_URL= # optional; Processing stack output ProcessingQueueUrl (job dispatch)
 ```
 
-Immersive media uploads also need AWS credentials from the SDK's default chain
-(a local profile, or the compute role when deployed) that are allowed to sign
-PUTs to, and HeadObject (`s3:GetObject`), the ingest bucket's `uploads/*`.
-Without `MEDIA_REGION` and `MEDIA_INGEST_BUCKET`, `POST /api/media/upload-intent`
-and `POST /api/media/:id/complete` return 503.
+Immersive media also needs AWS credentials from the SDK's default chain (a local
+profile, or the compute role when deployed) holding the `app-upload-intents`,
+`app-media-review` and `processing-producer` policies (infra/README.md section 8).
+Without `MEDIA_REGION` and `MEDIA_INGEST_BUCKET`, upload intent and completion
+return 503; without `MEDIA_PUBLISHED_BUCKET`, admin preview/approval return 503;
+without `MEDIA_PROCESSING_QUEUE_URL`, completion still succeeds and processing
+waits for the sweeper. None of these are set for production.
 
 Note that `amplify.yml` only forwards variables matching a fixed prefix list
-(`DATABASE_URL`, `AUTH_`, `MONGODB_URI`, `GEMINI_`, `CLOUDINARY_`, …). A new
-variable outside those prefixes will not reach the running app until that
-pattern is extended.
+(`DATABASE_URL`, `AUTH_`, `MONGODB_URI`, `GEMINI_`, `CLOUDINARY_`, `MEDIA_`, …),
+and only those actually set in the Amplify console. A new variable outside those
+prefixes will not reach the running app until that pattern is extended.
 
 Without a valid `GEMINI_API_KEY`, `/api/chat` returns a setup instruction response.
 
@@ -126,7 +130,8 @@ npm run build
 - `GET /api/properties`
 - `GET /api/properties/:id`
 - `POST /api/media/upload-intent` (JSON; property owner or admin for a property, admin for a project; requires the file's base64 `sha256`, which is stored; returns one presigned PUT to the ingest bucket, bound to the exact key, `Content-Type`, `Content-Length` and `x-amz-checksum-sha256`, and records the asset as `UPLOADED`, meaning not yet verified or processed; at most 20 intents per uploader per 24 hours, whatever their status)
-- `POST /api/media/:mediaAssetId/complete` (`Content-Type: application/json`, body exactly `{}`; an admin, or for a property asset the current property owner who is also the uploader; otherwise 404. The server checks the ingest object with HeadObject against the stored key, size, `Content-Type` and SHA-256, then moves the asset `UPLOADED` → `PROCESSING` exactly once. `PROCESSING` means verified and waiting for processing, which is not built yet. See [Media upload completion](#media-upload-completion))
+- `POST /api/media/:mediaAssetId/complete` (`Content-Type: application/json`, body exactly `{}`; an admin, or for a property asset the current property owner who is also the uploader; otherwise 404. The server checks the ingest object with HeadObject against the stored key, size, `Content-Type` and SHA-256, then moves the asset `UPLOADED` → `PROCESSING` exactly once and, after that commits, sends the processing job. See [Media upload completion](#media-upload-completion))
+- `GET /api/admin/media?status=&limit=`, `GET /api/admin/media/subjects`, `GET /api/admin/media/:mediaAssetId`, `POST /api/admin/media/:mediaAssetId/preview` (`{}`), `…/approve` (`{ altText? }`), `…/reject` (`{ reason }`) (ADMIN only, role re-read from the database; `Cache-Control: no-store`; preview returns 5-minute presigned URLs to private review copies; approve publishes write-once to the CDN prefix; see [infra/README.md section 14](infra/README.md#14-upload-processing-and-review-phase-5))
 - `GET /api/ai/recommendations?budget=50000000&risk=Balanced&type=Villa`
 - `POST /api/chat`
 - `POST /api/blockchain/transaction`
@@ -159,13 +164,16 @@ Errors are `{ success: false, error, code, retryable }` with generic messages; A
 details stay in server logs. Responses are `Cache-Control: no-store`.
 
 The committed `PROCESSING` row is the processing handoff. Only after it commits is
-a processing job sent (when a queue producer is configured; none is wired yet).
-The processing worker then re-verifies the source, runs the media pipeline,
-writes the derived files write-once and moves the asset to `PENDING_REVIEW`,
-never straight to `PUBLISHED`; failures end in `FAILED` with a `failureCode`
-whose generic message is the only text a user sees. A sweeper fails abandoned
-uploads and stuck processing. None of this is deployed: see
-[infra/README.md section 14](infra/README.md#14-processing-and-recovery-phase-5c).
+a processing job sent to SQS (when `MEDIA_PROCESSING_QUEUE_URL` is set). The
+processing worker re-verifies the source, runs the media pipeline, writes the
+outputs write-once to a **private** review prefix and moves the asset to
+`PENDING_REVIEW`, never straight to `PUBLISHED`. An admin previews it (short-lived
+signed links), then approves (published to the CDN) or rejects it in Admin panel →
+Media. Failures end in `FAILED` with a `failureCode` whose generic message is the
+only text a non-admin sees. A scheduled sweeper fails abandoned uploads and stuck
+processing and re-sends lost jobs. The processing runtime is **not deployed** (no
+DEV database exists): see
+[infra/README.md section 14](infra/README.md#14-upload-processing-and-review-phase-5).
 The ingest bucket's lifecycle rule (objects expire 7 days after upload) is the
 ultimate retention boundary for every source.
 

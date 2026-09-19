@@ -1,6 +1,8 @@
+import { randomUUID } from "node:crypto"
 import { NextResponse } from "next/server"
 import { getAuthUser } from "@/lib/auth-context"
 import { getIngestObjectInspector } from "@/lib/media/ingest-storage"
+import { getProcessingJobQueue } from "@/lib/media/processing-queue"
 import { getProject } from "@/lib/projects"
 import { handleUploadCompletion } from "@/lib/services/media-completion.service"
 import { prismaUploadCompletionStore } from "@/lib/services/media-completion.store"
@@ -11,6 +13,8 @@ type Params = { params: Promise<{ mediaAssetId: string }> }
 // bucket and hand the asset to processing (Phase 5B). Body: {}. See
 // lib/services/media-completion.service.ts.
 export async function POST(req: Request, { params }: Params) {
+  const queue = getProcessingJobQueue()
+  const dispatch = queue ? (job: Parameters<typeof queue.send>[0]) => queue.send(job) : undefined
   try {
     const { mediaAssetId } = await params
     const result = await handleUploadCompletion(
@@ -27,6 +31,9 @@ export async function POST(req: Request, { params }: Params) {
         projectExists: (slug) => getProject(slug) !== undefined,
         now: () => new Date(),
         log: (message, context) => console.error(`[POST /api/media/[mediaAssetId]/complete] ${message}`, context),
+        // Sent only after UPLOADED → PROCESSING commits; without a configured queue the sweeper re-sends.
+        dispatchProcessing: dispatch,
+        newJobId: randomUUID,
       }
     )
     return NextResponse.json(result.body, { status: result.status, headers: { "Cache-Control": "no-store" } })

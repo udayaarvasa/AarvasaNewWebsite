@@ -22,6 +22,7 @@ import {
 } from "../../../shared/media-processing";
 import type { ObjectPublisher, PosterGenerator } from "../pipeline/adapters";
 import { sha256Hex } from "../pipeline/formats";
+import { REVIEW_CACHE_CONTROL, reviewKeyFor } from "../../../shared/media-contract";
 import { UsageError } from "../pipeline/process";
 import { ImmutableObjectConflictError } from "./errors";
 import { classifyValidationFailure } from "./failure-classification";
@@ -34,12 +35,16 @@ import type { LogFields, ProcessingLogger, SourceReader } from "./ports";
  *   parse job → re-read MediaAsset → PROCESSING? same source? → claim lease (attempt n)
  *   → read + re-verify the private source (size, SHA-256, headers)
  *   → Phase 2B-2 pipeline (validation, deterministic keys, posters)
- *   → write-once publish of derived objects → PROCESSING → PENDING_REVIEW   (never PUBLISHED)
+ *   → write-once copies under the private review/ prefix → PROCESSING → PENDING_REVIEW
+ *
+ * Nothing the worker writes is CDN-reachable: storageKey/posterKey record the m/
+ * keys an admin approval will publish to (the same path under review/ holds the
+ * files until then). The worker never publishes and never writes m/.
  *
  * Nothing from the job is trusted except which asset and which source it names;
  * both must match the database. Every state change is one conditional update
  * guarded by status and the claimed attempt, so duplicate or concurrent deliveries,
- * crashes and a racing sweeper all converge on a single outcome. Published keys are
+ * crashes and a racing sweeper all converge on a single outcome. Keys are
  * content-addressed and written with If-None-Match, so a rerun can never overwrite.
  */
 
@@ -81,6 +86,10 @@ type ClaimedResult =
   | { readonly kind: "retry"; readonly reason: string };
 
 const errorName = (error: unknown) => (error instanceof Error ? error.name : "UnknownError");
+const warningRules = (validation: readonly { readonly rule: string; readonly level: string }[]): Record<string, string> => {
+  const rules = [...new Set(validation.filter((f) => f.level === "warn").map((f) => f.rule))];
+  return rules.length > 0 ? { "validation.warnings": rules.join(",") } : {};
+};
 const base64ToHex = (b64: string) => Buffer.from(b64, "base64").toString("hex");
 
 export async function processJob(body: unknown, delivery: JobDelivery, deps: WorkerDependencies): Promise<WorkerOutcome> {
@@ -294,7 +303,8 @@ async function processClaimed(row: ProcessingAssetRow, deps: WorkerDependencies)
       entry: item.dimensions,
       poster: item.poster ? { width: item.poster.width, height: item.poster.height } : null,
     },
-    metrics: item.metrics,
+    // Warning rule ids only (validator messages can quote file content), for the reviewer.
+    metrics: { ...item.metrics, ...warningRules(item.validation) },
     processorVersion: item.processingVersion,
   };
   const problems = validateMediaAssetRecord({
@@ -310,12 +320,12 @@ async function processClaimed(row: ProcessingAssetRow, deps: WorkerDependencies)
   });
   if (problems.length > 0) return permanent("INTERNAL_ERROR", `processed record violates the contract: ${problems.join("; ")}`);
 
-  // Write-once publication of every derived object. Reruns find identical objects ("exists").
+  // Write-once review copies of every processed object. Reruns find identical objects ("exists").
   for (const object of item.objects) {
     const body = object.role === "entry" ? bytes : staged.find((s) => s.key === object.key)?.bytes ?? null;
     if (!body || sha256Hex(body) !== object.sha256) return permanent("INTERNAL_ERROR", `staged bytes for ${object.role} do not match the manifest`);
     try {
-      await deps.publisher.publish({ key: object.key, bytes: body, contentType: object.contentType, cacheControl: object.cacheControl, sha256: object.sha256 });
+      await deps.publisher.publish({ key: reviewKeyFor(object.key), bytes: body, contentType: object.contentType, cacheControl: REVIEW_CACHE_CONTROL, sha256: object.sha256 });
     } catch (error) {
       if (error instanceof ImmutableObjectConflictError) return permanent("INTERNAL_ERROR", `immutable object conflict for ${object.role}`);
       return { kind: "retry", reason: `publish failed (${errorName(error)})` };

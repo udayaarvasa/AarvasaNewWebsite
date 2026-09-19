@@ -10,6 +10,11 @@
  *   m/{mediaId}/{contentHash}/{file}         immutable derivatives, served by the CDN
  *   lib/{library}/{version}/{file}           immutable decoders (Draco, Basis), served by the CDN
  *   originals/{mediaId}/{contentHash}/{file} private source files, never served by the CDN
+ *   review/{mediaId}/{contentHash}/{file}    private processed files awaiting review, never served by the CDN
+ *
+ * A processed asset's files are written to review/ first. Only an admin approval
+ * copies them (write-once) to the same path under m/, so nothing unreviewed is
+ * ever reachable through the CDN.
  *
  * Ingest bucket layout:
  *
@@ -20,7 +25,13 @@
 export const CDN_PREFIXES = ["m", "lib"] as const;
 
 /** Every prefix that may exist in the published bucket. */
-export const PUBLISHED_BUCKET_PREFIXES = ["m", "lib", "originals"] as const;
+export const PUBLISHED_BUCKET_PREFIXES = ["m", "lib", "originals", "review"] as const;
+
+/** Private staging for processed files until an admin approves them. Never CDN-served. */
+export const REVIEW_PREFIX = "review";
+
+/** Review copies are fetched only through short-lived presigned URLs and must never be cached. */
+export const REVIEW_CACHE_CONTROL = "private, no-store";
 
 export const INGEST_PREFIX = "uploads";
 
@@ -70,6 +81,7 @@ export const CONTENT_HASH_KEY_LENGTH = 16;
 export const MEDIA_KEY_PATTERN = new RegExp(`^m/${MEDIA_ID}/${CONTENT_HASH}/${SAFE_SEGMENTS}$`);
 export const LIB_KEY_PATTERN = new RegExp(`^lib/${LIB_NAME}/${LIB_VERSION}/${SAFE_SEGMENTS}$`);
 export const ORIGINAL_KEY_PATTERN = new RegExp(`^originals/${MEDIA_ID}/${CONTENT_HASH}/${SAFE_SEGMENTS}$`);
+export const REVIEW_KEY_PATTERN = new RegExp(`^${REVIEW_PREFIX}/${MEDIA_ID}/${CONTENT_HASH}/${SAFE_SEGMENTS}$`);
 
 export function extensionOf(key: string): string {
   const name = key.slice(key.lastIndexOf("/") + 1);
@@ -97,6 +109,25 @@ export function publishedObjectMetadata(key: string): PublishedObjectMetadata | 
     return contentType ? { contentType, cacheControl: IMMUTABLE_CACHE_CONTROL } : null;
   }
   return null;
+}
+
+/** Metadata for a private review copy: the published content type, but never cacheable. */
+export function reviewObjectMetadata(key: string): PublishedObjectMetadata | null {
+  if (!REVIEW_KEY_PATTERN.test(key)) return null;
+  const contentType = PUBLISHED_CONTENT_TYPES[extensionOf(key)];
+  return contentType ? { contentType, cacheControl: REVIEW_CACHE_CONTROL } : null;
+}
+
+/** m/{mediaId}/{hash}/{file} → review/{mediaId}/{hash}/{file}: where a processed file waits for review. */
+export function reviewKeyFor(publishedKey: string): string {
+  if (!MEDIA_KEY_PATTERN.test(publishedKey)) throw new Error("Not a published media key");
+  return `${REVIEW_PREFIX}/${publishedKey.slice("m/".length)}`;
+}
+
+/** review/{mediaId}/{hash}/{file} → m/{mediaId}/{hash}/{file}: where an approved file is published. */
+export function publishedKeyFor(reviewKey: string): string {
+  if (!REVIEW_KEY_PATTERN.test(reviewKey)) throw new Error("Not a review key");
+  return `m/${reviewKey.slice(REVIEW_PREFIX.length + 1)}`;
 }
 
 /** The immutable version directory for one media item: m/{mediaId}/{keyHash}. */

@@ -67,7 +67,9 @@ describe("storage stack: S3", () => {
     assert.ok(rules.some((r) => (r.NoncurrentVersionExpiration as { NoncurrentDays: number })?.NoncurrentDays === 30));
     assert.ok(rules.some((r) => r.ExpiredObjectDeleteMarker === true));
     assert.ok(rules.some((r) => (r.AbortIncompleteMultipartUpload as { DaysAfterInitiation: number })?.DaysAfterInitiation === 1));
-    assert.ok(!rules.some((r) => "ExpirationInDays" in r), "published objects never expire");
+    // Only private review copies expire; published m/ objects never do.
+    const expiring = rules.filter((r) => "ExpirationInDays" in r);
+    assert.deepEqual(expiring, [{ Id: "expire-review-copies", Status: "Enabled", Prefix: "review/", ExpirationInDays: 30 }]);
   });
 
   it("allows browser uploads to ingest only from configured origins, without credentials", () => {
@@ -96,7 +98,7 @@ describe("storage stack: S3", () => {
     }
   });
 
-  it("lets CloudFront read only m/ and lib/, and explicitly never originals/", () => {
+  it("lets CloudFront read only m/ and lib/, and explicitly never originals/ or review/", () => {
     const statements = bucketPolicyStatements("PublishedBucket");
     const allow = statements.find((s) => s.Sid === "AllowCloudFrontReadCdnPrefixesOnly");
     assert.ok(allow);
@@ -107,9 +109,11 @@ describe("storage stack: S3", () => {
     const sourceArn = renderToken((allow.Condition?.StringEquals as Record<string, unknown>)["AWS:SourceArn"]);
     assert.match(sourceArn, /^arn:aws:cloudfront::<AWS::AccountId>:distribution\/<MediaDistribution/);
 
-    const deny = statements.find((s) => s.Sid === "DenyCloudFrontReadOriginals");
+    const deny = statements.find((s) => s.Sid === "DenyCloudFrontReadPrivatePrefixes");
     assert.ok(deny);
-    assert.equal(renderToken(deny.Resource), "<PublishedBucket054BAF30.Arn>/originals/*");
+    assert.equal(deny.Effect, "Deny");
+    assert.deepEqual(deny.Principal, { Service: "cloudfront.amazonaws.com" });
+    assert.deepEqual(asArray(deny.Resource).map(renderToken).sort(), ["<PublishedBucket054BAF30.Arn>/originals/*", "<PublishedBucket054BAF30.Arn>/review/*"]);
 
     // No other statement grants CloudFront (or anyone) GetObject on the whole bucket.
     for (const s of statements.filter((x) => x.Effect === "Allow")) {
@@ -132,6 +136,7 @@ describe("storage stack: S3", () => {
       "<PublishedBucket054BAF30.Arn>/lib/*",
       "<PublishedBucket054BAF30.Arn>/m/*",
       "<PublishedBucket054BAF30.Arn>/originals/*",
+      "<PublishedBucket054BAF30.Arn>/review/*",
     ]);
     const ingestLayout = bucketPolicyStatements("IngestBucket").find((s) => s.Sid === "DenyWritesOutsideUploadsPrefix");
     assert.equal(renderToken(ingestLayout?.NotResource), "<IngestBucket2B3522FA.Arn>/uploads/*");
@@ -272,8 +277,8 @@ describe("storage stack: IAM policies for later phases", () => {
   const statementsOf = (props: Record<string, unknown>) =>
     (props.PolicyDocument as { Statement: PolicyStatementJson[] }).Statement;
 
-  it("creates both policies unattached", () => {
-    assert.equal(policies.length, 2);
+  it("creates the three policies unattached in this stack (the processing stack attaches the processor policy)", () => {
+    assert.equal(policies.length, 3);
     for (const p of policies) {
       assert.equal(p.properties.Roles, undefined);
       assert.equal(p.properties.Users, undefined);
@@ -293,7 +298,7 @@ describe("storage stack: IAM policies for later phases", () => {
           assert.ok(!/Delete|PutBucket|PutObjectAcl|ListBucket|ListAllMyBuckets/.test(action), action);
         }
         for (const resource of asArray(s.Resource).map(renderToken)) {
-          assert.match(resource, /\.Arn>\/(uploads|m|originals)\/\*$/, `unexpected resource ${resource}`);
+          assert.match(resource, /\.Arn>\/(uploads|m|review)\/\*$/, `unexpected resource ${resource}`);
         }
       }
     }
@@ -312,15 +317,26 @@ describe("storage stack: IAM policies for later phases", () => {
     assert.ok(!actions.some((a) => /ListBucket|DeleteObject/.test(a)));
   });
 
-  it("limits the processor to reading uploads and writing/reading back derivatives under m/", () => {
+  it("limits the processor to reading uploads and writing/reading back private review copies (never m/)", () => {
     const statements = statementsOf(byName("aarvasa-media-dev-processor"));
     const grants = statements.flatMap((s) => asArray(s.Resource).map((r) => `${asArray(s.Action).join("|")} ${renderToken(r)}`));
     assert.deepEqual(grants.sort(), [
-      "s3:AbortMultipartUpload|s3:ListMultipartUploadParts|s3:PutObject <PublishedBucket054BAF30.Arn>/m/*",
       "s3:GetObject|s3:GetObjectAttributes <IngestBucket2B3522FA.Arn>/uploads/*",
-      "s3:GetObject|s3:GetObjectAttributes <PublishedBucket054BAF30.Arn>/m/*",
+      "s3:GetObject|s3:GetObjectAttributes <PublishedBucket054BAF30.Arn>/review/*",
+      "s3:PutObject <PublishedBucket054BAF30.Arn>/review/*",
     ].sort());
-    assert.ok(!grants.some((g) => g.includes("/originals/*")), "passthrough-v1 keeps no separate originals");
-    assert.ok(!grants.some((g) => g.includes("/lib/*")), "decoders are not writable by the processor");
+    assert.ok(!grants.some((g) => g.includes("/m/*")), "only an admin approval publishes to m/");
+    assert.ok(!grants.some((g) => g.includes("/originals/*") || g.includes("/lib/*")));
+  });
+
+  it("gives the app's review policy preview reads of review/ and write-once publication to m/ only", () => {
+    const statements = statementsOf(byName("aarvasa-media-dev-app-media-review"));
+    const grants = statements.flatMap((s) => asArray(s.Resource).map((r) => `${asArray(s.Action).join("|")} ${renderToken(r)}`));
+    assert.deepEqual(grants.sort(), [
+      "s3:GetObject|s3:GetObjectAttributes <PublishedBucket054BAF30.Arn>/m/*",
+      "s3:GetObject|s3:GetObjectAttributes <PublishedBucket054BAF30.Arn>/review/*",
+      "s3:PutObject <PublishedBucket054BAF30.Arn>/m/*",
+    ].sort());
+    assert.ok(!grants.some((g) => g.includes("IngestBucket") || g.includes("/originals/*") || g.includes("/lib/*")));
   });
 });

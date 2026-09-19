@@ -1,5 +1,5 @@
 import { Effect, PolicyStatement } from "aws-cdk-lib/aws-iam";
-import { INGEST_PREFIX } from "../../shared/media-contract";
+import { INGEST_PREFIX, REVIEW_PREFIX } from "../../shared/media-contract";
 
 /**
  * Least-privilege policy documents for future workloads. They are created as
@@ -43,18 +43,17 @@ export function appUploadIntentStatements(ingestBucketArn: string): PolicyStatem
 }
 
 /**
- * For the processing worker (Phase 5C, infra/src/processing). It reads verified
- * uploads, writes derived objects under m/ (write-once: the published bucket's
- * policy denies any PutObject without If-None-Match), and reads back an existing
- * m/ object to confirm a rerun found identical bytes. It cannot touch originals/
- * (the passthrough-v1 profile publishes the verified source byte-for-byte, so no
- * separate original is kept; a transforming profile must add it back explicitly),
- * write decoders under lib/, delete anything or list buckets. Queue access is a
- * separate policy in the processing stack.
+ * For the processing worker (infra/src/processing, Lambda in the processing stack).
+ * It reads verified uploads and writes processed files to the private review/
+ * prefix (write-once: the published bucket's policy denies any PutObject without
+ * If-None-Match), reading back an existing review/ object to confirm a rerun found
+ * identical bytes. It cannot write m/ (only an admin approval publishes), touch
+ * originals/ (passthrough-v1 keeps no separate original), write decoders under
+ * lib/, delete anything or list buckets. Queue access is a separate policy.
  */
 export function processorStatements(ingestBucketArn: string, publishedBucketArn: string): PolicyStatement[] {
   const uploads = objects(ingestBucketArn, INGEST_PREFIX);
-  const derivatives = objects(publishedBucketArn, "m");
+  const review = objects(publishedBucketArn, REVIEW_PREFIX);
   return [
     new PolicyStatement({
       sid: "ReadIngestUploads",
@@ -63,16 +62,49 @@ export function processorStatements(ingestBucketArn: string, publishedBucketArn:
       resources: [uploads],
     }),
     new PolicyStatement({
-      sid: "WriteOncePublishedDerivatives",
+      sid: "WriteOnceReviewCopies",
       effect: Effect.ALLOW,
-      actions: ["s3:PutObject", "s3:AbortMultipartUpload", "s3:ListMultipartUploadParts"],
-      resources: [derivatives],
+      actions: ["s3:PutObject"],
+      resources: [review],
     }),
     new PolicyStatement({
-      sid: "ReadBackPublishedDerivatives",
+      sid: "ReadBackReviewCopies",
       effect: Effect.ALLOW,
       actions: ["s3:GetObject", "s3:GetObjectAttributes"],
-      resources: [derivatives],
+      resources: [review],
+    }),
+  ];
+}
+
+/**
+ * For the Amplify SSR compute role, next to app-upload-intents: admin review.
+ * Presigned preview GETs of review/ copies (5-minute URLs), and publication on
+ * approval: read the review copy and write it once to the same path under m/
+ * (PutObject with If-None-Match and the SHA-256, streamed, never buffered), reading
+ * back an existing m/ object to confirm an idempotent re-publish. No originals/,
+ * lib/, ingest, deletes or listing.
+ */
+export function appMediaReviewStatements(publishedBucketArn: string): PolicyStatement[] {
+  const review = objects(publishedBucketArn, REVIEW_PREFIX);
+  const media = objects(publishedBucketArn, "m");
+  return [
+    new PolicyStatement({
+      sid: "ReadReviewCopies",
+      effect: Effect.ALLOW,
+      actions: ["s3:GetObject", "s3:GetObjectAttributes"],
+      resources: [review],
+    }),
+    new PolicyStatement({
+      sid: "PublishApprovedMediaWriteOnce",
+      effect: Effect.ALLOW,
+      actions: ["s3:PutObject"],
+      resources: [media],
+    }),
+    new PolicyStatement({
+      sid: "ReadBackPublishedMedia",
+      effect: Effect.ALLOW,
+      actions: ["s3:GetObject", "s3:GetObjectAttributes"],
+      resources: [media],
     }),
   ];
 }

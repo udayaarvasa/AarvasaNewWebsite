@@ -27,6 +27,8 @@ export interface MediaEnvironmentConfig {
   readonly published: {
     readonly noncurrentVersionExpireAfterDays: number;
     readonly abortIncompleteMultipartAfterDays: number;
+    /** Private review copies (review/*) are removed after this; review must happen before. */
+    readonly reviewExpireAfterDays: number;
   };
   readonly cdn: {
     readonly priceClass: PriceClass;
@@ -55,6 +57,14 @@ export interface MediaEnvironmentConfig {
     readonly publishedBucketBytesAlarm: number;
     readonly ingestObjectCountAlarm: number;
   };
+  readonly processing: {
+    /** Key of the processing Lambda bundle in the artifact bucket (uploaded before deploying). */
+    readonly artifactKey: string;
+    /** S3 object version of that bundle, so a new upload is an explicit, reviewed deploy. */
+    readonly artifactVersion: string | undefined;
+    /** Secrets Manager secret holding the DEV application DATABASE_URL. Absent until one exists. */
+    readonly databaseSecretArn: string | undefined;
+  };
   readonly tags: Readonly<Record<string, string>>;
 }
 
@@ -71,7 +81,7 @@ export const DEV_DEFAULTS: MediaEnvironmentConfig = {
   accountId: undefined,
   allowedOrigins: REPO_DEV_ORIGINS,
   ingest: { expireAfterDays: 7, abortIncompleteMultipartAfterDays: 1 },
-  published: { noncurrentVersionExpireAfterDays: 30, abortIncompleteMultipartAfterDays: 1 },
+  published: { noncurrentVersionExpireAfterDays: 30, abortIncompleteMultipartAfterDays: 1, reviewExpireAfterDays: 30 },
   cdn: {
     // Dev traffic is negligible; All keeps India and UAE edges in play without assumptions.
     priceClass: PriceClass.PRICE_CLASS_ALL,
@@ -96,6 +106,7 @@ export const DEV_DEFAULTS: MediaEnvironmentConfig = {
     publishedBucketBytesAlarm: 50 * GIB,
     ingestObjectCountAlarm: 5_000,
   },
+  processing: { artifactKey: "processing/processing-lambdas.zip", artifactVersion: undefined, databaseSecretArn: undefined },
   tags: {
     Project: "aarvasa-media",
     Environment: "dev",
@@ -119,6 +130,8 @@ export function validateOrigin(origin: string): string {
 
 const ACCOUNT_ID = /^\d{12}$/;
 const DISTRIBUTION_ID = /^E[A-Z0-9]{8,20}$/;
+const ARTIFACT_KEY = /^[A-Za-z0-9][A-Za-z0-9/_.-]{0,200}\.zip$/;
+const SECRET_ARN = /^arn:aws:secretsmanager:[a-z]{2}(-[a-z]+)+-\d:\d{12}:secret:[A-Za-z0-9/_+=.@-]{1,512}$/;
 const WEB_ACL_ARN = /^arn:aws:wafv2:us-east-1:\d{12}:global\/webacl\/[A-Za-z0-9_-]+\/[a-f0-9-]{36}$/;
 
 function contextString(app: App, key: string): string | undefined {
@@ -135,6 +148,9 @@ function contextString(app: App, key: string): string | undefined {
  *   -c aarvasa:allowedOrigins=http://localhost:3000,https://dev.example.com
  *   -c aarvasa:webAclArn=arn:aws:wafv2:us-east-1:...
  *   -c aarvasa:distributionId=E123...
+ *   -c aarvasa:processingArtifactKey=processing/processing-lambdas-<version>.zip
+ *   -c aarvasa:processingArtifactVersion=<S3 object version id of that zip>
+ *   -c aarvasa:databaseSecretArn=arn:aws:secretsmanager:ap-south-1:...:secret:...
  */
 export function loadDevConfig(app: App): MediaEnvironmentConfig {
   const accountId = contextString(app, "aarvasa:accountId");
@@ -158,12 +174,22 @@ export function loadDevConfig(app: App): MediaEnvironmentConfig {
     throw new Error("aarvasa:distributionId must be a CloudFront distribution id (E...)");
   }
 
+  const artifactKey = contextString(app, "aarvasa:processingArtifactKey") ?? DEV_DEFAULTS.processing.artifactKey;
+  if (!ARTIFACT_KEY.test(artifactKey) || artifactKey.includes("..")) throw new Error("aarvasa:processingArtifactKey must be a .zip object key");
+  const artifactVersion = contextString(app, "aarvasa:processingArtifactVersion");
+  if (artifactVersion !== undefined && !/^[A-Za-z0-9._-]{1,1024}$/.test(artifactVersion)) throw new Error("aarvasa:processingArtifactVersion must be an S3 object version id");
+  const databaseSecretArn = contextString(app, "aarvasa:databaseSecretArn");
+  if (databaseSecretArn !== undefined && !SECRET_ARN.test(databaseSecretArn)) {
+    throw new Error("aarvasa:databaseSecretArn must be a Secrets Manager secret ARN");
+  }
+
   return {
     ...DEV_DEFAULTS,
     accountId,
     allowedOrigins,
     cdn: { ...DEV_DEFAULTS.cdn, webAclArn },
     monitoring: { ...DEV_DEFAULTS.monitoring, distributionId },
+    processing: { artifactKey, artifactVersion, databaseSecretArn },
   };
 }
 

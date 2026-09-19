@@ -29,11 +29,17 @@ export function applyNagSuppressions(stacks: {
   monitoring: MediaMonitoringStack;
   processing: MediaProcessingStack;
 }): void {
-  // The processing stack needs no acknowledgements: both queues are encrypted, TLS-only
-  // and cdk-nag recognises the dead-letter queue as one (no SQS3 finding).
-  const { storage } = stacks;
+  const { storage, processing } = stacks;
 
-  for (const bucket of [storage.ingestBucket, storage.publishedBucket]) {
+  // Processing stack. Queues need nothing: both are encrypted, TLS-only, and cdk-nag
+  // recognises the dead-letter queue as one.
+  const ingestUploads = `AwsSolutions::AwsSolutions-IAM5[Resource::arn:aws:s3:::${processing.namePrefix}-ingest-<AWS::AccountId>-${processing.region}/uploads/*]`;
+  Validations.of(resourceOf(processing.sweeperRole.node.findChild("DefaultPolicy"))).acknowledge({
+    id: ingestUploads,
+    reason: "HeadObject existence checks need s3:GetObject; scoped to the ingest bucket's uploads/ prefix only, whose keys are per upload.",
+  });
+
+  for (const bucket of [storage.ingestBucket, storage.publishedBucket, stacks.processing.artifactBucket]) {
     Validations.of(resourceOf(bucket)).acknowledge({
       id: "AwsSolutions::AwsSolutions-S1",
       reason: `${DEV_ONLY} S3 server access logs would need a separate log bucket; enable them (or CloudTrail S3 data events) for production.`,
@@ -77,6 +83,10 @@ export function applyNagSuppressions(stacks: {
   });
   Validations.of(resourceOf(storage.node.findChild("ProcessorPolicy"))).acknowledge(
     { id: objectWildcardId(storage, storage.ingestBucket, "uploads"), reason: wildcardReason },
+    { id: objectWildcardId(storage, storage.publishedBucket, "review"), reason: wildcardReason },
+  );
+  Validations.of(resourceOf(storage.node.findChild("AppMediaReviewPolicy"))).acknowledge(
+    { id: objectWildcardId(storage, storage.publishedBucket, "review"), reason: wildcardReason },
     { id: objectWildcardId(storage, storage.publishedBucket, "m"), reason: wildcardReason },
   );
 }

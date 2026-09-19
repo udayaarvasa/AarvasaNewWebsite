@@ -51,7 +51,8 @@ const DAY = 24 * HOUR;
  *
  *   worker run   ≤ WORKER_TIMEOUT (5 min)
  *   < lease      = LEASE (10 min): no second worker may claim the asset meanwhile
- *   < visibility = QUEUE_VISIBILITY_TIMEOUT (15 min): SQS redelivers only after the lease lapsed
+ *   < visibility = QUEUE_VISIBILITY_TIMEOUT (30 min, 6 × the Lambda timeout as AWS recommends
+ *                  for SQS event sources): SQS redelivers only after the lease lapsed
  *   attempts     ≤ MAX_ATTEMPTS (3), counted in the database, whatever SQS does
  *   redelivery   ≤ QUEUE_MAX_RECEIVE_COUNT (5) receives, then the dead-letter queue
  *   timeout      PROCESSING longer than PROCESSING_TIMEOUT (6 h) → FAILED by the sweeper
@@ -60,13 +61,13 @@ const DAY = 24 * HOUR;
 export const PROCESSING_POLICY = {
   workerTimeoutSeconds: 5 * MINUTE,
   leaseSeconds: 10 * MINUTE,
-  queueVisibilityTimeoutSeconds: 15 * MINUTE,
+  queueVisibilityTimeoutSeconds: 30 * MINUTE,
   maxAttempts: 3,
   queueMaxReceiveCount: 5,
   queueRetentionSeconds: 4 * DAY,
   deadLetterRetentionSeconds: 14 * DAY,
   /** Re-send a job for an unclaimed PROCESSING asset after this long (lost or never-sent message). */
-  redispatchAfterSeconds: 15 * MINUTE,
+  redispatchAfterSeconds: 30 * MINUTE,
   processingTimeoutSeconds: 6 * HOUR,
   /** An UPLOADED asset whose object exists but was never completed is abandoned after this. */
   uploadAbandonedAfterSeconds: 24 * HOUR,

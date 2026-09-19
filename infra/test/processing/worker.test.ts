@@ -12,6 +12,8 @@ import { glb, glbFrom, jpeg, sogBundle, triangleGltf } from "../pipeline/fixture
 import { FakeSourceReader, fakePosterGenerator, InMemoryProcessingStore, ManualClock, processingRow, UPLOAD_ID, WriteOnceObjectStore, type StoredRow } from "./fakes";
 
 const MEDIA = "a1b2c3d4e5f60718293a4b5c6d7e8f90";
+/** The private review copy of a published key: where the worker writes, never CDN-served. */
+const review = (publishedKey: string) => publishedKey.replace(/^m\//, "review/");
 
 function harness(bytes: Uint8Array, format: MediaAssetFormat, options: { row?: Partial<StoredRow>; posterGenerator?: PosterGenerator | null; stored?: Uint8Array | null } = {}) {
   const clock = new ManualClock();
@@ -58,10 +60,12 @@ describe("worker: supported sources → PENDING_REVIEW (never PUBLISHED)", () =>
     assert.equal(row.processorVersion, "1.0.0/passthrough-v1");
     assert.equal(row.processingLeaseExpiresAt, null);
     assert.equal(row.failureCode, null);
-    assert.deepEqual([...h.publisher.objects.keys()], [`${row.storageKey}/scene.glb`]);
-    const published = h.publisher.objects.get(`${row.storageKey}/scene.glb`)!;
-    assert.deepEqual(Buffer.from(published.bytes), Buffer.from(bytes));
-    assert.equal(published.cacheControl, "public, max-age=31536000, immutable");
+    assert.deepEqual([...h.publisher.objects.keys()], [review(`${row.storageKey}/scene.glb`)], "only a private review copy; nothing under m/");
+    const copy = h.publisher.objects.get(review(`${row.storageKey}/scene.glb`))!;
+    assert.deepEqual(Buffer.from(copy.bytes), Buffer.from(bytes));
+    assert.equal(copy.cacheControl, "private, no-store");
+    assert.ok(![...h.publisher.objects.keys()].some((k) => k.startsWith("m/")));
+    assert.equal((row.metrics as Record<string, unknown>)["validation.warnings"], "poster.missing", "warning rule ids only");
   });
 
   it("panorama: generates the poster as a derived asset and records both dimensions", async () => {
@@ -73,7 +77,7 @@ describe("worker: supported sources → PENDING_REVIEW (never PUBLISHED)", () =>
     assert.equal(row.fileCount, 2);
     assert.equal(row.posterKey, `${row.storageKey}/poster.webp`);
     assert.deepEqual(row.dimensions, { entry: { width: 4096, height: 2048 }, poster: { width: 1280, height: 640 } });
-    assert.deepEqual([...h.publisher.objects.keys()].sort(), [`${row.storageKey}/panorama.jpg`, `${row.storageKey}/poster.webp`]);
+    assert.deepEqual([...h.publisher.objects.keys()].sort(), [review(`${row.storageKey}/panorama.jpg`), review(`${row.storageKey}/poster.webp`)]);
   });
 
   it("SOG splat bundle → PENDING_REVIEW with splat metrics", async () => {
@@ -185,7 +189,7 @@ describe("worker: permanent failures → FAILED at once, never retried", () => {
   it("an immutable key already holding different bytes → INTERNAL_ERROR, nothing overwritten", async () => {
     const bytes = validGlb();
     const h = harness(bytes, "GLB");
-    const key = `${mediaVersionPrefix(MEDIA, deriveKeyHash(sha256Hex(bytes), "none"))}/scene.glb`;
+    const key = review(`${mediaVersionPrefix(MEDIA, deriveKeyHash(sha256Hex(bytes), "none"))}/scene.glb`);
     const other = new Uint8Array([1, 2, 3]);
     h.publisher.objects.set(key, { bytes: other, contentType: "model/gltf-binary", cacheControl: "x", sha256: sha256Hex(other) });
     const outcome = await h.run();

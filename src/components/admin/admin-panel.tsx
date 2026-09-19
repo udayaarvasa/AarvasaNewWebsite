@@ -5,13 +5,14 @@ import Image from "next/image"
 import {
   Building2, Heart, Loader2, MessageSquare, Shield, ShieldCheck,
   Star, Trash2, TrendingUp, Users, BarChart3, CheckCircle2, XCircle,
-  Sparkles, ChevronDown, AlertTriangle,
+  Sparkles, ChevronDown, AlertTriangle, Box,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
 import toast from "react-hot-toast"
+import { MediaManager } from "@/components/admin/media-manager"
 
-type Tab = "overview" | "users" | "properties" | "inquiries"
+type Tab = "overview" | "users" | "properties" | "inquiries" | "media"
 
 interface AdminStats {
   totalUsers: number
@@ -181,6 +182,7 @@ export function AdminPanel() {
     { id: "users", label: "Users", icon: Users },
     { id: "properties", label: "Properties", icon: Building2 },
     { id: "inquiries", label: "Inquiries", icon: MessageSquare },
+    { id: "media", label: "Media", icon: Box },
   ]
 
   const roleBadge = (role: string) => {
@@ -482,6 +484,9 @@ export function AdminPanel() {
             )}
 
             {/* ── INQUIRIES TAB (placeholder for future) ── */}
+            {/* ── MEDIA TAB ── */}
+            {tab === "media" && <MediaManager />}
+
             {tab === "inquiries" && (
               <Card className="border-[#DCCDCE]/40 bg-white p-12 text-center">
                 <MessageSquare className="mx-auto mb-4 h-12 w-12 text-[#DCCDCE]" />

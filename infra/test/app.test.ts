@@ -47,10 +47,10 @@ describe("app: synthesis without AWS access", () => {
     }
   });
 
-  it("contains no Lambda functions, custom resources or NEXT_PUBLIC values", () => {
+  it("has Lambda functions only in the processing stack, and no custom resources or NEXT_PUBLIC values", () => {
     for (const stack of assembly.stacks) {
       const json = JSON.stringify(stack.template);
-      assert.ok(!json.includes("AWS::Lambda::Function"), stack.stackName);
+      assert.equal(json.includes("AWS::Lambda::Function"), stack.stackName === STACK_IDS.processing, stack.stackName);
       assert.ok(!json.includes("Custom::"), stack.stackName);
       assert.ok(!json.includes("NEXT_PUBLIC"), stack.stackName);
     }
