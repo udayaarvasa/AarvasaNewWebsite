@@ -86,7 +86,7 @@ function renderMarkdown(text: string) {
     // Horizontal rule (---)
     if (line.trim() === "---") {
       elements.push(
-        <hr key={k} className="my-4 border-[#DCCDCE]/40" />,
+        <hr key={k} className="my-4 border-rule" />,
       );
       continue;
     }
@@ -95,7 +95,7 @@ function renderMarkdown(text: string) {
     if (line.startsWith("- ")) {
       elements.push(
         <div key={k} className="flex items-start gap-2 py-0.5">
-          <span className="mt-1.5 h-1.5 w-1.5 flex-shrink-0 rounded-full bg-[#D4AF37]" />
+          <span className="mt-1.5 h-1.5 w-1.5 flex-shrink-0 rounded-full bg-gold-ink" />
           <span className="text-sm leading-relaxed text-[#72383D]">
             {renderInlineMarkdown(line.slice(2))}
           </span>
@@ -109,7 +109,7 @@ function renderMarkdown(text: string) {
       elements.push(
         <blockquote
           key={k}
-          className="my-3 border-l-2 border-[#D4AF37]/50 pl-3 text-xs italic text-[#72383D]/60"
+          className="my-3 border-l-2 border-gold-ink/50 pl-3 text-xs italic text-ink-muted"
         >
           {renderInlineMarkdown(line.slice(2).replace(/^\*/, "").replace(/\*$/, ""))}
         </blockquote>,
@@ -156,7 +156,7 @@ export function ChatInterface({ initialPrompt }: { initialPrompt?: string }) {
     {
       role: "assistant",
       content:
-        "Welcome to **Aarvasa AI** — India's multi-source real estate intelligence platform. I combine our **verified property database**, **real-time market signals**, and **AI-powered analysis** to surface investment-grade opportunities. Ask for a city, budget, risk profile, or target ROI to get started.",
+        "Welcome to the **Aarvasa advisor**. I answer from the **specification, developer filings and locality data** behind the listings on this platform. Ask about a city, a budget, a configuration or a specific project — payment schedules, approvals, areas and handover dates. I do not forecast prices or quote returns.",
       timestamp: Date.now(),
     },
   ]);
@@ -319,7 +319,7 @@ export function ChatInterface({ initialPrompt }: { initialPrompt?: string }) {
       {/* ── Sidebar ── */}
       <Card className="hidden p-5 lg:block">
         <div className="mb-6 flex items-center gap-3">
-          <div className="maroon-gradient flex h-10 w-10 items-center justify-center rounded-xl border border-accent/40 text-primary-foreground">
+          <div className="flex h-10 w-10 items-center justify-center rounded-xs border border-rule-firm bg-burgundy text-paper">
             <Bot className="h-5 w-5" />
           </div>
           <div>
@@ -355,14 +355,14 @@ export function ChatInterface({ initialPrompt }: { initialPrompt?: string }) {
             { icon: TrendingUp, label: "ROI & Yield Analysis" },
             { icon: Shield, label: "Risk Profiling" },
             { icon: MapPin, label: "Micro-market Signals" },
-            { icon: Building2, label: "Multi-source Matching" },
+            { icon: Building2, label: "Specification matching" },
           ].map(({ icon: Icon, label }) => (
-            <div key={label} className="flex items-center gap-2.5 text-xs text-[#72383D]/60">
+            <div key={label} className="flex items-center gap-2.5 text-xs text-ink-muted">
               <Icon className="h-3.5 w-3.5 text-[#D4AF37]" />
               {label}
             </div>
           ))}
-          <div className="mt-3 rounded-lg border border-[#DCCDCE]/30 bg-[#F5F4F1]/60 p-2.5">
+          <div className="mt-3 rounded-lg border border-rule bg-paper-raised p-2.5">
             <p className="text-[10px] font-semibold uppercase tracking-widest text-[#72383D]/40 mb-1">Data Sources</p>
             <p className="text-[10px] leading-relaxed text-[#72383D]/50">Aarvasa DB • Market APIs • Infrastructure • RERA • Rental Intelligence</p>
           </div>
@@ -374,7 +374,7 @@ export function ChatInterface({ initialPrompt }: { initialPrompt?: string }) {
         {/* Header */}
         <div className="border-b border-border p-5">
           <div className="flex items-center gap-3">
-            <div className="maroon-gradient flex h-11 w-11 items-center justify-center rounded-xl border border-accent/40 text-primary-foreground">
+            <div className="flex h-11 w-11 items-center justify-center rounded-xs border border-rule-firm bg-burgundy text-paper">
               <Sparkles className="h-5 w-5" />
             </div>
             <div>
@@ -382,7 +382,7 @@ export function ChatInterface({ initialPrompt }: { initialPrompt?: string }) {
                 Aarvasa AI Advisor
               </h1>
               <p className="text-sm text-muted-foreground">
-                Multi-source intelligence • ROI reasoning • Market signals
+                Specification · developer filings · locality data
               </p>
             </div>
             <div className="ml-auto hidden items-center gap-1.5 sm:flex">
@@ -433,7 +433,7 @@ export function ChatInterface({ initialPrompt }: { initialPrompt?: string }) {
                   <div className="ai-response">
                     {renderMarkdown(message.content)}
                     {message.isStreaming && (
-                      <span className="inline-block ml-0.5 w-2 h-4 bg-[#D4AF37] animate-pulse rounded-sm" />
+                      <span className="inline-block ml-0.5 w-2 h-4 bg-gold-ink animate-pulse rounded-sm" />
                     )}
                   </div>
                 ) : (
@@ -447,20 +447,20 @@ export function ChatInterface({ initialPrompt }: { initialPrompt?: string }) {
           {loading && (
             <div className="flex justify-start">
               <div className="mr-3 mt-1 flex-shrink-0">
-                <div className="flex h-8 w-8 items-center justify-center rounded-lg maroon-gradient text-primary-foreground">
+                <div className="flex h-8 w-8 items-center justify-center rounded-xs bg-burgundy text-paper">
                   <Sparkles className="h-3.5 w-3.5 animate-pulse" />
                 </div>
               </div>
-              <div className="flex items-center gap-3 rounded-2xl border border-border bg-background/40 px-5 py-4">
+              <div className="flex items-center gap-3 rounded-sm border border-rule bg-paper-raised px-5 py-4">
                 <Loader2 className="h-4 w-4 animate-spin text-[#D4AF37]" />
                 <div>
                   <p className="text-sm font-medium text-[#50080E]">
                     {loadingMessage}
                   </p>
                   <div className="mt-1.5 flex gap-1">
-                    <span className="h-1 w-1 rounded-full bg-[#D4AF37] animate-bounce" style={{ animationDelay: "0ms" }} />
-                    <span className="h-1 w-1 rounded-full bg-[#D4AF37] animate-bounce" style={{ animationDelay: "150ms" }} />
-                    <span className="h-1 w-1 rounded-full bg-[#D4AF37] animate-bounce" style={{ animationDelay: "300ms" }} />
+                    <span className="h-1 w-1 rounded-full bg-gold-ink animate-bounce" style={{ animationDelay: "0ms" }} />
+                    <span className="h-1 w-1 rounded-full bg-gold-ink animate-bounce" style={{ animationDelay: "150ms" }} />
+                    <span className="h-1 w-1 rounded-full bg-gold-ink animate-bounce" style={{ animationDelay: "300ms" }} />
                   </div>
                 </div>
               </div>
@@ -477,7 +477,7 @@ export function ChatInterface({ initialPrompt }: { initialPrompt?: string }) {
           }}
           className="border-t border-border p-4"
         >
-          <div className="flex items-center gap-3 rounded-2xl border border-border bg-background/35 p-2 backdrop-blur-xl transition-colors focus-within:border-[#D4AF37]/50">
+          <div className="flex items-center gap-3 rounded-2xl border border-border bg-background/35 p-2 backdrop-blur-xl transition-colors focus-within:border-gold-ink/50">
             <Building2 className="ms-3 h-5 w-5 text-primary" />
             <input
               value={input}
