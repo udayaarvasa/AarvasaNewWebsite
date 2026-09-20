@@ -17,12 +17,13 @@ import { LoadGate } from "../load-gate";
 import { RenderDemand } from "../render-demand";
 import { MEDIA_CDN_ORIGIN } from "../media-origin";
 import { resolveModelUrl, resolvePanoramaUrl, resolveSplatUrl } from "../source";
-import type { RGB, ViewerEngine, ViewerEngineOptions, ViewerSource, ViewerTheme } from "../types";
+import type { RGB, ViewerEngine, ViewerEngineOptions, ViewerSource, ViewerTheme, ViewerXrStart } from "../types";
 import { directionFor } from "./look-controls";
 import { loadModel } from "./model-loader";
 import { loadPanorama } from "./panorama";
 import { createProceduralScene } from "./procedural-scene";
 import type { SceneContent, ViewerControls } from "./scene-content";
+import type { XrRuntime } from "./xr";
 
 /** Field of view for models; panoramas set their own. */
 const OBJECT_FOV = 40;
@@ -133,13 +134,19 @@ export function createViewerEngine(host: HTMLElement, options: ViewerEngineOptio
   let motion = { autoRotate: false, reducedMotion: false };
   const viewListeners = new Set<() => void>();
 
+  // An XR session drives its own frames and its own camera pose.
+  let xr: XrRuntime | null = null;
+  let xrActive = false;
+
   app.on("update", (dt: number) => {
     // Start of a frame: requests made from here on (the splat renderer asks during render) are for the next one.
     demand.frameStarted();
-    controls?.update(dt);
+    if (!xrActive) controls?.update(dt);
   });
   app.on("frameend", () => {
     for (const listener of viewListeners) listener();
+    // While a session is running the headset asks for every frame: never stand down.
+    if (xrActive) return;
     if (!demand.frameEnded({ active, moving: controls?.isMoving ?? false }, performance.now())) stopLoop();
   });
 
@@ -280,6 +287,68 @@ export function createViewerEngine(host: HTMLElement, options: ViewerEngineOptio
       return { x: projected.x, y: projected.y };
     },
 
+    async prepareXr() {
+      // Builds the XR runtime ahead of the visitor's first tap: PlayCanvas checks
+      // device availability asynchronously and refuses to start until it answers.
+      if (destroyed || xr || content?.kind !== "object") return;
+      try {
+        const { XrRuntime } = await import("./xr");
+        if (destroyed || xr) return;
+        xr = new XrRuntime(app, camera, () => content?.root ?? null, requestFrame);
+      } catch {
+        // Leave it null: startXr reports the failure to the visitor.
+      }
+    },
+
+    async startXr(options: ViewerXrStart) {
+      if (destroyed) return;
+      // Only a model can go into XR; the page never offers it for anything else.
+      if (content?.kind !== "object") {
+        options.onEvent({ type: "failed", kind: "unsupported" });
+        return;
+      }
+      try {
+        if (!xr) {
+          // Separate chunk: PlayCanvas's XR code is only downloaded when XR is offered or requested.
+          const { XrRuntime } = await import("./xr");
+          if (destroyed) return;
+          xr = new XrRuntime(app, camera, () => content?.root ?? null, requestFrame);
+        }
+      } catch {
+        options.onEvent({ type: "failed", kind: "failed" });
+        return;
+      }
+      xr.start({
+        ...options,
+        onEvent: (event) => {
+          if (event.type === "started") {
+            xrActive = true;
+            startLoop();
+          } else if (event.type === "ended" || event.type === "failed") {
+            xrActive = false;
+            requestFrame();
+          }
+          options.onEvent(event);
+        },
+      });
+    },
+
+    endXr() {
+      xr?.end();
+    },
+
+    xrPlace() {
+      xr?.place();
+    },
+
+    xrResetPlacement() {
+      xr?.resetPlacement();
+    },
+
+    xrSetTransform(rotationDeg: number, scale: number) {
+      xr?.setTransform(rotationDeg, scale);
+    },
+
     onViewChange(listener: () => void) {
       if (destroyed) return () => {};
       viewListeners.add(listener);
@@ -294,6 +363,9 @@ export function createViewerEngine(host: HTMLElement, options: ViewerEngineOptio
       destroyed = true;
 
       loads.close();
+      xr?.destroy();
+      xr = null;
+      xrActive = false;
       viewListeners.clear();
       resizeObserver.disconnect();
       controls?.destroy();

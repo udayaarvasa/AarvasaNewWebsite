@@ -79,6 +79,29 @@ export type ViewerTheme = {
   accent: RGB;
 };
 
+/**
+ * XR (Phase 8). Kept structural so this file still imports nothing: the
+ * capability, contract and lifecycle modules define the same shapes.
+ */
+export type ViewerXrEvent =
+  | { type: "started" }
+  | { type: "ended" }
+  | { type: "failed"; kind: "unsupported" | "denied" | "failed" | "lost" }
+  /** AR only: whether a real-world surface is currently detected. */
+  | { type: "surface"; found: boolean };
+
+export type ViewerXrStart = {
+  mode: "ar" | "vr";
+  /** Deterministic model scale: metres per model unit × the project's preview factor. */
+  scale: { metersPerUnit: number; previewScale: number };
+  /**
+   * Element to show over the camera feed in AR, where the browser supports it.
+   * Typed loosely (an Element at runtime) so this file stays DOM-free.
+   */
+  domOverlayRoot?: unknown;
+  onEvent: (event: ViewerXrEvent) => void;
+};
+
 export type ViewerEngineOptions = {
   /** Upper bound on rendering resolution relative to CSS pixels. */
   maxPixelRatio: number;
@@ -112,5 +135,24 @@ export interface ViewerEngine {
   projectDirection(yawDeg: number, pitchDeg: number): { x: number; y: number } | null;
   /** Called after every rendered frame in which the view changed. Returns an unsubscribe function. */
   onViewChange(listener: () => void): () => void;
+  /**
+   * Downloads and builds the XR runtime before it is needed, so the visitor's
+   * first AR/VR tap is not spent waiting for the device availability check.
+   * Safe to call repeatedly; does nothing when XR cannot apply.
+   */
+  prepareXr(): Promise<void>;
+  /**
+   * Starts an XR session for the model currently shown. Downloads the XR code
+   * on first use. Never called without an explicit user gesture; failures are
+   * reported through `onEvent`, never thrown.
+   */
+  startXr(options: ViewerXrStart): Promise<void>;
+  /** Ends the session the viewer started ("ended" follows through `onEvent`). */
+  endXr(): void;
+  /** AR: place the model where the reticle is, or start looking for a surface again. */
+  xrPlace(): void;
+  xrResetPlacement(): void;
+  /** Applies the turn and scale the state machine has already clamped. */
+  xrSetTransform(rotationDeg: number, scale: number): void;
   destroy(): void;
 }

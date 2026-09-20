@@ -56,7 +56,10 @@
     "../src/lib/viewer/published-splats.ts",
     "../src/lib/viewer/project-splat.ts",
     "../src/lib/viewer/immersive-modes.ts",
-    "../src/lib/viewer/render-demand.ts"
+    "../src/lib/viewer/render-demand.ts",
+    "../src/lib/viewer/xr-capabilities.ts",
+    "../src/lib/viewer/xr-contract.ts",
+    "../src/lib/viewer/xr-session.ts"
   ],
   "exclude": ["node_modules", "dist", "cdk.out"]
 }

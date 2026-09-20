@@ -752,7 +752,7 @@ Phase 6 puts approved media on project pages: the existing 3D model viewer, plus
 360° panoramic tours with hotspots and room-to-room navigation. It adds no AWS
 resources, no database model and no migration, and does not change upload,
 processing or review. Gaussian splats were not part of Phase 6 (they are Phase 7,
-§16). AR, VR and WebXR are **not** implemented.
+§16); AR, VR and WebXR were not either (Phase 8, §17).
 
 ### Architecture
 
@@ -970,8 +970,8 @@ Phase 7 renders published Gaussian splat scenes (bundled SOG) in the existing
 viewer and offers them on project pages as a third experience, **3D scan**. It
 adds no AWS resources, no database model or migration, and no upload path; SOG
 uploads, validation, processing, review and publishing are the Phase 2B-2 / 5
-workflow unchanged. AR, VR and WebXR are **not** implemented; the WebGL context
-is created with `xrCompatible: false`.
+workflow unchanged. AR, VR and WebXR came later, in Phase 8 (§17); splat scenes
+themselves have no XR mode.
 
 **Validation vs rendering.** Phase 2B-2 (`infra/src/pipeline/sog.ts`) validates
 SOG bundles before publication: archive hygiene, meta.json, lossless WebP
@@ -1181,3 +1181,203 @@ const EXAMPLE_SPLAT: ProjectSplatMedia = {
   ignored in favour of `distanceFactor`.
 - Headless splat posters are not generated; without a sidecar poster the viewer
   shows its neutral placeholder.
+
+## 17. AR Room Preview and VR Walkthrough (Phase 8)
+
+Phase 8 adds two immersive modes to the existing 3D model viewer: **AR Room
+Preview** (place the model in your own room) and **VR Walkthrough** (view it in
+a headset). It adds no AWS resources, no database model or migration, no new
+media pipeline and no second renderer: both modes run in the same PlayCanvas
+app, on the same published model the 3D viewer already loads.
+
+### What is and is not validated
+
+| | Status |
+|---|---|
+| Capability detection, gating, fallbacks, failure and denial paths | Implemented; validated in headless Chrome 153 with real and mocked capabilities |
+| Session lifecycle, placement, transforms, analytics | Implemented; covered by deterministic unit tests |
+| Entering a real AR session (surface detection, placement, scale on a phone) | **Not validated: no WebXR device was available.** |
+| Entering a real VR session (headset, controllers, teleport) | **Not validated: no headset was available.** |
+| DEV / production | Not deployed (no DEV database; production has no media origin) |
+
+No AR or VR device support is claimed. The code paths that a real device would
+exercise — `requestSession` succeeding, hit-test results, controller input —
+have never run against real hardware. Chrome's WebXR Test API is not exposed in
+the available build, so a simulated session could not be used either.
+
+### PlayCanvas XR APIs used (engine 2.22.2, as installed)
+
+| Need | API |
+|---|---|
+| Manager | `XrManager`, attached to the viewer's app on first use (`app.xr`), since the app is not built with one |
+| Support | `navigator.xr.isSessionSupported` for the page's own gating; `XrManager#isAvailable` / `available:<type>` for the engine's |
+| Start / end | `app.xr.start(cameraComponent, XRTYPE_AR \| XRTYPE_VR, XRSPACE_LOCALFLOOR, { optionalFeatures, callback })`, `app.xr.end()` |
+| Events | `start`, `end`, `error` on the manager |
+| Hit test | `app.xr.hitTest.supported`, `app.xr.hitTest.start({ spaceType: XRSPACE_VIEWER, entityTypes: [plane, point] })`, source `result` (position, rotation) |
+| Input | `app.xr.input` `add`/`remove`; input source `select`, `squeeze`, `getOrigin()`, `getDirection()` |
+| DOM overlay | `app.xr.domOverlay.supported` / `.root` (the AR controls are ordinary HTML) |
+| Rendering | The session drives frames: `app.requestAnimationFrame()` routes through `session.requestAnimationFrame` while a session exists |
+| Camera | The passed camera component is driven by the headset pose; the viewer's orbit controls stand down for the session |
+
+No polyfill, framework or decoder is required. AR passthrough needs no special
+context: the engine creates its `XRWebGLLayer` with `alpha: true` and calls
+`gl.makeXRCompatible()` itself.
+
+Not used in Phase 8: anchors, plane/mesh detection, image tracking, light
+estimation, depth sensing, hand tracking.
+
+### Capability detection
+
+Four separate questions, never inferred from one another: WebGL 2, `navigator.xr`,
+`immersive-ar`, `immersive-vr` (plus secure-context). Detection uses
+`navigator.xr.isSessionSupported` only, so probing downloads no engine code, and
+it never throws: a `SecurityError` from a permission policy is reported as
+"not supported". Reasons are `ok`, `no-webgl2`, `no-webxr`, `no-modes`,
+`insecure-context`, `detection-failed`. A mode's button appears only when the
+project offers it *and* the device reports it.
+
+### XR source and capability contract
+
+XR capability is separate from media kind: a published model is shown in 3D
+whether or not AR or VR is offered. A project opts in per mode:
+
+```ts
+// ProjectImmersiveMedia.xr, src/lib/project-types.ts
+xr: {
+  modes: ["ar", "vr"],
+  scale: { metersPerUnit: 1, previewScale: 1 },
+}
+```
+
+`xrExperienceFor` (src/lib/viewer/xr-contract.ts) builds the client-safe
+descriptor and re-checks the model URL against the published-media policy
+(`resolveModelUrl`), so review copies, uploads, originals, other hosts,
+presigned URLs, credentials, traversal and malformed URLs can never reach a
+session even if project data asked for them. Panoramas and splats have no XR
+mode in Phase 8: `immersive-vr` for a 360° image and AR for a Gaussian splat
+are deferred, not faked.
+
+### Model scale (the assumption, stated)
+
+Nothing is inferred from geometry. `metersPerUnit` is what one model unit means
+in the real world (1 = the GLB is authored in metres, which is glTF's own
+convention), and `previewScale` is the deliberate preview factor (1 = life
+size; 0.02 for a 1:50 tabletop massing model). The AR placement scale is
+`metersPerUnit × previewScale`, and the visitor can then resize between
+0.1× and 4×. An invalid or missing scale falls back to `{ 1, 1 }` — never to a
+guess. The REEF 996 pilot model is a placeholder authored in metres and shown
+life size.
+
+### AR Room Preview
+
+Flow: **View in AR** → session (user gesture only) → "Move your device slowly to
+find a floor or table" → reticle on a detected surface → **Place** → turn,
+resize, **Move** (place again), **Exit**.
+
+One reticle entity and one placement entity are created per session and reused;
+nothing is created per frame and no markers accumulate. The model hangs off the
+placement entity, so turning and resizing never touch the loaded content. Where
+hit test is unavailable the model is placed a fixed distance in front of the
+visitor instead. Where DOM overlay is supported, the controls are ordinary
+accessible HTML buttons over the camera feed; gestures are not the only way to
+do anything. This is a visualisation, **not an architectural measurement tool**.
+
+### VR Walkthrough
+
+Flow: **VR Walkthrough** → session → the model stands 2.5 m in front on the
+floor plane → point a controller at one of six floor markers and press select to
+move there → squeeze, or the headset's own gesture, to leave.
+
+Locomotion is deliberately **bounded point-to-point teleporting** between fixed
+stops around the model: no continuous artificial locomotion, which is the main
+source of motion discomfort. Controllers are tracked through `app.xr.input`
+with a thin pointer per controller, added and removed with the input source.
+Hand tracking, grabbing, scene-scale room walking and multi-room VR navigation
+are **not** implemented.
+
+### Session lifecycle
+
+The lifecycle is a pure reducer (src/lib/viewer/xr-session.ts): `idle →
+requesting → active → ending → idle`, with `error` as a dead end that returns
+to the standard viewer. It enforces one session at a time (a second request
+while starting, running or ending is ignored), the placement order (nothing can
+be placed before a surface is found), transform limits, and a full reset on
+every end — including an end the page did not ask for. On exit the runtime
+removes the hit-test source, destroys the reticle, placement, rig, stops and
+pointers, restores the model's original parent and transform, the camera's pose
+and clear colour, and clears the DOM overlay root.
+
+PlayCanvas refuses to start until its own asynchronous availability check has
+answered ("XR is not available"), so the runtime is built as soon as a mode is
+on offer (`prepareXr`) and a request that still arrives early waits briefly for
+the answer. Without this the visitor's *first* tap always failed.
+
+### Performance
+
+The XR code is a separate chunk, loaded only when a supported mode is actually
+offered. While a session runs, the page's own render-on-demand loop stands down
+and the session drives every frame; the orbit controls stop updating so they
+cannot fight the headset pose. Nothing else is loaded for XR: AR and VR reuse
+the model already in the viewer, so the Phase 1 model budget and the existing
+DPR cap still apply. No post-processing is added. Frame rates were not measured
+and none are claimed.
+
+### Security, privacy and permissions
+
+Only `PUBLISHED`, approved, immutable `m/{id}/{hash}/…` media reaches a
+session, re-checked at the contract boundary. The descriptor sent to the
+browser carries a label, the model URL, scale and a placeholder flag — never a
+row, `sourceKey`, review key, signed URL, credential or diagnostic.
+
+AR uses the browser's own WebXR permission model. The site implements **no
+camera capture of any kind**: no `getUserMedia`, no frames read, stored or
+uploaded, no photo or recording feature, and nothing about the camera in
+analytics. A session starts only from an explicit button press, the overlay
+always shows an Exit control, and the end of a session is announced.
+
+### Accessibility
+
+XR is never the only path: the interactive 3D viewer remains and is what
+unsupported devices get. Entry buttons and every AR control are real buttons
+with labels, keyboard focus and 44 px targets. Session start, placement and
+return to the standard viewer are announced through an assertive live region,
+and failures are announced with the reason.
+
+### Analytics
+
+Added to the existing first-party allow-list: `ar_opened`, `ar_started`,
+`ar_placement`, `ar_placement_reset`, `ar_error`, `vr_opened`, `vr_started`,
+`vr_error`, `xr_exit`, with `xrMode` (`ar`/`vr`), `exitReason`
+(`user`/`session-ended`/`error`) and the existing `errorKind`. No URLs, keys,
+poses, camera data or device identifiers; no third-party SDK.
+
+### Browser validation performed
+
+Headless Chrome 153 (software WebGL 2), 390×844 touch emulation, against the
+dev server:
+
+- real capabilities on this machine (`navigator.xr` present, both modes false):
+  no AR/VR buttons, the "AR isn't available on this device" line instead, and no
+  XR chunk downloaded;
+- both modes mocked as supported: both buttons appear with their help text;
+- session entry failing (no device; and a mocked `NotAllowedError`): the
+  message names the reason, the overlay stays hidden, the 3D viewer is still
+  ready and interactive, one canvas, and reset/zoom still work;
+- repeated rapid AR/VR attempts: one canvas, one overlay, no duplicate session;
+- 360° tour and 3D scan experiences: no XR entry points.
+
+### Known limitations
+
+- No real-device validation (see the table above); iOS Safari has no WebXR at
+  all, so AR there is unavailable by design of the platform, not a bug here.
+- Only a model can enter XR; panorama and splat XR are deferred.
+- No anchors: a placed model is held in the session's local-floor space and can
+  drift on some devices.
+- No occlusion, lighting estimation or shadows against the real room.
+- AR without hit test falls back to a fixed distance in front of the visitor.
+- VR locomotion is teleport-only between fixed stops; there is no room-scale
+  walking, hand tracking or object grabbing.
+- No in-VR HTML controls (WebXR has no DOM in VR): exit is squeeze or the
+  headset gesture.
+- The pilot uses a placeholder model, so AR/VR in development shows a test
+  asset, labelled as such.

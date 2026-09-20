@@ -2,6 +2,7 @@ import { MEDIA_KEY_PATTERN, publishedObjectMetadata } from "../../../shared/medi
 import type { Project } from "../project-types";
 import { MEDIA_CDN_ORIGIN } from "./media-origin";
 import type { ViewerSource } from "./types";
+import { xrExperienceFor, type XrExperience } from "./xr-contract";
 
 /**
  * Maps a project's immersive media (manifest-shaped object keys) to what the
@@ -18,6 +19,8 @@ export type ProjectViewerConfig = {
   readonly downloadBytes: number;
   /** True when the asset does not depict the project; the page must say so. */
   readonly placeholder: boolean;
+  /** AR/VR offered for this model, or null. Subject to what the visitor's device supports. */
+  readonly xr: XrExperience | null;
 };
 
 /** Returns viewer props for a project, or null when it has no media that can be shown in this build. */
@@ -43,14 +46,23 @@ export function projectViewerConfig(
   const posterValid =
     media.poster !== null && posterMeta !== null && media.poster.key.startsWith(`${media.storageKey}/`) && posterMeta.contentType.startsWith("image/");
 
+  const source: ViewerSource = { kind: "model", url: `${origin}/${entryKey}` };
   return {
     label: media.review === "placeholder" ? `Pilot 3D model for ${project.name} (placeholder)` : `${project.name} 3D model`,
-    source: { kind: "model", url: `${origin}/${entryKey}` },
+    source,
     poster:
       posterValid && media.poster
         ? { src: `${origin}/${media.poster.key}`, width: media.poster.width, height: media.poster.height, alt: media.altText }
         : null,
     downloadBytes: media.sizeBytes,
     placeholder: media.review === "placeholder",
+    // The same published URL the 3D viewer loads, re-checked against the media policy.
+    xr: xrExperienceFor({
+      source,
+      modes: media.xr?.modes ?? [],
+      scale: media.xr?.scale,
+      placeholder: media.review === "placeholder",
+      cdnOrigins: [origin],
+    }),
   };
 }

@@ -19,6 +19,15 @@ export const VIEWER_EVENTS = [
   "splat_opened",
   "splat_loaded",
   "splat_error",
+  "ar_opened",
+  "ar_started",
+  "ar_placement",
+  "ar_placement_reset",
+  "ar_error",
+  "vr_opened",
+  "vr_started",
+  "vr_error",
+  "xr_exit",
 ] as const;
 
 export type ViewerEventName = (typeof VIEWER_EVENTS)[number];
@@ -35,7 +44,10 @@ export type ViewerEventProps = {
   /** How navigation happened. */
   via?: "hotspot" | "selector";
   /** A coarse, fixed error category; never an error message. */
-  errorKind?: "load" | "unsupported" | "context-lost" | "missing-target" | "too-large";
+  errorKind?: "load" | "unsupported" | "context-lost" | "missing-target" | "too-large" | "denied" | "failed" | "lost";
+  /** XR only: which immersive mode, and how a session ended. */
+  xrMode?: "ar" | "vr";
+  exitReason?: "user" | "session-ended" | "error";
   placeholder?: boolean;
 };
 
@@ -49,7 +61,9 @@ const ENUMS: Partial<Record<keyof ViewerEventProps, readonly string[]>> = {
   mode: ["model", "panorama", "splat"],
   hotspotType: ["navigation", "info"],
   via: ["hotspot", "selector"],
-  errorKind: ["load", "unsupported", "context-lost", "missing-target", "too-large"],
+  errorKind: ["load", "unsupported", "context-lost", "missing-target", "too-large", "denied", "failed", "lost"],
+  xrMode: ["ar", "vr"],
+  exitReason: ["user", "session-ended", "error"],
 };
 const ID_KEYS = ["project", "sceneId", "fromSceneId", "toSceneId", "hotspotId"] as const;
 

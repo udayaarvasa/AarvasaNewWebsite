@@ -16,9 +16,7 @@ import type { ViewerStatus } from "@/lib/viewer/types";
  * JavaScript of project pages that have no immersive media. The PlayCanvas
  * engine is split again inside the viewer and loads only when the user asks.
  */
-export const ImmersiveViewer = dynamic(() =>
-  import("@/components/viewer/aarvasa-3d-viewer").then((m) => m.Aarvasa3DViewer),
-);
+export const ImmersiveViewer = dynamic(() => import("@/components/viewer/model-viewer").then((m) => m.ModelViewer));
 
 const PanoramaTourViewer = dynamic(() => import("@/components/viewer/panorama-tour").then((m) => m.PanoramaTourViewer));
 
@@ -91,14 +89,7 @@ export function ImmersiveExperience({
 
   const panel =
     active === "model" && model ? (
-      <ImmersiveViewer
-        key={`model-${generation}`}
-        label={model.label}
-        source={model.source}
-        poster={model.poster ?? undefined}
-        loadOn="interaction"
-        onStatusChange={onModelStatus}
-      />
+      <ImmersiveViewer key={`model-${generation}`} model={model} analyticsId={analyticsId} onStatusChange={onModelStatus} />
     ) : active === "panorama" && tour ? (
       <PanoramaTourViewer key={`tour-${generation}`} tour={tour} analyticsId={analyticsId} onStatusChange={onTourStatus} onExit={exit} />
     ) : active === "splat" && splat ? (

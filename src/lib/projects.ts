@@ -149,6 +149,9 @@ const REEF_996_PILOT_MEDIA: ProjectImmersiveMedia = {
   processingVersion: "1.0.0/passthrough-v1",
   altText: "Placeholder massing model: a single tower on a podium slab. Not a model of REEF 996.",
   review: "placeholder",
+  // Phase 8 pilot. The placeholder GLB is authored in metres (glTF's own convention) and
+  // shown life size; a real massing model would use a previewScale such as 1/50.
+  xr: { modes: ["ar", "vr"], scale: { metersPerUnit: 1, previewScale: 1 } },
 };
 
 /**

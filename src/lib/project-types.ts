@@ -49,6 +49,16 @@ export type ProjectImmersiveMedia = {
    * ever shown outside production builds. "approved": reviewed real media.
    */
   review: "placeholder" | "approved";
+  /**
+   * Optional XR opt-in (Phase 8). A model is shown in 3D whether or not it is
+   * offered in AR or VR: each mode must be listed here, and the project must
+   * state the model's scale, which is never inferred from the geometry.
+   */
+  xr?: {
+    modes: ("ar" | "vr")[];
+    /** Metres per model unit (1 = the GLB is in metres) and the AR preview factor (1 = life size). */
+    scale?: { metersPerUnit: number; previewScale: number };
+  };
 };
 
 /**
