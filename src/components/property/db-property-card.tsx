@@ -1,146 +1,182 @@
-"use client"
+"use client";
 
-import Image from "next/image"
-import Link from "next/link"
-import { useState } from "react"
-import { motion } from "framer-motion"
-import {
-  Bath, BedDouble, Heart, MapPin, Ruler, ShieldCheck, TrendingUp, Sparkles,
-} from "lucide-react"
-import type { PropertyListing } from "@/types/property"
-import { formatCurrency } from "@/lib/properties"
-import toast from "react-hot-toast"
+import Image from "next/image";
+import Link from "next/link";
+import { useState } from "react";
+import { Heart, Scale } from "lucide-react";
+import type { PropertyListing } from "@/types/property";
+import { currencyForCountry, formatCurrency } from "@/lib/currency";
+import { cn } from "@/lib/utils";
+import { Plate, Status } from "@/components/av/primitives";
+import { useCompare } from "./compare-store";
+import toast from "react-hot-toast";
 
-interface PropertyCardProps {
-  property: PropertyListing
-  showOwner?: boolean
-}
+/**
+ * A property as a plate, not a card: image, hairline, hanging text.
+ *
+ * Deliberately does not render roi, aiScore, riskLevel or tokenized. Those
+ * columns still exist on the model and in the API response; this system makes
+ * no yield or return claim, so it shows specification instead.
+ *
+ * No capability marks here: the listings endpoint does not select mediaAssets,
+ * so there is no published-media fact to show. Immersive availability is stated
+ * on the project page, where it is read from real gating.
+ */
 
-export function DbPropertyCard({ property, showOwner = false }: PropertyCardProps) {
-  const [isFav, setIsFav] = useState(property.isFavorited ?? false)
-  const [favLoading, setFavLoading] = useState(false)
+const TYPE_LABEL: Record<string, string> = {
+  APARTMENT: "Apartment",
+  VILLA: "Villa",
+  OFFICE: "Office",
+  LAND: "Land",
+  STUDIO: "Studio",
+  PENTHOUSE: "Penthouse",
+  PLOT: "Plot",
+  COMMERCIAL: "Commercial",
+};
+
+export function DbPropertyCard({
+  property,
+  compact = false,
+}: {
+  property: PropertyListing;
+  compact?: boolean;
+}) {
+  const [isFav, setIsFav] = useState(property.isFavorited ?? false);
+  const [favLoading, setFavLoading] = useState(false);
+  const compare = useCompare();
+  const selected = compare.has(property.id);
 
   const handleFavorite = async (e: React.MouseEvent) => {
-    e.preventDefault()
-    e.stopPropagation()
-    setFavLoading(true)
+    e.preventDefault();
+    e.stopPropagation();
+    setFavLoading(true);
     try {
       const res = await fetch("/api/favorites", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ propertyId: property.id }),
-      })
-      if (res.status === 401) { toast.error("Sign in to save properties"); return }
-      const data = await res.json()
+      });
+      if (res.status === 401) {
+        toast.error("Sign in to save properties");
+        return;
+      }
+      const data = await res.json();
       if (data.success) {
-        setIsFav(data.isFavorited)
-        toast.success(data.isFavorited ? "Saved to favorites" : "Removed from favorites")
+        setIsFav(data.isFavorited);
+        toast.success(data.isFavorited ? "Saved" : "Removed from saved");
       }
     } catch {
-      toast.error("Something went wrong")
+      toast.error("Something went wrong");
     } finally {
-      setFavLoading(false)
+      setFavLoading(false);
     }
-  }
+  };
 
-  const heroImage = property.images[0] ||
-    "https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?w=800&q=80"
+  const handleCompare = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (!selected && compare.full) {
+      toast.error("Comparison holds three properties");
+      return;
+    }
+    compare.toggle(property.id);
+  };
 
-  const typeLabel: Record<string, string> = {
-    APARTMENT: "Apartment", VILLA: "Villa", OFFICE: "Office", LAND: "Land",
-    STUDIO: "Studio", PENTHOUSE: "Penthouse", PLOT: "Plot", COMMERCIAL: "Commercial",
-  }
+  const image = property.images[0] ?? null;
 
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      whileHover={{ y: -4 }}
-      transition={{ duration: 0.3 }}
-    >
-      <Link href={`/property/${property.id}`} className="group block">
-        <div className="overflow-hidden rounded-2xl border border-[#DCCDCE]/40 bg-white shadow-sm transition-all duration-300 hover:shadow-xl hover:border-[#D4AF37]/30">
-          {/* Image */}
-          <div className="relative aspect-[4/3] overflow-hidden">
+    <div className="group relative" data-hov>
+      <Link href={`/property/${property.id}`} className="block">
+        <Plate ratio={compact ? "thumb" : "card"} className="border-b border-rule-firm">
+          {image ? (
             <Image
-              src={heroImage}
+              src={image}
               alt={property.title}
               fill
-              sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-              className="object-cover transition-transform duration-700 group-hover:scale-105"
+              sizes="(max-width: 767px) 100vw, (max-width: 1279px) 50vw, 33vw"
+              className="object-cover transition-transform duration-[1200ms] ease-[var(--ease-enter)] group-hover:scale-[1.03]"
             />
-            <div className="absolute inset-0 bg-gradient-to-t from-[#50080E]/50 via-transparent to-transparent" />
-
-            {/* Badges */}
-            <div className="absolute left-3 top-3 flex gap-2">
-              {property.featured && (
-                <span className="flex items-center gap-1 rounded-full bg-[#D4AF37] px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider text-[#1A0006]">
-                  <Sparkles className="h-2.5 w-2.5" /> Featured
-                </span>
-              )}
-              {property.verified && (
-                <span className="flex items-center gap-1 rounded-full bg-emerald-500 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider text-white">
-                  <ShieldCheck className="h-2.5 w-2.5" /> Verified
-                </span>
-              )}
+          ) : (
+            /* No photography for this property. A typographic panel, never a
+               stock image standing in for a building that has not been shot. */
+            <div className="absolute inset-0 flex items-end bg-paper-sunken p-4">
+              <span className="av-meta text-ink-disabled">Not yet photographed</span>
             </div>
+          )}
+        </Plate>
 
-            {/* Type badge */}
-            <span className="absolute right-3 top-3 rounded-full bg-black/30 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider text-white backdrop-blur-sm">
-              {typeLabel[property.propertyType] ?? property.propertyType}
-            </span>
+        <h3 className="av-display mt-3 text-[22px] leading-[1.15]">{property.title}</h3>
+        <p className="mt-[2px] text-[13px] text-ink-muted">
+          {property.location}
+          {property.city ? `, ${property.city}` : ""}
+        </p>
+        <p className="av-num mt-2 text-[15px] font-semibold">
+          {formatCurrency(property.price, currencyForCountry(property.country))}
+          <span className="ml-2 font-normal text-ink-muted">
+            {TYPE_LABEL[property.propertyType] ?? property.propertyType}
+          </span>
+        </p>
 
-            {/* Favorite */}
-            <button
-              onClick={handleFavorite}
-              disabled={favLoading}
-              className={`absolute bottom-3 right-3 flex h-9 w-9 items-center justify-center rounded-full backdrop-blur-sm transition-all ${
-                isFav ? "bg-red-500 text-white" : "bg-white/20 text-white hover:bg-white/40"
-              }`}
-              aria-label="Toggle favorite"
-            >
-              <Heart className={`h-4 w-4 ${isFav ? "fill-current" : ""}`} />
-            </button>
-
-            {/* Price overlay */}
-            <div className="absolute bottom-3 left-3">
-              <p className="text-lg font-bold text-white">{formatCurrency(property.price)}</p>
+        <dl className="mt-3 flex gap-[var(--s-5)] border-t border-rule pt-[10px]">
+          {property.bedrooms > 0 && (
+            <div>
+              <dt className="av-label text-ink-muted">Beds</dt>
+              <dd className="av-num text-[13px] font-semibold">{property.bedrooms}</dd>
             </div>
+          )}
+          {property.bathrooms > 0 && (
+            <div>
+              <dt className="av-label text-ink-muted">Baths</dt>
+              <dd className="av-num text-[13px] font-semibold">{property.bathrooms}</dd>
+            </div>
+          )}
+          {property.area > 0 && (
+            <div>
+              <dt className="av-label text-ink-muted">Area</dt>
+              <dd className="av-num text-[13px] font-semibold">
+                {property.area.toLocaleString()} sq ft
+              </dd>
+            </div>
+          )}
+        </dl>
+
+        {(property.verified || property.status !== "ACTIVE") && (
+          <div className="mt-3 flex flex-wrap items-center gap-2">
+            {property.verified && <Status tone="ready">Verified listing</Status>}
+            {property.status !== "ACTIVE" && <Status tone="pending">{property.status}</Status>}
           </div>
-
-          {/* Info */}
-          <div className="p-4">
-            <h3 className="line-clamp-1 font-serif text-base font-bold text-[#50080E]">
-              {property.title}
-            </h3>
-            <div className="mt-1 flex items-center gap-1.5 text-xs text-[#72383D]/70">
-              <MapPin className="h-3.5 w-3.5 text-[#D4AF37]" />
-              <span className="line-clamp-1">{property.location}</span>
-            </div>
-
-            <div className="mt-3 flex items-center gap-4 border-t border-[#DCCDCE]/30 pt-3 text-xs text-[#72383D]/60">
-              {property.bedrooms > 0 && (
-                <span className="flex items-center gap-1">
-                  <BedDouble className="h-3.5 w-3.5" />{property.bedrooms} Beds
-                </span>
-              )}
-              {property.bathrooms > 0 && (
-                <span className="flex items-center gap-1">
-                  <Bath className="h-3.5 w-3.5" />{property.bathrooms} Baths
-                </span>
-              )}
-              <span className="flex items-center gap-1">
-                <Ruler className="h-3.5 w-3.5" />{property.area.toLocaleString("en-IN")} sq.ft
-              </span>
-              {property.roi > 0 && (
-                <span className="ml-auto flex items-center gap-1 font-semibold text-emerald-600">
-                  <TrendingUp className="h-3.5 w-3.5" />{property.roi}% ROI
-                </span>
-              )}
-            </div>
-          </div>
-        </div>
+        )}
       </Link>
-    </motion.div>
-  )
+
+      {/* Actions sit above the link, not inside it */}
+      <div className="absolute right-0 top-0 flex gap-1 p-2">
+        <button
+          type="button"
+          onClick={handleCompare}
+          disabled={!selected && compare.full}
+          aria-pressed={selected}
+          aria-label={selected ? "Remove from comparison" : "Add to comparison"}
+          className={cn(
+            "flex h-8 w-8 items-center justify-center rounded-xs border backdrop-blur-sm transition-colors",
+            selected
+              ? "border-burgundy bg-burgundy text-paper"
+              : "border-rule-firm bg-paper/90 text-ink hover:bg-paper",
+            !selected && compare.full && "cursor-not-allowed opacity-50",
+          )}
+        >
+          <Scale className="h-3.5 w-3.5" aria-hidden="true" />
+        </button>
+        <button
+          type="button"
+          onClick={handleFavorite}
+          disabled={favLoading}
+          aria-pressed={isFav}
+          aria-label={isFav ? "Remove from saved" : "Save property"}
+          className="flex h-8 w-8 items-center justify-center rounded-xs border border-rule-firm bg-paper/90 text-ink backdrop-blur-sm transition-colors hover:bg-paper"
+        >
+          <Heart className={cn("h-3.5 w-3.5", isFav && "fill-burgundy text-burgundy")} aria-hidden="true" />
+        </button>
+      </div>
+    </div>
+  );
 }

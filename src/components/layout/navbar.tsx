@@ -62,10 +62,14 @@ export function Navbar() {
     return () => document.removeEventListener("click", handleClickOutside);
   }, [profileOpen]);
 
-  useEffect(() => {
+  // Close the menus when the route changes. Adjusting state during render is
+  // React's own recommendation here; an effect would cause a cascading render.
+  const [lastPath, setLastPath] = useState(pathname);
+  if (lastPath !== pathname) {
+    setLastPath(pathname);
     setProfileOpen(false);
     setOpen(false);
-  }, [pathname]);
+  }
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 40);

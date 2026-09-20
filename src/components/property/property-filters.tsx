@@ -1,36 +1,51 @@
-"use client"
+"use client";
 
-import { useRouter, useSearchParams } from "next/navigation"
-import { useCallback } from "react"
-import { Search, SlidersHorizontal, X } from "lucide-react"
+import { useRouter, useSearchParams } from "next/navigation";
+import { useCallback, useState } from "react";
+import { Search } from "lucide-react";
+import { cn } from "@/lib/utils";
+
+/**
+ * Filter rail on paper — a sticky panel at lg and up, a sheet below it.
+ *
+ * Every control writes to the URL, so a filtered view is shareable and the
+ * back button behaves. The API's roi_desc sort is deliberately not offered:
+ * this system makes no yield claim, so it does not rank by one.
+ */
 
 const PROPERTY_TYPES = [
-  { value: "", label: "All Types" },
   { value: "APARTMENT", label: "Apartment" },
   { value: "VILLA", label: "Villa" },
-  { value: "OFFICE", label: "Office" },
-  { value: "LAND", label: "Land" },
   { value: "STUDIO", label: "Studio" },
   { value: "PENTHOUSE", label: "Penthouse" },
   { value: "PLOT", label: "Plot" },
+  { value: "OFFICE", label: "Office" },
   { value: "COMMERCIAL", label: "Commercial" },
-]
+  { value: "LAND", label: "Land" },
+];
 
 const SORT_OPTIONS = [
-  { value: "newest", label: "Newest First" },
-  { value: "price_asc", label: "Price: Low → High" },
-  { value: "price_desc", label: "Price: High → Low" },
-  { value: "roi_desc", label: "ROI: Highest" },
+  { value: "newest", label: "Newest" },
+  { value: "price_asc", label: "Price ↑" },
+  { value: "price_desc", label: "Price ↓" },
   { value: "featured", label: "Featured" },
-]
+];
 
-const CITIES = [
-  "", "Mumbai", "Delhi", "Bengaluru", "Pune", "Gurugram", "Goa", "Hyderabad", "Chennai",
-]
+const BEDROOMS = ["1", "2", "3", "4"];
 
-export function PropertyFilters() {
-  const router = useRouter()
-  const searchParams = useSearchParams()
+function Group({ label, children }: { label: string; children: React.ReactNode }) {
+  return (
+    <div className="border-t border-rule py-[var(--s-3)] first:border-t-0 first:pt-0">
+      <span className="av-label mb-2 block text-ink-muted">{label}</span>
+      {children}
+    </div>
+  );
+}
+
+export function PropertyFilters({ className }: { className?: string }) {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const [open, setOpen] = useState(false);
 
   const current = {
     search: searchParams.get("search") || "",
@@ -41,107 +56,174 @@ export function PropertyFilters() {
     maxPrice: searchParams.get("maxPrice") || "",
     bedrooms: searchParams.get("bedrooms") || "",
     verified: searchParams.get("verified") || "",
-  }
+  };
 
   const update = useCallback(
     (key: string, value: string) => {
-      const params = new URLSearchParams(searchParams.toString())
-      if (value) params.set(key, value)
-      else params.delete(key)
-      params.delete("page") // reset pagination on filter change
-      router.push(`/listings?${params.toString()}`)
+      const params = new URLSearchParams(searchParams.toString());
+      if (value) params.set(key, value);
+      else params.delete(key);
+      params.delete("page"); // reset pagination on filter change
+      router.push(`/listings?${params.toString()}`);
     },
-    [router, searchParams]
-  )
+    [router, searchParams],
+  );
 
-  const clearAll = () => router.push("/listings")
+  const activeCount = Object.entries(current).filter(
+    ([k, v]) => v && !(k === "sortBy" && v === "newest"),
+  ).length;
 
-  const hasFilters = Object.values(current).some((v) => v && v !== "newest")
+  const toggleClass = (on: boolean) =>
+    cn(
+      "rounded-xs border px-[11px] py-[7px] text-[12.5px] font-medium transition-colors duration-200",
+      on
+        ? "border-burgundy bg-burgundy-wash text-burgundy"
+        : "border-rule bg-paper-raised text-ink-muted hover:border-rule-firm hover:text-ink",
+    );
 
-  return (
-    <div className="space-y-4">
-      {/* Search bar */}
-      <div className="flex gap-3">
-        <div className="relative flex-1">
-          <Search className="absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-[#D4AF37]" />
+  const body = (
+    <>
+      <Group label="Search">
+        <div className="flex items-center gap-2 rounded-xs border border-rule bg-paper px-3 py-2 focus-within:border-burgundy">
+          <Search className="h-3.5 w-3.5 flex-shrink-0 text-ink-muted" aria-hidden="true" />
+          <label htmlFor="filter-search" className="sr-only">
+            Search properties
+          </label>
           <input
-            type="text"
-            placeholder="Search city, location, property name..."
+            id="filter-search"
             defaultValue={current.search}
+            placeholder="Project, city or developer"
             onKeyDown={(e) => {
-              if (e.key === "Enter") update("search", (e.target as HTMLInputElement).value)
+              if (e.key === "Enter") update("search", (e.target as HTMLInputElement).value.trim());
             }}
-            className="w-full rounded-xl border border-[#DCCDCE]/50 bg-white py-3 pl-11 pr-4 text-sm text-[#50080E] outline-none transition-all placeholder:text-[#72383D]/40 focus:border-[#D4AF37]/50 focus:ring-2 focus:ring-[#D4AF37]/10"
+            className="min-w-0 flex-1 bg-transparent text-[13px] outline-none placeholder:text-ink-muted"
           />
         </div>
-        {hasFilters && (
-          <button
-            onClick={clearAll}
-            className="flex items-center gap-1.5 rounded-xl border border-[#DCCDCE]/50 bg-white px-4 text-xs font-medium text-[#72383D]/70 transition hover:border-red-300 hover:text-red-500"
-          >
-            <X className="h-3.5 w-3.5" /> Clear
-          </button>
-        )}
-      </div>
+      </Group>
 
-      {/* Filter row */}
-      <div className="flex flex-wrap items-center gap-3">
-        <div className="flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider text-[#72383D]/50">
-          <SlidersHorizontal className="h-3.5 w-3.5" /> Filters
+      <Group label="Sort">
+        <div className="flex flex-wrap gap-1">
+          {SORT_OPTIONS.map((o) => (
+            <button
+              key={o.value}
+              type="button"
+              aria-pressed={current.sortBy === o.value}
+              onClick={() => update("sortBy", o.value === "newest" ? "" : o.value)}
+              className={toggleClass(current.sortBy === o.value)}
+            >
+              {o.label}
+            </button>
+          ))}
         </div>
+      </Group>
 
-        <select
-          value={current.city}
-          onChange={(e) => update("city", e.target.value)}
-          className="rounded-lg border border-[#DCCDCE]/50 bg-white px-3 py-2 text-xs text-[#50080E] outline-none focus:border-[#D4AF37]/50"
-        >
-          <option value="">All Cities</option>
-          {CITIES.filter(Boolean).map((city) => (
-            <option key={city} value={city}>{city}</option>
+      <Group label="Type">
+        <div className="flex flex-wrap gap-1">
+          {PROPERTY_TYPES.map((t) => (
+            <button
+              key={t.value}
+              type="button"
+              aria-pressed={current.propertyType === t.value}
+              onClick={() => update("propertyType", current.propertyType === t.value ? "" : t.value)}
+              className={toggleClass(current.propertyType === t.value)}
+            >
+              {t.label}
+            </button>
           ))}
-        </select>
+        </div>
+      </Group>
 
-        <select
-          value={current.propertyType}
-          onChange={(e) => update("propertyType", e.target.value)}
-          className="rounded-lg border border-[#DCCDCE]/50 bg-white px-3 py-2 text-xs text-[#50080E] outline-none focus:border-[#D4AF37]/50"
-        >
-          {PROPERTY_TYPES.map((type) => (
-            <option key={type.value} value={type.value}>{type.label}</option>
+      <Group label="Bedrooms">
+        <div className="flex flex-wrap gap-1">
+          {BEDROOMS.map((b) => (
+            <button
+              key={b}
+              type="button"
+              aria-pressed={current.bedrooms === b}
+              onClick={() => update("bedrooms", current.bedrooms === b ? "" : b)}
+              className={toggleClass(current.bedrooms === b)}
+            >
+              {b}+
+            </button>
           ))}
-        </select>
+        </div>
+      </Group>
 
-        <select
-          value={current.sortBy}
-          onChange={(e) => update("sortBy", e.target.value)}
-          className="rounded-lg border border-[#DCCDCE]/50 bg-white px-3 py-2 text-xs text-[#50080E] outline-none focus:border-[#D4AF37]/50"
-        >
-          {SORT_OPTIONS.map((opt) => (
-            <option key={opt.value} value={opt.value}>{opt.label}</option>
-          ))}
-        </select>
+      <Group label="Price">
+        <div className="flex items-center gap-2">
+          <label htmlFor="filter-min" className="sr-only">
+            Minimum price
+          </label>
+          <input
+            id="filter-min"
+            type="number"
+            inputMode="numeric"
+            defaultValue={current.minPrice}
+            placeholder="Min"
+            onBlur={(e) => update("minPrice", e.target.value)}
+            className="av-num w-full min-w-0 rounded-xs border border-rule bg-paper px-3 py-2 text-[13px] outline-none focus:border-burgundy"
+          />
+          <span className="text-ink-muted">–</span>
+          <label htmlFor="filter-max" className="sr-only">
+            Maximum price
+          </label>
+          <input
+            id="filter-max"
+            type="number"
+            inputMode="numeric"
+            defaultValue={current.maxPrice}
+            placeholder="Max"
+            onBlur={(e) => update("maxPrice", e.target.value)}
+            className="av-num w-full min-w-0 rounded-xs border border-rule bg-paper px-3 py-2 text-[13px] outline-none focus:border-burgundy"
+          />
+        </div>
+      </Group>
 
-        <select
-          value={current.bedrooms}
-          onChange={(e) => update("bedrooms", e.target.value)}
-          className="rounded-lg border border-[#DCCDCE]/50 bg-white px-3 py-2 text-xs text-[#50080E] outline-none focus:border-[#D4AF37]/50"
-        >
-          <option value="">Any Beds</option>
-          {[1, 2, 3, 4, 5].map((n) => (
-            <option key={n} value={n}>{n}+ Beds</option>
-          ))}
-        </select>
-
-        <label className="flex items-center gap-2 rounded-lg border border-[#DCCDCE]/50 bg-white px-3 py-2 text-xs text-[#50080E] cursor-pointer">
+      <Group label="Listing">
+        <label className="flex cursor-pointer items-center gap-2 py-1 text-[13px]">
           <input
             type="checkbox"
             checked={current.verified === "true"}
             onChange={(e) => update("verified", e.target.checked ? "true" : "")}
-            className="accent-[#D4AF37]"
+            className="h-[15px] w-[15px] accent-[var(--burgundy)]"
           />
           Verified only
         </label>
+      </Group>
+
+      {activeCount > 0 && (
+        <button
+          type="button"
+          onClick={() => router.push("/listings")}
+          className="av-label mt-[var(--s-3)] w-full rounded-xs border border-rule-firm py-[10px] text-ink transition-colors hover:bg-paper-sunken"
+        >
+          Reset {activeCount} filter{activeCount === 1 ? "" : "s"}
+        </button>
+      )}
+    </>
+  );
+
+  return (
+    <div className={className}>
+      {/* Sheet trigger — below lg, filters are their own screen */}
+      <button
+        type="button"
+        onClick={() => setOpen((v) => !v)}
+        aria-expanded={open}
+        className="flex w-full items-center justify-between rounded-sm border border-rule bg-paper-raised px-4 py-3 text-[13px] font-semibold lg:hidden"
+      >
+        Filters{activeCount > 0 ? ` · ${activeCount} applied` : ""}
+        <span className="av-label text-ink-muted">{open ? "Done" : "Edit"}</span>
+      </button>
+
+      <div
+        className={cn(
+          "rounded-sm border border-rule bg-paper-raised p-[var(--s-4)] lg:sticky lg:top-[calc(var(--nav-h)+var(--s-4))] lg:mt-0 lg:block",
+          open ? "mt-3 block" : "hidden",
+        )}
+      >
+        {body}
       </div>
     </div>
-  )
+  );
 }

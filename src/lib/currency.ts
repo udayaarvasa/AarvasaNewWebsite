@@ -42,3 +42,15 @@ export function formatCompact(amount: number, currency: CurrencyCode = "INR"): s
   if (amount >= 1_000) return `AED ${Math.round(amount / 1_000)}K`;
   return `AED ${Math.round(amount)}`;
 }
+
+/**
+ * The currency a stored Property is quoted in.
+ *
+ * Property has no currency column; seed-reef.js records the country and notes
+ * that "the UI derives AED from this". Listing cards previously formatted every
+ * price as INR, which restated AED 679,467 as ₹6,79,467 — a misstatement of a
+ * real, purchasable price rather than a styling issue.
+ */
+export function currencyForCountry(country: string | null | undefined): CurrencyCode {
+  return country === "UAE" ? "AED" : "INR";
+}

@@ -28,7 +28,7 @@ export function FloatingActions() {
       onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
       aria-label="Back to top"
       className={cn(
-        "fixed bottom-6 right-6 z-40 flex h-10 w-10 items-center justify-center rounded-xs border border-rule-firm bg-paper-raised text-ink transition-opacity duration-300 hover:bg-paper-sunken",
+        "fixed bottom-6 right-6 z-30 flex h-10 w-10 items-center justify-center rounded-xs border border-rule-firm bg-paper-raised text-ink transition-opacity duration-300 hover:bg-paper-sunken",
         show ? "opacity-100" : "pointer-events-none opacity-0",
       )}
     >
