@@ -1,79 +1,165 @@
-import { Mail, MapPin, MessageSquare, Phone } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+import { Ledger, Note, SectionHead, Wrap } from "@/components/av/primitives";
 
+export const metadata = {
+  title: "Contact | Aarvasa",
+  description:
+    "Talk to the Aarvasa desk. A property enquiry reaches the developer directly; anything else reaches us.",
+};
+
+/**
+ * Contact details are reproduced exactly as filed.
+ *
+ * The page previously asked for a "preferred risk profile" and "what kind of
+ * returns" to build an "investment shortlist". Aarvasa does not offer an
+ * investment service, so the form asks what it can actually act on.
+ *
+ * Note: as before this redesign, the form is presentational — it has no
+ * submit handler. Wiring it to the existing Inquiry model is backend work and
+ * is deliberately out of scope for a visual redesign.
+ */
 export default function ContactPage() {
   return (
-    <div className="min-h-screen bg-[#F2F1ED]">
-      <section className="mx-auto max-w-7xl px-4 pb-20 pt-32 sm:px-6 lg:px-8">
-        <div className="grid gap-12 lg:grid-cols-[0.85fr_1.15fr] lg:items-start">
-          {/* Left content */}
-          <div>
-            <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-[#DCCDCE]/60 bg-[#F5F4F1] px-4 py-1.5 text-xs font-semibold uppercase tracking-[0.14em] text-[#72383D]">
-              <MessageSquare className="h-3.5 w-3.5 text-[#D4AF37]" />
-              Contact
-            </div>
-            <h1 className="heading-serif text-4xl tracking-tight text-[#50080E] sm:text-5xl">
-              Talk to Aarvasa About Your Next Investment
-            </h1>
-            <p className="mt-5 text-lg leading-relaxed text-[#72383D]/70">
-              Share your target city, budget, and preferred risk profile. The team can turn it into a clean investment shortlist.
-            </p>
-            <div className="mt-8 space-y-4">
-              {[
-                { icon: Mail, text: "contact@aarvasa.com" },
-                { icon: Phone, text: "+91 6382083873" },
-                { icon: MapPin, text: "3 Flr, off Windsar Sq Opp, Vishal Megamart Kolar Rd, Kolar Road, Huzur, Bhopal- 462042, Madhya Pradesh." },
-              ].map((item) => {
-                const Icon = item.icon;
-                return (
-                  <div key={item.text} className="flex items-start gap-3">
-                    <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-[#50080E]/5">
-                      <Icon className="h-4 w-4 text-[#50080E]" />
-                    </div>
-                    <span className="text-sm leading-relaxed text-[#72383D]/80 pt-2">{item.text}</span>
-                  </div>
-                );
-              })}
-            </div>
-          </div>
+    <div className="pb-[var(--s-24)]">
+      <Wrap className="pt-[var(--s-10)]">
+        <span className="av-label text-gold-ink">Contact</span>
+        <h1 className="av-display mt-2 text-[clamp(32px,4.4vw,52px)] leading-[1.04]">
+          Talk to the desk
+        </h1>
+        <p className="mt-[var(--s-4)] max-w-[52ch] text-[17px] leading-relaxed text-ink-muted">
+          A property enquiry reaches the developer or their appointed channel partner directly.
+          Anything else reaches us.
+        </p>
+      </Wrap>
 
-          {/* Form card */}
-          <div className="rounded-2xl border border-[#DCCDCE]/40 bg-white p-6 shadow-luxury-sm sm:p-8">
-            <form className="grid gap-5">
-              <div className="grid gap-5 sm:grid-cols-2">
-                <div className="space-y-2">
-                  <Label className="text-xs font-semibold uppercase tracking-wider text-[#72383D]/70">Name</Label>
-                  <Input placeholder="Ansh Dubey" />
+      <Wrap className="pt-[var(--band-tight)]">
+        <div className="grid items-start gap-[var(--s-10)] lg:grid-cols-[1.25fr_0.75fr]">
+          <div className="rounded-sm border border-rule bg-paper-raised p-[var(--s-5)] sm:p-[var(--s-8)]">
+            <h2 className="text-[17px] font-semibold">Send a message</h2>
+            <p className="mt-1 text-[13px] leading-relaxed text-ink-muted">
+              Tell us the city, the configuration and the budget you have in mind, and name any
+              project you have already seen.
+            </p>
+
+            <form className="mt-[var(--s-6)] grid gap-[var(--s-4)]">
+              <div className="grid gap-[var(--s-4)] sm:grid-cols-2">
+                <div>
+                  <label htmlFor="c-name" className="av-label mb-1 block text-ink-muted">
+                    Name
+                  </label>
+                  <input
+                    id="c-name"
+                    name="name"
+                    type="text"
+                    autoComplete="name"
+                    className="w-full rounded-xs border border-rule-firm bg-paper px-3 py-[10px] text-[14px] outline-none focus:border-burgundy"
+                  />
                 </div>
-                <div className="space-y-2">
-                  <Label className="text-xs font-semibold uppercase tracking-wider text-[#72383D]/70">Email</Label>
-                  <Input type="email" placeholder="you@company.com" />
+                <div>
+                  <label htmlFor="c-email" className="av-label mb-1 block text-ink-muted">
+                    Email
+                  </label>
+                  <input
+                    id="c-email"
+                    name="email"
+                    type="email"
+                    autoComplete="email"
+                    className="w-full rounded-xs border border-rule-firm bg-paper px-3 py-[10px] text-[14px] outline-none focus:border-burgundy"
+                  />
                 </div>
               </div>
-              <div className="grid gap-5 sm:grid-cols-2">
-                <div className="space-y-2">
-                  <Label className="text-xs font-semibold uppercase tracking-wider text-[#72383D]/70">Budget</Label>
-                  <Input placeholder="INR 50L" />
+
+              <div className="grid gap-[var(--s-4)] sm:grid-cols-2">
+                <div>
+                  <label htmlFor="c-phone" className="av-label mb-1 block text-ink-muted">
+                    Phone
+                  </label>
+                  <input
+                    id="c-phone"
+                    name="phone"
+                    type="tel"
+                    autoComplete="tel"
+                    placeholder="+91"
+                    className="w-full rounded-xs border border-rule-firm bg-paper px-3 py-[10px] text-[14px] outline-none placeholder:text-ink-muted focus:border-burgundy"
+                  />
                 </div>
-                <div className="space-y-2">
-                  <Label className="text-xs font-semibold uppercase tracking-wider text-[#72383D]/70">Target City</Label>
-                  <Input placeholder="Bangalore" />
+                <div>
+                  <label htmlFor="c-city" className="av-label mb-1 block text-ink-muted">
+                    City of interest
+                  </label>
+                  <input
+                    id="c-city"
+                    name="city"
+                    type="text"
+                    className="w-full rounded-xs border border-rule-firm bg-paper px-3 py-[10px] text-[14px] outline-none focus:border-burgundy"
+                  />
                 </div>
               </div>
-              <div className="space-y-2">
-                <Label className="text-xs font-semibold uppercase tracking-wider text-[#72383D]/70">Investment Brief</Label>
+
+              <div>
+                <label htmlFor="c-message" className="av-label mb-1 block text-ink-muted">
+                  What would you like to know?
+                </label>
                 <textarea
-                  className="min-h-32 w-full rounded-xl border border-[#DCCDCE]/50 bg-[#F5F4F1]/50 px-4 py-3 text-sm text-[#50080E] outline-none placeholder:text-[#72383D]/40 focus:ring-2 focus:ring-[#D4AF37]/40"
-                  placeholder="Tell us what kind of returns, time horizon, and property type you prefer."
+                  id="c-message"
+                  name="message"
+                  rows={5}
+                  placeholder="Configuration, budget, and any project you have already looked at."
+                  className="w-full rounded-xs border border-rule-firm bg-paper px-3 py-[10px] text-[14px] leading-relaxed outline-none placeholder:text-ink-muted focus:border-burgundy"
                 />
               </div>
-              <Button size="lg">Request Consultation</Button>
+
+              <Button size="lg" className="w-full sm:w-auto sm:justify-self-start">
+                Send message
+              </Button>
+
+              <p className="text-[12px] leading-relaxed text-ink-muted">
+                By sending this you agree that we may share it with the developer of any property
+                you name.
+              </p>
             </form>
           </div>
+
+          <aside className="grid gap-[var(--s-5)]">
+            <div>
+              <SectionHead label="Reach us" className="mb-[var(--s-4)]" />
+              <Ledger
+                rows={[
+                  {
+                    term: "Email",
+                    value: (
+                      <a href="mailto:contact@aarvasa.com" className="underline-offset-2 hover:underline">
+                        contact@aarvasa.com
+                      </a>
+                    ),
+                  },
+                  {
+                    term: "Phone",
+                    value: (
+                      <a href="tel:+916382083873" className="underline-offset-2 hover:underline">
+                        +91 6382083873
+                      </a>
+                    ),
+                  },
+                ]}
+              />
+            </div>
+
+            <div>
+              <span className="av-label text-ink-muted">Registered office</span>
+              <address className="mt-2 text-[13.5px] not-italic leading-relaxed text-ink-muted">
+                3 Flr, off Windsar Sq Opp, Vishal Megamart Kolar Rd, Kolar Road, Huzur, Bhopal-
+                462042, Madhya Pradesh.
+              </address>
+            </div>
+
+            <Note>
+              Aarvasa holds no inventory and charges buyers nothing. Enquiries about a specific
+              property are routed to that developer or their appointed channel partner.
+            </Note>
+          </aside>
         </div>
-      </section>
+      </Wrap>
     </div>
   );
 }
