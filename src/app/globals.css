@@ -288,6 +288,20 @@ body {
   font-variant-numeric: tabular-nums;
 }
 
+/* ── Media scrim ──────────────────────────────────────────────────────────
+   Legibility only. The side scrim protects a text column on wide media; on a
+   narrow viewport it would cover the whole frame, so there the bottom scrim
+   does the work alone and the photograph stays visible. */
+.av-scrim {
+  background: var(--scrim-media);
+}
+
+@media (min-width: 768px) {
+  .av-scrim {
+    background: var(--scrim-media), var(--scrim-side), var(--scrim-warm);
+  }
+}
+
 /* ── Motion ───────────────────────────────────────────────────────────────── */
 
 /* Content is visible at rest. A section may animate in, never park at zero. */

@@ -1,52 +1,39 @@
 import {
-  HeroSection,
-  ReefSpotlight,
-  FeaturedListings,
-  AIAnalytics,
-  InvestorTrust,
-  SmartInsights,
-  BlockchainSecurity,
-  ARVRShowcase,
-  DashboardPreview,
-  OnboardingCTA,
-  InvestCTA,
-} from "@/components/homepage";
+  AdvisorPanel,
+  ClosingCTA,
+  CuratedProjects,
+  FeaturedProject,
+  HomeHero,
+  HowAarvasaWorks,
+  ImmersiveHome,
+  TrustPartners,
+} from "@/components/homepage/home-sections";
 
+export const metadata = {
+  title: "Aarvasa | Premium property, examined properly",
+  description:
+    "Find premium homes, plots and offices, explore what has been captured in 3D and 360°, and compare a shortlist on the specification that decides it.",
+};
+
+/**
+ * DISCOVER → EXPLORE → EVALUATE.
+ *
+ * Retired from the previous homepage: the blockchain security section, the
+ * tokenised-investment CTA, the ROI/dashboard analytics previews and the
+ * animated marketing counters. Those products do not exist yet and those
+ * figures are not verifiable.
+ */
 export default function Home() {
   return (
-    <div className="min-h-screen">
-      {/* 1. Cinematic full-viewport hero */}
-      <HeroSection />
-
-      {/* 2. Exclusive Dubai launch — REEF 996 */}
-      <ReefSpotlight />
-
-      {/* 3. Featured luxury property listings */}
-      <FeaturedListings />
-
-      {/* 3. AI analytics showcase */}
-      <AIAnalytics />
-
-      {/* 4. Investor trust & credibility */}
-      <InvestorTrust />
-
-      {/* 5. Dashboard preview widgets */}
-      <DashboardPreview />
-
-      {/* 6. Smart AI insights */}
-      <SmartInsights />
-
-      {/* 7. Blockchain security */}
-      <BlockchainSecurity />
-
-      {/* 8. AR/VR property experience */}
-      <ARVRShowcase />
-
-      {/* 9. Developer & broker onboarding */}
-      <OnboardingCTA />
-
-      {/* 10. Final investment CTA */}
-      <InvestCTA />
+    <div className="pb-[var(--s-24)]">
+      <HomeHero />
+      <FeaturedProject />
+      <ImmersiveHome />
+      <CuratedProjects />
+      <HowAarvasaWorks />
+      <AdvisorPanel />
+      <TrustPartners />
+      <ClosingCTA />
     </div>
   );
 }
