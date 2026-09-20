@@ -1,61 +1,144 @@
-@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Playfair+Display:wght@400;500;600;700;800;900&display=swap");
 @config "../../tailwind.config.js";
 @import "tailwindcss";
 /* infra/ (CDK package) and shared/ (dependency-free contracts) contain no UI; keep their words out of class detection. */
 @source not "../../infra";
 @source not "../../shared";
 
+/* ═══════════════════════════════════════════════════════════════════════════
+   AARVASA DESIGN LANGUAGE — GLOBAL TOKENS
+
+   THE GOVERNING IDEA — "Paper reads. Dark shows."
+   The site is warm paper. Dark is not a theme and not a mood: it is where a
+   building is shown. Media bands, the immersive viewer and the footer sit on
+   the stage. Every surface a person reads, filters, compares or fills in
+   stays on paper.
+
+   Fonts are loaded by next/font in src/app/layout.tsx, which sets
+   --font-display / --font-ui / --font-meta on <html>.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
 :root {
-  /* New brand-aligned palette */
-  --background: #F2F1ED;
-  --foreground: #50080E;
-  --card: rgba(245, 244, 241, 0.85);
-  --card-foreground: #50080E;
-  --primary: #50080E;
-  --primary-foreground: #F2F1ED;
-  --secondary: rgba(80, 8, 14, 0.06);
-  --secondary-foreground: #72383D;
-  --muted: rgba(80, 8, 14, 0.05);
-  --muted-foreground: #72383D;
-  --accent: #D4AF37;
-  --accent-foreground: #50080E;
-  --border: rgba(220, 205, 206, 0.6);
-  --input: rgba(220, 205, 206, 0.5);
-  --ring: rgba(212, 175, 55, 0.72);
-  --glass: rgba(245, 244, 241, 0.6);
-  --glass-strong: rgba(245, 244, 241, 0.88);
-  --gold-gradient: linear-gradient(135deg, #d4af37 0%, #f5d27a 52%, #b9872f 100%);
-  --maroon-gradient: linear-gradient(135deg, #50080E 0%, #72383D 48%, #2a0815 100%);
-  --cream-gradient: linear-gradient(135deg, #F5F4F1 0%, #F2F1ED 52%, #DCCDCE 100%);
-  --hero-gradient: linear-gradient(135deg, rgba(80, 8, 14, 0.93), rgba(72, 17, 35, 0.72) 42%, rgba(245, 210, 122, 0.18));
-  --footer-bg: #50080E;
-  --footer-text: #F2F1ED;
+  /* ── PAPER · the default surface ──────────────────────────────────────── */
+  --paper: #f2efe7;          /* page ground */
+  --paper-raised: #faf8f3;   /* panels, inputs, the filter rail */
+  --paper-sunken: #eae6db;   /* wells, empty media, table heads */
+  --ink: #1f1b17;            /* body copy — 14.8:1 on paper */
+  --ink-muted: #5e564c;      /* supporting copy, labels — 6.3:1 */
+  --ink-disabled: #8a8174;   /* 3.3:1 — disabled marks ONLY, never information */
+  --rule: #dad4c7;           /* hairline */
+  --rule-firm: #b9b1a1;      /* structural rule, input border */
+
+  /* ── STAGE · the dark media surface ───────────────────────────────────── */
+  --stage: #0c0b0a;          /* letterbox, media band, footer */
+  --stage-raised: #171412;   /* viewer chrome */
+  --stage-ink: #f2efe7;      /* 17.1:1 on stage */
+  --stage-muted: #9a9185;    /* 6.3:1 on stage */
+  --stage-rule: #2c2823;
+
+  /* ── BRAND ────────────────────────────────────────────────────────────── */
+  --burgundy: #50080e;       /* the one primary action — 13.2:1 on paper */
+  --burgundy-deep: #3a060b;  /* hover, pressed */
+  --burgundy-wash: #f6edec;  /* selected filter, note panel */
+  --gold-ink: #7d6019;       /* gold that survives paper — 5.1:1. Labels, rules.
+                                Replaces #d4af37, which reads 1.9:1 on cream. */
+  --gold: #d4af37;           /* gold on STAGE only — 9.3:1. Reticle, active control. */
+
+  /* ── SEMANTIC · never the accent, never decoration ────────────────────── */
+  --positive: #2f6b4f;       /* ready to move, better value on a row */
+  --pending: #8a5a1f;        /* under construction, awaiting handover */
+  --neutral: #5e564c;        /* not applicable, not produced */
+
+  /* ── SCRIMS · legibility only. The entire gradient budget. ────────────── */
+  --scrim-media: linear-gradient(to top, rgba(12, 11, 10, 0.92) 0%, rgba(12, 11, 10, 0.34) 34%, rgba(12, 11, 10, 0) 62%);
+  --scrim-side: linear-gradient(to right, rgba(12, 11, 10, 0.9) 0%, rgba(12, 11, 10, 0.72) 26%, rgba(12, 11, 10, 0.3) 48%, rgba(12, 11, 10, 0) 70%);
+  --scrim-warm: linear-gradient(to right, rgba(80, 8, 14, 0.3), rgba(80, 8, 14, 0) 52%);
+
+  /* ── SPACE · 4px base ─────────────────────────────────────────────────── */
+  --s-1: 4px;
+  --s-2: 8px;
+  --s-3: 12px;
+  --s-4: 16px;
+  --s-5: 20px;
+  --s-6: 24px;
+  --s-8: 32px;
+  --s-10: 40px;
+  --s-14: 56px;
+  --s-18: 72px;
+  --s-24: 96px;
+  --s-32: 128px;
+
+  --band: 96px;              /* section rhythm, desktop */
+  --band-tight: 56px;
+
+  /* ── RADIUS · near-square. The page is drawn, not rounded. ────────────── */
+  --r-0: 0px;                /* media frames, plates, bands, rules */
+  --r-1: 2px;                /* buttons, inputs, chips */
+  --r-2: 4px;                /* panels, the rail, the tray, thumbnails */
+  --r-full: 999px;           /* the live status dot, and nothing else */
+
+  /* ── ELEVATION · two shadows exist. On stage there is none. ───────────── */
+  --e-tray: 0 -2px 24px rgba(31, 27, 23, 0.08);
+  --e-over: 0 24px 60px rgba(31, 27, 23, 0.14);
+
+  /* ── MEDIA RATIOS ─────────────────────────────────────────────────────── */
+  --ar-cinema: 2.39 / 1;     /* page and property heroes */
+  --ar-viewer: 16 / 9;       /* the interactive viewer */
+  --ar-plate: 4 / 5;         /* editorial portrait plate */
+  --ar-card: 3 / 2;          /* listing card */
+  --ar-thumb: 16 / 10;       /* filmstrip, table rows, tray */
+
+  /* ── MOTION ───────────────────────────────────────────────────────────── */
+  --ease-enter: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-state: cubic-bezier(0.65, 0, 0.35, 1);
+  --d-state: 200ms;          /* hover, focus, chip toggles */
+  --d-control: 300ms;        /* buttons, tabs, filters */
+  --d-enter: 600ms;          /* section reveal */
+  --d-media: 1200ms;         /* image scale, crossfade */
+
+  /* ── LAYOUT ───────────────────────────────────────────────────────────── */
+  --container: 1240px;
+  --gutter: 40px;
+  --rail: 248px;             /* listings filter rail */
+  --aside: 320px;            /* property right rail */
+  --nav-h: 64px;
+  --measure: 65ch;           /* reading column */
+
+  /* ── SEMANTIC BRIDGE ──────────────────────────────────────────────────────
+     The shadcn-style names the existing components already consume, repointed
+     at the new palette. Re-skins Card, Badge, Button and friends without
+     touching their source. */
+  --background: var(--paper);
+  --foreground: var(--ink);
+  --card: var(--paper-raised);
+  --card-foreground: var(--ink);
+  --primary: var(--burgundy);
+  --primary-foreground: var(--paper);
+  --secondary: var(--paper-sunken);
+  --secondary-foreground: var(--ink-muted);
+  --muted: var(--paper-sunken);
+  --muted-foreground: var(--ink-muted);
+  --accent: var(--gold-ink);
+  --accent-foreground: var(--paper);
+  --border: var(--rule);
+  --input: var(--rule-firm);
+  /* Fixes the inherited focus defect: the old ring was gold at 72% alpha,
+     which composites to ~1.6:1 on cream — under the 3:1 an indicator owes. */
+  --ring: var(--burgundy);
 }
 
-[data-theme="dark"] {
-  --background: #0b0b0b;
-  --foreground: #F2F1ED;
-  --card: rgba(22, 18, 18, 0.72);
-  --card-foreground: #F2F1ED;
-  --primary: #72383D;
-  --primary-foreground: #F2F1ED;
-  --secondary: rgba(114, 56, 61, 0.28);
-  --secondary-foreground: #F2F1ED;
-  --muted: rgba(255, 255, 255, 0.07);
-  --muted-foreground: #DCCDCE;
-  --accent: #d4af37;
-  --accent-foreground: #160b0f;
-  --border: rgba(220, 205, 206, 0.14);
-  --input: rgba(220, 205, 206, 0.16);
-  --ring: rgba(245, 210, 122, 0.7);
-  --glass: rgba(255, 255, 255, 0.075);
-  --glass-strong: rgba(22, 18, 18, 0.82);
-  --hero-gradient: linear-gradient(135deg, rgba(72, 17, 35, 0.92), rgba(11, 11, 11, 0.8) 50%, rgba(11, 11, 11, 0.28));
-  --footer-bg: #0b0b0b;
-  --footer-text: #DCCDCE;
+/* Gutters step down with the viewport; the container never touches an edge. */
+@media (max-width: 1279px) {
+  :root { --gutter: 32px; --band: 80px; }
+}
+@media (max-width: 1023px) {
+  :root { --gutter: 24px; --band: 72px; }
+}
+@media (max-width: 767px) {
+  :root { --gutter: 16px; --band: 48px; --nav-h: 56px; }
 }
 
 @theme inline {
+  /* Surfaces */
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --color-card: var(--card);
@@ -71,9 +154,49 @@
   --color-border: var(--border);
   --color-input: var(--input);
   --color-ring: var(--ring);
-  --font-sans: "Inter", "Geist", "Geist Fallback", ui-sans-serif, system-ui, sans-serif;
-  --font-mono: "Geist Mono", "Geist Mono Fallback", ui-monospace, monospace;
+
+  /* Aarvasa palette, addressable as Tailwind utilities */
+  --color-paper: var(--paper);
+  --color-paper-raised: var(--paper-raised);
+  --color-paper-sunken: var(--paper-sunken);
+  --color-ink: var(--ink);
+  --color-ink-muted: var(--ink-muted);
+  --color-ink-disabled: var(--ink-disabled);
+  --color-rule: var(--rule);
+  --color-rule-firm: var(--rule-firm);
+  --color-stage: var(--stage);
+  --color-stage-raised: var(--stage-raised);
+  --color-stage-ink: var(--stage-ink);
+  --color-stage-muted: var(--stage-muted);
+  --color-stage-rule: var(--stage-rule);
+  --color-burgundy: var(--burgundy);
+  --color-burgundy-deep: var(--burgundy-deep);
+  --color-burgundy-wash: var(--burgundy-wash);
+  --color-gold-ink: var(--gold-ink);
+  --color-gold: var(--gold);
+  --color-positive: var(--positive);
+  --color-pending: var(--pending);
+
+  /* Type — the faces come from next/font in layout.tsx */
+  --font-display: var(--font-bodoni), "Bodoni Moda", Georgia, serif;
+  --font-sans: var(--font-inter), Inter, ui-sans-serif, system-ui, sans-serif;
+  --font-meta: var(--font-plex-mono), "IBM Plex Mono", ui-monospace, monospace;
+  --font-mono: var(--font-plex-mono), "IBM Plex Mono", ui-monospace, monospace;
+
+  /* Radii */
+  --radius-none: var(--r-0);
+  --radius-xs: var(--r-1);
+  --radius-sm: var(--r-2);
+
+  /* Ratios */
+  --aspect-cinema: var(--ar-cinema);
+  --aspect-viewer: var(--ar-viewer);
+  --aspect-plate: var(--ar-plate);
+  --aspect-card: var(--ar-card);
+  --aspect-thumb: var(--ar-thumb);
 }
+
+/* ── Base ─────────────────────────────────────────────────────────────────── */
 
 * {
   box-sizing: border-box;
@@ -81,553 +204,186 @@
 
 html {
   scroll-behavior: smooth;
-  background: var(--background);
+  background: var(--paper);
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Inter, Poppins, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-}
-
-body::before {
-  position: fixed;
-  inset: 0;
-  z-index: -2;
-  pointer-events: none;
-  content: "";
-  background:
-    radial-gradient(circle at 15% 8%, rgba(80, 8, 14, 0.12), transparent 32%),
-    radial-gradient(circle at 82% 10%, rgba(220, 205, 206, 0.24), transparent 30%),
-    linear-gradient(180deg, var(--background) 0%, var(--background) 100%);
-}
-
-body::after {
-  position: fixed;
-  inset: 0;
-  z-index: -1;
-  pointer-events: none;
-  content: "";
-  opacity: 0.10;
-  background-image:
-    linear-gradient(rgba(80, 8, 14, 0.06) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(80, 8, 14, 0.04) 1px, transparent 1px);
-  background-size: 72px 72px;
-  mask-image: linear-gradient(to bottom, black, transparent 75%);
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--font-inter), Inter, ui-sans-serif, system-ui, -apple-system, sans-serif;
+  font-size: 15px;
+  line-height: 1.65;
 }
 
 ::selection {
-  background: rgba(212, 175, 55, 0.38);
-  color: var(--foreground);
+  background: var(--burgundy);
+  color: var(--paper);
 }
 
-/* ── Utility classes ── */
+/* One visible focus treatment for the whole application. Solid, 2px, burgundy
+   on paper and paper on stage — never a soft glow, never removed. */
+:focus-visible {
+  outline: 2px solid var(--burgundy);
+  outline-offset: 2px;
+}
+
+.stage :focus-visible,
+[data-surface="stage"] :focus-visible {
+  outline-color: var(--stage-ink);
+}
+
+/* ── Type roles ───────────────────────────────────────────────────────────── */
+
+.av-display {
+  font-family: var(--font-bodoni), "Bodoni Moda", Georgia, serif;
+  font-weight: 400;
+  letter-spacing: -0.015em;
+  text-wrap: balance;
+}
+
+.av-label {
+  font-size: 11px;
+  font-weight: 600;
+  line-height: 1.2;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.av-meta {
+  font-family: var(--font-plex-mono), "IBM Plex Mono", ui-monospace, monospace;
+  font-size: 11px;
+  line-height: 1.3;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.av-num {
+  font-variant-numeric: tabular-nums;
+}
+
+/* ── Motion ───────────────────────────────────────────────────────────────── */
+
+/* Content is visible at rest. A section may animate in, never park at zero. */
+@keyframes av-rise {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: none; }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .av-rise {
+    animation: av-rise var(--d-enter) var(--ease-enter) both;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   DEPRECATED — the pre-redesign surface language.
+
+   Retained only so pages that have not yet been rebuilt keep rendering during
+   the migration. Nothing new may use these. Each is deleted as its page is
+   migrated; whatever remains is removed in the final cleanup commit.
+
+   Tracking: glass-card, gold-text, gold-gradient, maroon-gradient,
+   footer-dark, the about/services cinematic utilities and every ambient
+   keyframe below.
+   ═══════════════════════════════════════════════════════════════════════════ */
 
 .glass-card {
-  border: 1px solid var(--border);
-  background: var(--glass);
-  box-shadow: 0 8px 32px rgba(80, 8, 14, 0.08);
-  backdrop-filter: blur(24px);
+  border: 1px solid var(--rule);
+  background: var(--paper-raised);
+  box-shadow: none;
 }
 
-.gold-gradient {
-  background: var(--gold-gradient);
-}
-
-.maroon-gradient {
-  background: var(--maroon-gradient);
-}
-
-.cream-gradient {
-  background: var(--cream-gradient);
-}
+.gold-gradient { background: linear-gradient(135deg, #d4af37 0%, #f5d27a 52%, #b9872f 100%); }
+.maroon-gradient { background: linear-gradient(135deg, #50080e 0%, #72383d 48%, #2a0815 100%); }
 
 .gold-text {
-  background: var(--gold-gradient);
+  background: linear-gradient(135deg, #d4af37 0%, #f5d27a 52%, #b9872f 100%);
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
 }
 
-/* Premium dark footer background */
 .footer-dark {
-  background: linear-gradient(135deg, #d4af37 0%, #7a1f3d 100%);
-  color: #F2F1ED;
+  background: var(--stage);
+  color: var(--stage-ink);
 }
 
-/* Luxury heading style for property names */
+/* Property and project names. Superseded by .av-display. */
 .heading-serif {
-  font-family: "Playfair Display", Georgia, serif;
-  font-weight: 600;
-  letter-spacing: -0.02em;
+  font-family: var(--font-bodoni), "Bodoni Moda", Georgia, serif;
+  font-weight: 400;
+  letter-spacing: -0.015em;
 }
 
-/* Smooth entrance animation */
 @keyframes fade-up {
-  from {
-    opacity: 0;
-    transform: translateY(20px);
-  }
-
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 
-.animate-fade-up {
-  animation: fade-up 0.6s ease-out both;
-}
+.animate-fade-up { animation: fade-up 0.6s var(--ease-enter) both; }
 
-/* ── About Page — Cinematic Utilities ── */
-
-@keyframes pulse-glow {
-
-  0%,
-  100% {
-    box-shadow: 0 0 20px rgba(212, 175, 55, 0.15);
-  }
-
-  50% {
-    box-shadow: 0 0 40px rgba(212, 175, 55, 0.35);
-  }
-}
-
-@keyframes float {
-
-  0%,
-  100% {
-    transform: translateY(0px);
-  }
-
-  50% {
-    transform: translateY(-12px);
-  }
-}
-
-@keyframes shimmer {
-  0% {
-    background-position: -200% center;
-  }
-
-  100% {
-    background-position: 200% center;
-  }
-}
-
-@keyframes gradient-rotate {
-  0% {
-    background-position: 0% 50%;
-  }
-
-  50% {
-    background-position: 100% 50%;
-  }
-
-  100% {
-    background-position: 0% 50%;
-  }
-}
-
-@keyframes particle-drift {
-  0% {
-    transform: translateY(0) translateX(0);
-    opacity: 0;
-  }
-
-  20% {
-    opacity: 0.6;
-  }
-
-  80% {
-    opacity: 0.4;
-  }
-
-  100% {
-    transform: translateY(-100vh) translateX(40px);
-    opacity: 0;
-  }
-}
-
-.animate-pulse-glow {
-  animation: pulse-glow 3s ease-in-out infinite;
-}
-
-.animate-float {
-  animation: float 6s ease-in-out infinite;
-}
-
-.animate-shimmer {
-  background-size: 200% auto;
-  animation: shimmer 3s linear infinite;
-}
-
-.animate-gradient-rotate {
-  background-size: 200% 200%;
-  animation: gradient-rotate 4s ease infinite;
-}
-
-.about-hero-gradient {
-  background: linear-gradient(135deg,
-      #0b0b0b 0%,
-      #1a0510 25%,
-      #50080E 50%,
-      #2a0815 75%,
-      #0b0b0b 100%);
+/* Ambient loops. The design language allows none; these are inert stubs so the
+   un-migrated About and Services pages keep their layout while losing the
+   motion. Removed with those pages. */
+.animate-pulse-glow,
+.animate-float,
+.animate-shimmer,
+.animate-gradient-rotate,
+.animate-orb-drift,
+.animate-icon-glow,
+.animate-stat-float,
+.animate-border-glow,
+.timeline-node {
+  animation: none;
 }
 
 .gold-shimmer-text {
-  background: linear-gradient(90deg,
-      #D4AF37 0%,
-      #F5D27A 25%,
-      #D4AF37 50%,
-      #b9872f 75%,
-      #D4AF37 100%);
-  background-size: 200% auto;
+  background: linear-gradient(90deg, #d4af37 0%, #f5d27a 25%, #d4af37 50%, #b9872f 75%, #d4af37 100%);
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
-  animation: shimmer 4s linear infinite;
 }
 
-.timeline-glow::before {
-  content: '';
-  position: absolute;
-  left: 50%;
-  top: 0;
-  bottom: 0;
-  width: 2px;
-  background: linear-gradient(180deg, transparent, #D4AF37, #50080E, transparent);
-  transform: translateX(-50%);
-}
-
-/* ── Services Page — Cinematic Utilities ── */
-
-.services-cinematic-bg {
-  background:
-    radial-gradient(ellipse 120% 60% at 50% 0%, rgba(122, 0, 25, 0.55) 0%, transparent 55%),
-    radial-gradient(ellipse 80% 50% at 20% 80%, rgba(91, 0, 23, 0.3) 0%, transparent 50%),
-    radial-gradient(ellipse 60% 40% at 85% 60%, rgba(74, 0, 18, 0.25) 0%, transparent 45%),
-    radial-gradient(circle at 50% 50%, #7A0019 0%, #4A0012 40%, #1A0006 100%);
-}
-
-.services-vignette::after {
-  content: '';
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-  z-index: 1;
-  background:
-    radial-gradient(ellipse 140% 70% at 50% 0%, transparent 50%, rgba(10, 0, 3, 0.6) 100%),
-    linear-gradient(180deg, transparent 60%, rgba(10, 0, 3, 0.4) 100%);
-}
-
-@keyframes orb-drift {
-
-  0%,
-  100% {
-    transform: translate(0, 0) scale(1);
-  }
-
-  25% {
-    transform: translate(30px, -20px) scale(1.05);
-  }
-
-  50% {
-    transform: translate(-15px, 15px) scale(0.97);
-  }
-
-  75% {
-    transform: translate(20px, 10px) scale(1.03);
-  }
-}
-
-@keyframes icon-glow {
-
-  0%,
-  100% {
-    filter: drop-shadow(0 0 6px rgba(212, 175, 55, 0.3));
-  }
-
-  50% {
-    filter: drop-shadow(0 0 18px rgba(212, 175, 55, 0.7));
-  }
-}
-
-@keyframes services-particle {
-  0% {
-    transform: translateY(0) translateX(0) scale(0);
-    opacity: 0;
-  }
-
-  10% {
-    opacity: 0.5;
-    transform: scale(1);
-  }
-
-  90% {
-    opacity: 0.2;
-  }
-
-  100% {
-    transform: translateY(-100vh) translateX(60px) scale(0.5);
-    opacity: 0;
-  }
-}
-
-@keyframes stat-float {
-
-  0%,
-  100% {
-    transform: translateY(0px);
-  }
-
-  50% {
-    transform: translateY(-8px);
-  }
-}
-
-@keyframes border-glow {
-
-  0%,
-  100% {
-    border-color: rgba(212, 175, 55, 0.15);
-  }
-
-  50% {
-    border-color: rgba(212, 175, 55, 0.4);
-  }
-}
-
-.animate-orb-drift {
-  animation: orb-drift 20s ease-in-out infinite;
-}
-
-.animate-icon-glow {
-  animation: icon-glow 3s ease-in-out infinite;
-}
-
-.animate-stat-float {
-  animation: stat-float 4s ease-in-out infinite;
-}
-
-.animate-border-glow {
-  animation: border-glow 3s ease-in-out infinite;
-}
+.about-hero-gradient { background: var(--stage); }
+.services-cinematic-bg { background: var(--stage); }
+.services-vignette::after,
+.services-noise::before,
+.services-grid-lines::after { content: none; }
 
 .service-card-glass {
-  background: linear-gradient(135deg, rgba(91, 0, 23, 0.35) 0%, rgba(26, 0, 6, 0.5) 100%);
-  border: 1px solid rgba(212, 175, 55, 0.12);
-  backdrop-filter: blur(24px) saturate(1.4);
-  -webkit-backdrop-filter: blur(24px) saturate(1.4);
-  box-shadow:
-    0 8px 32px rgba(0, 0, 0, 0.4),
-    inset 0 1px 0 rgba(255, 255, 255, 0.04);
-  transition: all 0.5s cubic-bezier(0.23, 1, 0.32, 1);
+  background: var(--stage-raised);
+  border: 1px solid var(--stage-rule);
+  border-radius: var(--r-2);
 }
 
-.service-card-glass:hover {
-  transform: translateY(-8px) scale(1.02);
-  border-color: rgba(212, 175, 55, 0.4);
-  box-shadow:
-    0 20px 60px rgba(212, 175, 55, 0.15),
-    0 8px 32px rgba(0, 0, 0, 0.5),
-    inset 0 1px 0 rgba(255, 255, 255, 0.06);
-  background: linear-gradient(135deg, rgba(91, 0, 23, 0.45) 0%, rgba(26, 0, 6, 0.55) 100%);
-}
-
-/* Premium Ivory Service Cards */
 .service-card-ivory {
-  background: linear-gradient(160deg, #FAF7F4 0%, #F5F1ED 50%, #F0ECE7 100%);
-  border: 1px solid rgba(220, 205, 206, 0.25);
-  border-radius: 1.5rem;
-  box-shadow:
-    0 10px 30px rgba(0, 0, 0, 0.06),
-    0 2px 10px rgba(0, 0, 0, 0.04),
-    0 1px 3px rgba(0, 0, 0, 0.03);
-  transition: all 0.45s cubic-bezier(0.23, 1, 0.32, 1);
-  position: relative;
-  overflow: hidden;
+  background: var(--paper-raised);
+  border: 1px solid var(--rule);
+  border-radius: var(--r-2);
 }
 
-.service-card-ivory::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  border-radius: inherit;
-  opacity: 0;
-  transition: opacity 0.45s ease;
-  background: linear-gradient(160deg, rgba(212, 175, 55, 0.04) 0%, transparent 60%);
-  pointer-events: none;
-}
-
-.service-card-ivory:hover {
-  transform: translateY(-6px) scale(1.01);
-  border-color: rgba(212, 175, 55, 0.2);
-  box-shadow:
-    0 20px 50px rgba(0, 0, 0, 0.08),
-    0 8px 24px rgba(0, 0, 0, 0.05),
-    0 0 0 1px rgba(212, 175, 55, 0.08),
-    0 12px 40px rgba(212, 175, 55, 0.06);
-}
-
-.service-card-ivory:hover::before {
-  opacity: 1;
-}
-
-.services-noise::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  z-index: 2;
-  pointer-events: none;
-  opacity: 0.03;
-  background-image: url('/noise.png');
-  background-repeat: repeat;
-  mix-blend-mode: overlay;
-}
-
-.services-grid-lines::after {
-  content: '';
-  position: absolute;
-  inset: 0;
-  z-index: 1;
-  pointer-events: none;
-  opacity: 0.04;
-  background-image:
-    linear-gradient(rgba(212, 175, 55, 0.15) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(212, 175, 55, 0.1) 1px, transparent 1px);
-  background-size: 80px 80px;
-  mask-image: radial-gradient(ellipse 60% 50% at 50% 30%, black, transparent);
-}
-
-/* ── Investment Journey — Premium Timeline Beam ── */
-
-/* Layer 1: Bright gold center thread */
-.timeline-beam-core {
-  position: absolute;
-  width: 2px;
-  top: 0;
-  bottom: 0;
-  background: linear-gradient(180deg,
-      transparent 0%,
-      rgba(212, 175, 55, 0.6) 10%,
-      rgba(212, 175, 55, 0.8) 50%,
-      rgba(212, 175, 55, 0.6) 90%,
-      transparent 100%);
-}
-
-/* Layer 2: Soft glow halo */
-.timeline-beam-glow {
-  position: absolute;
-  width: 12px;
-  top: 0;
-  bottom: 0;
-  background: linear-gradient(180deg,
-      transparent 0%,
-      rgba(212, 175, 55, 0.12) 10%,
-      rgba(212, 175, 55, 0.2) 50%,
-      rgba(212, 175, 55, 0.12) 90%,
-      transparent 100%);
-  filter: blur(4px);
-}
-
-/* Layer 3: Ambient radiant beam */
-.timeline-beam-ambient {
-  position: absolute;
-  width: 40px;
-  top: 0;
-  bottom: 0;
-  background: linear-gradient(180deg,
-      transparent 0%,
-      rgba(212, 175, 55, 0.04) 15%,
-      rgba(122, 0, 25, 0.06) 50%,
-      rgba(212, 175, 55, 0.04) 85%,
-      transparent 100%);
-  filter: blur(10px);
-}
-
-/* Flowing particle animation along the beam */
-@keyframes timeline-flow {
-  0% {
-    top: -8px;
-    opacity: 0;
-  }
-
-  5% {
-    opacity: 1;
-  }
-
-  95% {
-    opacity: 1;
-  }
-
-  100% {
-    top: calc(100% + 8px);
-    opacity: 0;
-  }
-}
-
+.timeline-beam-core,
+.timeline-beam-glow,
+.timeline-beam-ambient,
 .timeline-flow-particle {
-  position: absolute;
-  width: 3px;
-  height: 20px;
-  border-radius: 2px;
-  background: linear-gradient(180deg, transparent, rgba(212, 175, 55, 0.7), transparent);
-  animation: timeline-flow linear infinite;
-  pointer-events: none;
+  display: none;
 }
 
-/* Node pulse breathing */
-@keyframes node-breathe {
-
-  0%,
-  100% {
-    box-shadow:
-      0 0 8px rgba(212, 175, 55, 0.3),
-      0 0 20px rgba(212, 175, 55, 0.1),
-      inset 0 0 6px rgba(212, 175, 55, 0.15);
-  }
-
-  50% {
-    box-shadow:
-      0 0 14px rgba(212, 175, 55, 0.5),
-      0 0 35px rgba(212, 175, 55, 0.2),
-      inset 0 0 10px rgba(212, 175, 55, 0.25);
-  }
-}
-
-.timeline-node {
-  animation: node-breathe 3s ease-in-out infinite;
-}
-
-/* Horizontal connector from beam to card */
-.timeline-connector {
-  position: relative;
-  height: 2px;
-  background: linear-gradient(90deg,
-      rgba(212, 175, 55, 0.5),
-      rgba(212, 175, 55, 0.15));
-}
-
+.timeline-connector,
 .timeline-connector-right {
-  background: linear-gradient(90deg,
-      rgba(212, 175, 55, 0.15),
-      rgba(212, 175, 55, 0.5));
-}
-
-.timeline-connector::after {
-  content: '';
-  position: absolute;
-  inset: -2px 0;
-  background: linear-gradient(90deg,
-      rgba(212, 175, 55, 0.1),
-      rgba(212, 175, 55, 0.03));
-  filter: blur(3px);
-}
-
-.timeline-connector-right::after {
-  background: linear-gradient(90deg,
-      rgba(212, 175, 55, 0.03),
-      rgba(212, 175, 55, 0.1));
+  position: relative;
+  height: 1px;
+  background: var(--rule-firm);
 }
