@@ -12,9 +12,11 @@ import {
   Vec3,
   WebglGraphicsDevice,
 } from "playcanvas";
+import { detectDeviceClass } from "../capabilities";
 import { LoadGate } from "../load-gate";
+import { RenderDemand } from "../render-demand";
 import { MEDIA_CDN_ORIGIN } from "../media-origin";
-import { resolveModelUrl, resolvePanoramaUrl } from "../source";
+import { resolveModelUrl, resolvePanoramaUrl, resolveSplatUrl } from "../source";
 import type { RGB, ViewerEngine, ViewerEngineOptions, ViewerSource, ViewerTheme } from "../types";
 import { directionFor } from "./look-controls";
 import { loadModel } from "./model-loader";
@@ -24,6 +26,8 @@ import type { SceneContent, ViewerControls } from "./scene-content";
 
 /** Field of view for models; panoramas set their own. */
 const OBJECT_FOV = 40;
+const NEAR_CLIP = 0.05;
+const FAR_CLIP = 200;
 /** Hotspot projection distance; anything inside the panorama sphere projects the same. */
 const PROJECT_DISTANCE = 10;
 
@@ -58,7 +62,8 @@ export function createViewerEngine(host: HTMLElement, options: ViewerEngineOptio
 
   let device: WebglGraphicsDevice;
   try {
-    device = new WebglGraphicsDevice(canvas, { antialias: true, alpha: false, powerPreference: "default" });
+    // xrCompatible: false — the viewer never starts an XR session, so it never asks for an XR-capable context.
+    device = new WebglGraphicsDevice(canvas, { antialias: true, alpha: false, powerPreference: "default", xrCompatible: false });
   } catch (error) {
     canvas.remove();
     throw error;
@@ -80,8 +85,8 @@ export function createViewerEngine(host: HTMLElement, options: ViewerEngineOptio
   const camera = new Entity("camera");
   camera.addComponent("camera", {
     fov: OBJECT_FOV,
-    nearClip: 0.05,
-    farClip: 200,
+    nearClip: NEAR_CLIP,
+    farClip: FAR_CLIP,
     clearColor: toColor(options.theme.background),
   });
   app.root.addChild(camera);
@@ -99,7 +104,8 @@ export function createViewerEngine(host: HTMLElement, options: ViewerEngineOptio
   let destroyed = false;
   let active = false;
   let running = false;
-  let pendingFrames = 0;
+  // Decides when the loop may stop (pending frames, camera motion, content settle window).
+  const demand = new RenderDemand();
 
   const setLoopState = (state: "running" | "paused") => {
     running = state === "running";
@@ -118,7 +124,7 @@ export function createViewerEngine(host: HTMLElement, options: ViewerEngineOptio
   };
 
   const requestFrame = () => {
-    pendingFrames = Math.max(pendingFrames, 1);
+    demand.request();
     startLoop();
   };
 
@@ -127,11 +133,14 @@ export function createViewerEngine(host: HTMLElement, options: ViewerEngineOptio
   let motion = { autoRotate: false, reducedMotion: false };
   const viewListeners = new Set<() => void>();
 
-  app.on("update", (dt: number) => controls?.update(dt));
+  app.on("update", (dt: number) => {
+    // Start of a frame: requests made from here on (the splat renderer asks during render) are for the next one.
+    demand.frameStarted();
+    controls?.update(dt);
+  });
   app.on("frameend", () => {
-    if (pendingFrames > 0) pendingFrames--;
     for (const listener of viewListeners) listener();
-    if (!active || (pendingFrames === 0 && !controls?.isMoving)) stopLoop();
+    if (!demand.frameEnded({ active, moving: controls?.isMoving ?? false }, performance.now())) stopLoop();
   });
 
   device.on("devicelost", () => {
@@ -162,7 +171,13 @@ export function createViewerEngine(host: HTMLElement, options: ViewerEngineOptio
     content = next;
     app.root.addChild(next.root);
     next.applyTheme(theme);
-    if (camera.camera) camera.camera.fov = OBJECT_FOV;
+    if (camera.camera) {
+      // Content may set its own (splats scale clip planes to the scene); start from the defaults.
+      camera.camera.fov = OBJECT_FOV;
+      camera.camera.nearClip = NEAR_CLIP;
+      camera.camera.farClip = FAR_CLIP;
+    }
+    demand.contentShown(next.settleMs ?? 0, performance.now());
     controls = next.createControls(camera, canvas, requestFrame);
     controls.setMotion(motion.autoRotate, motion.reducedMotion);
     requestFrame();
@@ -198,6 +213,15 @@ export function createViewerEngine(host: HTMLElement, options: ViewerEngineOptio
             next = await loadPanorama(app, url, source.initialView, ticket.signal);
             break;
           }
+          case "splat": {
+            const url = resolveSplatUrl(source.url, window.location.origin, cdnOrigins);
+            if (!url) throw new Error("3D scan URL is not allowed: use a same-origin .sog or a published scan on the media CDN");
+            // Separate chunk: the engine's Gaussian splat support is only downloaded for splats.
+            const { loadSplat } = await import("./splat");
+            if (!ticket.isCurrent()) throw new DOMException("Splat load was superseded", "AbortError");
+            next = await loadSplat(app, url, source, ticket.signal, { device: detectDeviceClass(), requestFrame });
+            break;
+          }
         }
       }
 
@@ -222,8 +246,12 @@ export function createViewerEngine(host: HTMLElement, options: ViewerEngineOptio
     setActive(next: boolean) {
       if (destroyed || active === next) return;
       active = next;
-      if (active) requestFrame();
-      else stopLoop();
+      if (active) {
+        demand.activated(performance.now());
+        startLoop();
+      } else {
+        stopLoop();
+      }
     },
 
     setMotion({ autoRotate, reducedMotion }) {

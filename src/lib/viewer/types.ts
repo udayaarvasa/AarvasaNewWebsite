@@ -14,11 +14,22 @@ export type PanoramaView = {
   fovDeg: number;
 };
 
+/** Where a splat scene opens: an orbit around the scene's centre, in degrees. Positive pitch looks down on the scene. */
+export type SplatView = {
+  yawDeg: number;
+  pitchDeg: number;
+  /** Camera distance as a multiple of the scene's bounding radius. */
+  distanceFactor: number;
+};
+
+/** A sphere around the scene, in scene units. */
+export type SplatBounds = { center: readonly [number, number, number]; radius: number };
+
 /**
  * What the viewer displays. A discriminated union so new asset kinds can be
  * added without changing the public component's props. `model` is a glTF
- * binary (Phase 1); `panorama` is one equirectangular 360° image (Phase 6).
- * Splats are not supported.
+ * binary (Phase 1); `panorama` is one equirectangular 360° image (Phase 6);
+ * `splat` is a Gaussian splat scene in the bundled SOG format (Phase 7).
  */
 export type ViewerSource =
   | {
@@ -31,6 +42,20 @@ export type ViewerSource =
       /** Same-origin `.jpg`/`.webp` path, or a published `m/…` panorama on the media CDN. See `resolvePanoramaUrl`. */
       url: string;
       initialView: PanoramaView;
+    }
+  | {
+      kind: "splat";
+      /** Same-origin `.sog` path, or a published `m/…/*.sog` on the media CDN. See `resolveSplatUrl`. */
+      url: string;
+      initialView: SplatView;
+      /**
+       * "y-down" rotates the scene 180° about X, for captures still in the
+       * original 3DGS/COLMAP frame. Default "y-up" (PlayCanvas / SuperSplat convention).
+       */
+      upAxis: "y-up" | "y-down";
+      /** Published metadata, checked before anything is downloaded. Absent values are checked after download. */
+      sizeBytes: number | null;
+      gaussians: number | null;
     };
 
 export type ViewerSourceKind = ViewerSource["kind"];

@@ -22,6 +22,13 @@ const MAX_PIXEL_RATIO = 2;
 const CANVAS_LABELS = {
   model: "Interactive 3D view. Drag or use the arrow keys to orbit; scroll, pinch, or use plus and minus to zoom.",
   panorama: "Interactive 360° view. Drag or use the arrow keys to look around; scroll, pinch, or use plus and minus to zoom.",
+  splat: "Interactive 3D scan. Drag or use the arrow keys to orbit; scroll, pinch, or use plus and minus to zoom.",
+} as const;
+/** Wording per kind: [noun, short name, load button]. */
+const WORDS = {
+  model: { noun: "3D view", short: "3D", load: "Load 3D view", role: "3D viewer" },
+  panorama: { noun: "360° view", short: "360°", load: "Open 360° view", role: "360° viewer" },
+  splat: { noun: "3D scan", short: "3D scan", load: "Open 3D scan", role: "3D scan viewer" },
 } as const;
 const ZOOM_STEP = 1.2;
 
@@ -49,7 +56,7 @@ export type Aarvasa3DViewerProps = {
    * it can project directions, and the status so it can hide stale hotspots.
    */
   overlay?: (engine: ViewerEngine, status: ViewerStatus) => React.ReactNode;
-  /** Replaces the load button's text (default "Load 3D view", or "Open 360° view" for panoramas). */
+  /** Replaces the load button's text (default "Load 3D view", "Open 360° view" or "Open 3D scan"). */
   loadLabel?: string;
 };
 
@@ -101,8 +108,9 @@ export function Aarvasa3DViewer({
   );
 
   const key = sourceKey(source);
-  const kind = source?.kind === "panorama" ? "panorama" : "model";
-  const noun = kind === "panorama" ? "360° view" : "3D view";
+  const kind = source?.kind ?? "model";
+  const words = WORDS[kind];
+  const noun = words.noun;
 
   // Capability check happens here, at the moment loading is requested, so an
   // unsupported browser never downloads the engine.
@@ -258,7 +266,7 @@ export function Aarvasa3DViewer({
       data-viewer-status={status}
       data-viewer-kind={kind}
       aria-label={label}
-      aria-roledescription={kind === "panorama" ? "360° viewer" : "3D viewer"}
+      aria-roledescription={words.role}
       aria-busy={status === "loading"}
       className={cn(
         "relative isolate aspect-[4/3] w-full overflow-hidden rounded-2xl border border-border bg-background text-foreground sm:aspect-video",
@@ -279,7 +287,7 @@ export function Aarvasa3DViewer({
         <Panel overPoster={Boolean(poster)} icon={<Box className="h-8 w-8 text-accent" aria-hidden />} title={label}>
           {loadOn === "interaction" ? (
             <Button onClick={requestLoad} className="mt-2">
-              {loadLabel ?? (kind === "panorama" ? "Open 360° view" : "Load 3D view")}
+              {loadLabel ?? words.load}
             </Button>
           ) : (
             <p className="text-sm text-muted-foreground">The {noun} loads when it scrolls into view.</p>
@@ -303,7 +311,7 @@ export function Aarvasa3DViewer({
       )}
 
       {status === "unsupported" && phase.status === "unsupported" && (
-        <Panel overPoster={Boolean(poster)} icon={<TriangleAlert className="h-7 w-7 text-accent" aria-hidden />} title={`${noun === "3D view" ? "3D" : "360°"} view unavailable`}>
+        <Panel overPoster={Boolean(poster)} icon={<TriangleAlert className="h-7 w-7 text-accent" aria-hidden />} title={`${words.short} view unavailable`}>
           <p className="max-w-sm text-sm text-muted-foreground">
             {phase.webgl1
               ? `This browser only supports WebGL 1, and the ${noun} needs WebGL 2.`
@@ -382,7 +390,7 @@ export function Aarvasa3DViewer({
       {hasContent && engine && overlay?.(engine, status)}
 
       <p className="sr-only" aria-live="polite">
-        {status === "loading" ? `Loading ${noun}` : status === "ready" ? `${noun === "3D view" ? "3D" : "360°"} view ready` : ""}
+        {status === "loading" ? `Loading ${noun}` : status === "ready" ? `${words.short} view ready` : status === "error" ? `Couldn't load the ${noun}` : ""}
       </p>
     </section>
   );

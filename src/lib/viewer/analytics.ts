@@ -16,6 +16,9 @@ export const VIEWER_EVENTS = [
   "hotspot_clicked",
   "panorama_navigation",
   "viewer_error",
+  "splat_opened",
+  "splat_loaded",
+  "splat_error",
 ] as const;
 
 export type ViewerEventName = (typeof VIEWER_EVENTS)[number];
@@ -23,7 +26,7 @@ export type ViewerEventName = (typeof VIEWER_EVENTS)[number];
 export type ViewerEventProps = {
   /** Project slug, e.g. "reef-996-dubai-production-city". */
   project?: string;
-  mode?: "model" | "panorama";
+  mode?: "model" | "panorama" | "splat";
   sceneId?: string;
   fromSceneId?: string;
   toSceneId?: string;
@@ -32,7 +35,7 @@ export type ViewerEventProps = {
   /** How navigation happened. */
   via?: "hotspot" | "selector";
   /** A coarse, fixed error category; never an error message. */
-  errorKind?: "load" | "unsupported" | "context-lost" | "missing-target";
+  errorKind?: "load" | "unsupported" | "context-lost" | "missing-target" | "too-large";
   placeholder?: boolean;
 };
 
@@ -43,10 +46,10 @@ export const VIEWER_EVENT_TYPE = "aarvasa:viewer";
 /** Slugs and ids only: lowercase letters, digits and hyphens. */
 const SAFE_ID = /^[a-z0-9][a-z0-9-]{0,79}$/;
 const ENUMS: Partial<Record<keyof ViewerEventProps, readonly string[]>> = {
-  mode: ["model", "panorama"],
+  mode: ["model", "panorama", "splat"],
   hotspotType: ["navigation", "info"],
   via: ["hotspot", "selector"],
-  errorKind: ["load", "unsupported", "context-lost", "missing-target"],
+  errorKind: ["load", "unsupported", "context-lost", "missing-target", "too-large"],
 };
 const ID_KEYS = ["project", "sceneId", "fromSceneId", "toSceneId", "hotspotId"] as const;
 

@@ -48,7 +48,15 @@
     "../src/lib/viewer/panorama-fixtures.ts",
     "../src/lib/viewer/published-panoramas.ts",
     "../src/lib/viewer/project-tour.ts",
-    "../src/lib/viewer/project-media.ts"
+    "../src/lib/viewer/project-media.ts",
+    "../src/lib/viewer/sog-bundle.ts",
+    "../src/lib/viewer/splat-budget.ts",
+    "../src/lib/viewer/splat-download.ts",
+    "../src/lib/viewer/splat-fixtures.ts",
+    "../src/lib/viewer/published-splats.ts",
+    "../src/lib/viewer/project-splat.ts",
+    "../src/lib/viewer/immersive-modes.ts",
+    "../src/lib/viewer/render-demand.ts"
   ],
   "exclude": ["node_modules", "dist", "cdk.out"]
 }

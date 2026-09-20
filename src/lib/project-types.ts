@@ -91,6 +91,26 @@ export type ProjectPanoramaTour = {
   scenes: ProjectTourScene[];
 };
 
+/**
+ * A project's Gaussian splat scene (Phase 7). "published" names a MediaAsset
+ * (kind SPLAT, format SOG) of this project, shown only once it is PUBLISHED;
+ * "fixture" is the generated development test scene
+ * (src/lib/viewer/splat-fixtures.ts), never shown in production.
+ * Mapped for the viewer in src/lib/viewer/project-splat.ts.
+ */
+export type ProjectSplatMedia = {
+  label: string;
+  /** Same meaning as ProjectImmersiveMedia.review: "placeholder" scenes never reach production. */
+  review: "placeholder" | "approved";
+  scene: { source: "published"; mediaAssetId: string } | { source: "fixture"; fixture: string };
+  /** Screen-reader description. Published assets fall back to their reviewed alt text. */
+  alt?: string;
+  /** "y-down" for captures still in the original 3DGS/COLMAP frame. Default "y-up". */
+  upAxis?: "y-up" | "y-down";
+  /** Opening orbit; distance is a multiple of the scene's bounding radius. */
+  initialView?: { yawDeg: number; pitchDeg: number; distanceFactor: number };
+};
+
 export type Project = {
   slug: string;
   name: string;
@@ -137,4 +157,6 @@ export type Project = {
   immersive?: ProjectImmersiveMedia;
   /** Optional 360° panoramic tour. Absent for most projects. */
   tour?: ProjectPanoramaTour;
+  /** Optional Gaussian splat scene. Absent for most projects. */
+  splat?: ProjectSplatMedia;
 };

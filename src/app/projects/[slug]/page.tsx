@@ -19,6 +19,7 @@ import type { Project } from "@/lib/project-types";
 import { formatCurrency, inrEstimate, AED_TO_INR } from "@/lib/currency";
 import { projectViewerConfig } from "@/lib/viewer/project-media";
 import { loadProjectTour } from "@/lib/services/project-panoramas";
+import { loadProjectSplat } from "@/lib/services/project-splats";
 import ImmersiveSection from "./immersive-section";
 
 // Only slugs from generateStaticParams resolve; anything else 404s at the routing
@@ -77,7 +78,7 @@ export default async function ProjectPage({
   const hero = project.images[0] ?? null;
   const isPlots = project.kind === "plots";
   const viewer = projectViewerConfig(project);
-  const tour = await loadProjectTour(project);
+  const [tour, splat] = await Promise.all([loadProjectTour(project), loadProjectSplat(project)]);
 
   return (
     <div className="min-h-screen pb-24">
@@ -355,7 +356,9 @@ export default async function ProjectPage({
         )}
 
         {/* Explore in 3D — optional progressive enhancement; the photography above and below stays primary */}
-        {(viewer || tour) && <ImmersiveSection viewer={viewer} tour={tour} projectName={project.name} projectSlug={project.slug} />}
+        {(viewer || tour || splat) && (
+          <ImmersiveSection viewer={viewer} tour={tour} splat={splat} projectName={project.name} projectSlug={project.slug} />
+        )}
 
         {/* Gallery */}
         {project.images.length > 1 && (

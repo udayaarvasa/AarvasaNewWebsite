@@ -751,7 +751,8 @@ npx cdk deploy AarvasaMediaDev-Processing -c aarvasa:accountId=<dev-account-id> 
 Phase 6 puts approved media on project pages: the existing 3D model viewer, plus
 360° panoramic tours with hotspots and room-to-room navigation. It adds no AWS
 resources, no database model and no migration, and does not change upload,
-processing or review. Gaussian splats, AR, VR and WebXR are **not** implemented.
+processing or review. Gaussian splats were not part of Phase 6 (they are Phase 7,
+§16). AR, VR and WebXR are **not** implemented.
 
 ### Architecture
 
@@ -962,3 +963,221 @@ committed and no customer asset was uploaded.
 - Panoramas are single images; very large sources are downscaled on the client
   rather than tiled.
 - Analytics events are dispatched locally only; no collector is wired up.
+
+## 16. Gaussian splat rendering (Phase 7)
+
+Phase 7 renders published Gaussian splat scenes (bundled SOG) in the existing
+viewer and offers them on project pages as a third experience, **3D scan**. It
+adds no AWS resources, no database model or migration, and no upload path; SOG
+uploads, validation, processing, review and publishing are the Phase 2B-2 / 5
+workflow unchanged. AR, VR and WebXR are **not** implemented; the WebGL context
+is created with `xrCompatible: false`.
+
+**Validation vs rendering.** Phase 2B-2 (`infra/src/pipeline/sog.ts`) validates
+SOG bundles before publication: archive hygiene, meta.json, lossless WebP
+attributes, budgets, `streamingCandidate`. Phase 7 adds runtime *rendering*, plus
+a narrow in-browser pre-check (`src/lib/viewer/sog-bundle.ts`) of every download.
+
+### PlayCanvas runtime (engine 2.22.2, as installed)
+
+Native support, no third-party renderer, decoder, WASM or extra `lib/` assets:
+
+| Piece | API |
+|---|---|
+| Component system | `GSplatComponentSystem` (id `gsplat`; creates `app.renderer.gsplatDirector`; events `frame:request`, `frame:ready`) |
+| Loader | `GSplatHandler` (asset type `gsplat`) with parsers `SogBundleParser` (`.sog` ZIP), `SogParser` (unbundled `meta.json`), `PlyParser` (`.ply`), `GSplatOctreeParser` (`lod-meta.json` streaming) |
+| Scene | `entity.addComponent("gsplat", { asset })`; unified renderer (default) with `app.scene.gsplat` params (`splatBudget`, …) |
+| Data | `GSplatSogData` / `GSplatSogResource`: attribute textures (RGBA8), a 256×1 RGBA32F codebook texture (v2), centres generated on the GPU into an RGBA32U target |
+| Sorting | CPU sort in a Web Worker created from a Blob URL (WebGL 2); results arrive asynchronously |
+| Shaders | Built in (GLSL and WGSL chunks registered by the component system) |
+
+Requirements: WebGL 2 (float textures sampled with NEAREST, integer render
+targets, workers, `DecompressionStream`, `createImageBitmap` for WebP). The
+viewer already refuses to load anything without WebGL 2.
+
+**Supported format:** one bundled `.sog` file (ZIP, stored or deflate, no ZIP64,
+no archive comment) containing `meta.json` **v2** (`version: 2`, `count`,
+256-entry codebooks for `scales`, `sh0` and optional `shN`) or **v1**
+(`means.shape`, min/max ranges), and lossless WebP attribute images
+(`means_l/means_u`, `quats`, `scales`, `sh0`, optional `shN` centroids/labels).
+Any other version is refused ("unsupported SOG version"). Not supported in
+Phase 7: `.ply`, unbundled `meta.json` + files, streamed LOD (`lod-meta.json`).
+
+### Architecture
+
+```
+MediaAsset (PUBLISHED, SPLAT, SOG, this project)      project data (src/lib/projects.ts)
+   │ publishedSplatQuery (allow-listed columns)            │ Project.splat: scene = published id | dev fixture
+   ▼                                                       ▼
+toPublishedSplat ─────────► projectSplatConfig (server) ─► { label, alt, source{kind:"splat"}, poster, placeholder }
+                                                              │ (props; no DB rows, no keys)
+ImmersiveSection → ImmersiveExperience tabs → SplatViewer (budget gate) → Aarvasa3DViewer
+   → create-engine setSource(kind "splat") → import("./splat") → downloadSog (capped, abortable)
+   → inspectSogBundle → assessSplat → GSplatHandler/Asset → Entity + gsplat → OrbitControls
+```
+
+New files: `src/lib/viewer/{sog-bundle,splat-budget,splat-download,splat-fixtures,published-splats,project-splat,immersive-modes}.ts`,
+`src/lib/viewer/playcanvas/splat.ts`, `src/components/viewer/splat-viewer.tsx`,
+`src/lib/services/project-splats.ts`, `src/app/labs/splats/[file]/route.ts`.
+
+The engine's splat support (component system, handler, workers) is registered
+on the first splat load only, from a separately loaded chunk, so model and
+panorama viewers neither download nor construct it.
+
+### Source contract
+
+```ts
+{
+  kind: "splat",
+  url: string,                              // same-origin .sog, or https://{media CDN}/m/{id}/{hash}/{file}.sog
+  initialView: { yawDeg, pitchDeg, distanceFactor },   // distance × scene bounding radius
+  upAxis: "y-up" | "y-down",                // y-down rotates 180° about X (original 3DGS/COLMAP frame)
+  sizeBytes: number | null,                 // published metadata, checked before download
+  gaussians: number | null,                 // Phase 2B-2 metrics.gaussians
+}
+```
+
+`resolveSplatUrl` applies the model/panorama policy with the `.sog` extension:
+review/, uploads/, originals/, other hosts, `http:`, query strings (presigned
+URLs), fragments, credentials, traversal (plain or encoded), protocol-relative,
+backslash, `javascript:`, `data:`, `blob:`, `.ply` and `meta.json` URLs are all
+refused. `sanitizeSplatSource` rebuilds descriptors field by field. Scene bounds
+come from the bundle itself (meta.json means min/max), so the descriptor does
+not carry them.
+
+### Runtime pre-check (every download)
+
+PlayCanvas's bundle parser fetches any file meta.json names but the ZIP lacks,
+**relative to the page**, and reads the ZIP end record only at the very end of
+the file. `inspectSogBundle` therefore requires: the end record last; ≤ 64 flat,
+safely named, unencrypted, non-duplicate entries with in-range data; a
+parseable meta.json ≤ 1 MB (deflate via `DecompressionStream`); version 1 or 2;
+a positive integer count; valid position bounds; 256-entry v2 codebooks; and
+every referenced file present in the bundle as a `.webp` entry. Failures show
+"damaged or not a supported SOG bundle" or "unsupported SOG version".
+
+### Public media gating
+
+Server-only, like tours. The page looks up only the id a project names, and
+only `status = PUBLISHED`, `kind = SPLAT`, `format = SOG`,
+`subjectType = PROJECT`, `projectSlug = this project`, selecting `id, status,
+kind, format, subjectType, projectSlug, storageKey, entryFile, posterKey,
+altText, sizeBytes, metrics, dimensions, viewDefaults`. `toPublishedSplat`
+re-checks status, kind, format, subject, the key contract (`m/{id}/…/*.sog`,
+`application/zip`), alt text and size ≤ 80 MB; a poster is used only if it is an
+image key inside the asset's version directory with recorded dimensions. The
+browser receives a `ProjectSplatConfig` (label, alt, descriptor, poster URL,
+placeholder flag) — never a row, `sourceKey`, review key, diagnostics or reviewer
+ids. Placeholder configurations and fixtures never reach production builds, and
+production has no media origin yet, so production shows no splats. Pages are
+statically generated: publication changes appear on the next build.
+
+### Camera and controls
+
+Orbit around the scene's bounding-sphere centre (`OrbitControls`, now framable
+per content): drag (mouse, pen, touch), pinch and wheel zoom, arrow keys and
++/−, zoom and reset buttons, fullscreen. Limits: pitch −30° to 80°, distance
+0.15–6 × the bounding radius; clip planes scale with the scene (near 0.005 R,
+far 10 R) and are restored to the model defaults when other content is shown.
+No auto-rotation; reduced motion removes easing.
+
+### Memory and performance
+
+- Nothing loads until the visitor picks **3D scan** and presses **Open 3D scan**
+  (poster first when the asset has one); splats are never preloaded.
+- The download is capped (80 MB, or 50 MB on constrained devices), refused early
+  when Content-Length is over the cap, abortable, and uses `credentials: "omit"`.
+- The size/count budget is applied twice: from published metadata before
+  download (`SplatViewer`), and from the real byte size and meta.json count
+  before anything reaches the GPU (`loadSplat`).
+- One scene at a time: switching or closing destroys the entity, removes and
+  unloads the asset (textures, codebook, centres) and terminates its sort worker;
+  the downloaded bytes are released once the parser has uploaded them.
+- Stale loads (rapid switching, close during load) are aborted at download,
+  parse or upload through the existing `LoadGate`; a late result is destroyed.
+- Render on demand as before (DPR ≤ 2, pause off-screen or hidden). Because
+  sorting finishes in a worker, the engine keeps drawing while the splat
+  renderer reports `frame:request` or a `frame:ready` that is not yet ready.
+- `app.scene.gsplat.splatBudget` is set to the device's gaussian target; for a
+  single SOG it only sizes the allocator (it governs LOD streaming).
+
+### Mobile and scene-size limits
+
+Budgets are the Phase 2B-2 ones (`src/lib/viewer/splat-budget.ts`, kept equal to
+`infra/src/media-budgets.ts` by a test). A device is **constrained** when its
+primary pointer is coarse or it reports `navigator.deviceMemory` ≤ 4 GB.
+
+| Scene | Standard device | Constrained device |
+|---|---|---|
+| ≤ 20 MB and ≤ 1M splats | opens | opens |
+| ≤ 50 MB and ≤ 3M splats | opens | warning, "Load anyway" |
+| > 50 MB or > 3M splats (≤ 80 MB) | warning, "Load anyway" | refused before download |
+| > 80 MB | refused | refused |
+
+Unknown size or count is checked after download, before GPU upload. These are
+review thresholds, not measured device limits; real-device testing is
+outstanding. **Streaming is not supported in Phase 7.** The installed engine
+can stream LOD octrees (`lod-meta.json`), but the published contract is a
+single `.sog` file; scenes the pipeline flags `streamingCandidate` must stay
+under the limits above or wait for streamed delivery.
+
+### Failure behaviour
+
+Each failure stays inside the viewer frame; the rest of the page is unaffected.
+No WebGL 2: explanation, no download. HTTP failure, wrong content type,
+malformed, corrupt or unsupported-version SOG: "Couldn't load the 3D scan" with
+the reason and **Try again**. Too heavy: the gate above. Context loss: the
+existing restore flow. Rapid open/close or mode switching: previous loads are
+aborted.
+
+### Accessibility and analytics
+
+Labelled canvas (orbit keys, zoom keys), labelled zoom/reset/fullscreen/close
+buttons, tabs with arrow-key support, loading/ready/error announcements
+(`aria-live`), visible focus. Events: `splat_opened`, `splat_loaded`,
+`splat_error` (`errorKind` `load` | `unsupported` | `too-large`), plus
+`viewer_mode_selected`/`viewer_opened` with `mode: "splat"`; project slug and
+fixed enums only.
+
+### Development fixture
+
+`/labs/splats/test-scene.sog` (404 in production) is generated from code
+(`src/lib/viewer/splat-fixtures.ts`) as a real SOG v2 bundle (~13 KB, ≈3.6k
+splats): a grey checkered disc, an orange tower outline and red/green/blue axis
+markers for +X/+Y/+Z. It passes the Phase 2B-2 validator and depicts no real
+place; no binary is committed. REEF 996 uses it as a labelled placeholder.
+
+### How to add a published splat to a project
+
+1. Export the capture as a bundled `.sog` (for example with PlayCanvas
+   SuperSplat / splat-transform), within the budgets above.
+2. Upload it in Admin → Media for the project as a Gaussian splat, with alt
+   text; let it process (Phase 2B-2 validation) and approve it. Add a poster
+   sidecar if you have one (headless splat posters are not generated).
+3. In `src/lib/projects.ts`, add to `SPLAT_BY_SLUG`:
+
+```ts
+const EXAMPLE_SPLAT: ProjectSplatMedia = {
+  label: "Show apartment 3D scan",
+  review: "approved",
+  scene: { source: "published", mediaAssetId: "cm1abcd2ef3gh4" },
+  upAxis: "y-down",                                        // only if the scene appears upside down
+  initialView: { yawDeg: 30, pitchDeg: 15, distanceFactor: 1.8 }, // optional
+};
+```
+
+4. Run `npm test` in `infra/` and rebuild.
+
+### Known limitations
+
+- Not DEV-validated (no DEV database; nothing published) and not deployed;
+  validated locally with the generated fixture only.
+- Real-device testing (iOS Safari, Android Chrome, low-memory devices) is
+  outstanding; mobile was checked in desktop-browser emulation.
+- No streaming/LOD, no `.ply`, no multi-file SOG; one scene per project.
+- The size gate uses published metadata and simple device signals; it cannot
+  measure free GPU memory. iOS Safari does not expose `deviceMemory`.
+- No per-asset rotation beyond `upAxis`; `viewDefaults.distance` (absolute) is
+  ignored in favour of `distanceFactor`.
+- Headless splat posters are not generated; without a sidecar poster the viewer
+  shows its neutral placeholder.

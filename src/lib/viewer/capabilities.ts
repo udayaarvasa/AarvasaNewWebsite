@@ -1,3 +1,5 @@
+import { classifyDevice, type DeviceClass } from "./splat-budget";
+
 /**
  * Browser capability checks for the 3D viewer. Every function is safe to call
  * during server rendering, where it reports "not supported" / defaults.
@@ -70,4 +72,13 @@ export function subscribeFullscreen(onChange: () => void): () => void {
   if (!isBrowser()) return () => {};
   document.addEventListener("fullscreenchange", onChange);
   return () => document.removeEventListener("fullscreenchange", onChange);
+}
+
+/** Device class for splat budgets; see classifyDevice. "standard" during server rendering. */
+export function detectDeviceClass(): DeviceClass {
+  if (!isBrowser()) return "standard";
+  return classifyDevice({
+    coarsePointer: window.matchMedia("(pointer: coarse)").matches,
+    deviceMemoryGb: (navigator as Navigator & { deviceMemory?: number }).deviceMemory ?? null,
+  });
 }

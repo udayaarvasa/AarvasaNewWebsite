@@ -4,7 +4,9 @@ import dynamic from "next/dynamic";
 import { useCallback, useRef, useState, type KeyboardEvent } from "react";
 import { cn } from "@/lib/utils";
 import { trackViewerEvent } from "@/lib/viewer/analytics";
+import { IMMERSIVE_MODE_LABELS, immersiveModes, type ImmersiveMode } from "@/lib/viewer/immersive-modes";
 import type { ProjectViewerConfig } from "@/lib/viewer/project-media";
+import type { ProjectSplatConfig } from "@/lib/viewer/project-splat";
 import type { PanoramaTour } from "@/lib/viewer/tour";
 import type { ViewerStatus } from "@/lib/viewer/types";
 
@@ -20,25 +22,29 @@ export const ImmersiveViewer = dynamic(() =>
 
 const PanoramaTourViewer = dynamic(() => import("@/components/viewer/panorama-tour").then((m) => m.PanoramaTourViewer));
 
-type Mode = "model" | "panorama";
+const SplatViewer = dynamic(() => import("@/components/viewer/splat-viewer").then((m) => m.SplatViewer));
 
-const TAB_LABELS: Record<Mode, string> = { model: "3D model", panorama: "360° tour" };
+type Mode = ImmersiveMode;
+const TAB_LABELS = IMMERSIVE_MODE_LABELS;
 
 /**
- * The project page's immersive area: a 3D model, a 360° tour, or both behind
- * tabs. Only the selected experience is mounted, and each waits for the visitor
- * to open it, so nothing is downloaded automatically and never both at once.
+ * The project page's immersive area: any of a 3D model, a 360° tour and a
+ * Gaussian splat scan, behind one row of tabs when there is more than one. Only
+ * the selected experience is mounted, and each waits for the visitor to open
+ * it, so nothing is downloaded automatically and never two at once.
  */
 export function ImmersiveExperience({
   model,
   tour,
+  splat = null,
   analyticsId,
 }: {
   model: ProjectViewerConfig | null;
   tour: PanoramaTour | null;
+  splat?: ProjectSplatConfig | null;
   analyticsId: string;
 }) {
-  const modes: Mode[] = [...(model ? (["model"] as const) : []), ...(tour ? (["panorama"] as const) : [])];
+  const modes = immersiveModes({ model, tour, splat });
   const [mode, setMode] = useState<Mode>(modes[0] ?? "model");
   // Remounting a viewer returns it to its idle, not-downloaded state (used by "Close tour").
   const [generation, setGeneration] = useState(0);
@@ -57,6 +63,11 @@ export function ImmersiveExperience({
   );
   const onModelStatus = useCallback((status: ViewerStatus) => report("model", status), [report]);
   const onTourStatus = useCallback((status: ViewerStatus) => report("panorama", status), [report]);
+  const onSplatStatus = useCallback((status: ViewerStatus) => report("splat", status), [report]);
+  const exit = () => {
+    lastStatus.current = "idle";
+    setGeneration((n) => n + 1);
+  };
 
   const select = (next: Mode) => {
     if (next === mode) return;
@@ -88,16 +99,17 @@ export function ImmersiveExperience({
         loadOn="interaction"
         onStatusChange={onModelStatus}
       />
-    ) : tour ? (
-      <PanoramaTourViewer
-        key={`tour-${generation}`}
-        tour={tour}
+    ) : active === "panorama" && tour ? (
+      <PanoramaTourViewer key={`tour-${generation}`} tour={tour} analyticsId={analyticsId} onStatusChange={onTourStatus} onExit={exit} />
+    ) : active === "splat" && splat ? (
+      <SplatViewer
+        key={`splat-${generation}`}
+        label={splat.label}
+        source={splat.source}
+        poster={splat.poster ?? undefined}
         analyticsId={analyticsId}
-        onStatusChange={onTourStatus}
-        onExit={() => {
-          lastStatus.current = "idle";
-          setGeneration((n) => n + 1);
-        }}
+        onStatusChange={onSplatStatus}
+        onExit={exit}
       />
     ) : null;
 

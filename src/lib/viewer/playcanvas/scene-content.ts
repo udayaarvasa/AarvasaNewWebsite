@@ -20,6 +20,12 @@ export type SceneContent = {
   /** World-space bounds; only valid once `root` is in the scene graph. */
   bounds(): { center: Vec3; radius: number };
   applyTheme(theme: ViewerTheme): void;
+  /**
+   * Keep rendering this long after the content appears, the camera stops or the
+   * viewer becomes visible again. Splats need it: their sort finishes in a worker,
+   * after the frame that started it.
+   */
+  settleMs?: number;
   /** Creates the controls that suit this content; called once it is in the scene graph. */
   createControls(camera: Entity, element: HTMLElement, onChange: () => void): ViewerControls;
   /** Releases everything this content created (entities, materials, textures, assets). */

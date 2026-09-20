@@ -12,6 +12,26 @@ const SETTLED = 1e-4;
 
 type Pose = { yaw: number; pitch: number; distance: number };
 
+/** Opening pose and limits for `frame`; distances are multiples of the content's radius. Defaults suit a standalone model. */
+export type OrbitFraming = {
+  yawDeg: number;
+  pitchDeg: number;
+  distanceFactor: number;
+  minPitchDeg: number;
+  maxPitchDeg: number;
+  minDistanceFactor: number;
+  maxDistanceFactor: number;
+};
+
+const MODEL_FRAMING: OrbitFraming = {
+  yawDeg: 35,
+  pitchDeg: 25,
+  distanceFactor: 2.8,
+  minPitchDeg: MIN_PITCH / DEG,
+  maxPitchDeg: MAX_PITCH / DEG,
+  minDistanceFactor: 0.6,
+  maxDistanceFactor: 8,
+};
 
 const clamp = (v: number, min: number, max: number) => Math.min(max, Math.max(min, v));
 
@@ -27,6 +47,8 @@ export class OrbitControls implements ViewerControls {
   private home: Pose = { ...this.current };
   private minDistance = 0.5;
   private maxDistance = 50;
+  private minPitch = MIN_PITCH;
+  private maxPitch = MAX_PITCH;
 
   private readonly pointers = new Map<number, { x: number; y: number }>();
   private pinchDistance = 0;
@@ -69,11 +91,18 @@ export class OrbitControls implements ViewerControls {
   }
 
   /** Centres the orbit on content and makes that framing the reset pose. */
-  frame(center: Vec3, radius: number): void {
+  frame(center: Vec3, radius: number, framing: Partial<OrbitFraming> = {}): void {
+    const f = { ...MODEL_FRAMING, ...framing };
     this.target.copy(center);
-    this.minDistance = radius * 0.6;
-    this.maxDistance = radius * 8;
-    this.home = { yaw: 35 * DEG, pitch: 25 * DEG, distance: radius * 2.8 };
+    this.minDistance = radius * f.minDistanceFactor;
+    this.maxDistance = radius * f.maxDistanceFactor;
+    this.minPitch = f.minPitchDeg * DEG;
+    this.maxPitch = f.maxPitchDeg * DEG;
+    this.home = {
+      yaw: f.yawDeg * DEG,
+      pitch: clamp(f.pitchDeg * DEG, this.minPitch, this.maxPitch),
+      distance: clamp(radius * f.distanceFactor, this.minDistance, this.maxDistance),
+    };
     Object.assign(this.goal, this.home);
     Object.assign(this.current, this.home);
     this.apply();
@@ -122,7 +151,7 @@ export class OrbitControls implements ViewerControls {
 
   private rotate(dYaw: number, dPitch: number): void {
     this.goal.yaw += dYaw;
-    this.goal.pitch = clamp(this.goal.pitch + dPitch, MIN_PITCH, MAX_PITCH);
+    this.goal.pitch = clamp(this.goal.pitch + dPitch, this.minPitch, this.maxPitch);
     this.onChange();
   }
 

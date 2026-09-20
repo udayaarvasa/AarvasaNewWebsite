@@ -1,4 +1,4 @@
-import type { Project, ProjectImmersiveMedia, ProjectPanoramaTour } from "./project-types";
+import type { Project, ProjectImmersiveMedia, ProjectPanoramaTour, ProjectSplatMedia } from "./project-types";
 import { reefProjects } from "./reef-projects";
 
 /**
@@ -211,6 +211,25 @@ const TOUR_BY_SLUG: Readonly<Record<string, ProjectPanoramaTour>> = {
   "reef-996-dubai-production-city": REEF_996_PILOT_TOUR,
 };
 
+/**
+ * Development pilot for Gaussian splat rendering (Phase 7): the generated test
+ * scene (src/lib/viewer/splat-fixtures.ts), not a scan of REEF 996. As a
+ * "placeholder" it never reaches production builds. For a real scan, use
+ * { source: "published", mediaAssetId } once that SOG is PUBLISHED, and set
+ * review to "approved".
+ */
+const REEF_996_PILOT_SPLAT: ProjectSplatMedia = {
+  label: "Pilot 3D scan for REEF 996",
+  review: "placeholder",
+  scene: { source: "fixture", fixture: "test-scene" },
+  alt: "Placeholder Gaussian splat test scene: a grey disc, an orange tower outline and red, green and blue axis markers. Not a scan of REEF 996.",
+  initialView: { yawDeg: 35, pitchDeg: 20, distanceFactor: 1.6 },
+};
+
+const SPLAT_BY_SLUG: Readonly<Record<string, ProjectSplatMedia>> = {
+  "reef-996-dubai-production-city": REEF_996_PILOT_SPLAT,
+};
+
 // reef-projects.ts is generated, so immersive media is attached here instead.
 const IMMERSIVE_BY_SLUG: Readonly<Record<string, ProjectImmersiveMedia>> = {
   "reef-996-dubai-production-city": REEF_996_PILOT_MEDIA,
@@ -224,6 +243,7 @@ export const projects: Project[] = [
   ...p,
   ...(IMMERSIVE_BY_SLUG[p.slug] ? { immersive: IMMERSIVE_BY_SLUG[p.slug] } : {}),
   ...(TOUR_BY_SLUG[p.slug] ? { tour: TOUR_BY_SLUG[p.slug] } : {}),
+  ...(SPLAT_BY_SLUG[p.slug] ? { splat: SPLAT_BY_SLUG[p.slug] } : {}),
 }));
 
 /** Live on the site. Set per project rather than inferred from imagery. */

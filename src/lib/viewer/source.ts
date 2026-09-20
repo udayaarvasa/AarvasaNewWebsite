@@ -1,4 +1,4 @@
-import type { PanoramaView, ViewerSource } from "./types";
+import type { PanoramaView, SplatView, ViewerSource } from "./types";
 
 /**
  * Published media keys, m/{mediaId}/{hash}/{file}: the same expression as
@@ -11,6 +11,7 @@ export const VIEWER_MEDIA_KEY_PATTERN =
 
 const MODEL_EXTENSIONS = [".glb"] as const;
 const PANORAMA_EXTENSIONS = [".jpg", ".jpeg", ".webp"] as const;
+const SPLAT_EXTENSIONS = [".sog"] as const;
 
 /**
  * The only URLs the viewer will fetch: same-origin, root-relative paths, or
@@ -66,6 +67,11 @@ export function resolvePanoramaUrl(url: string, origin: string, cdnOrigins: read
   return resolveMediaUrl(url, origin, cdnOrigins, PANORAMA_EXTENSIONS);
 }
 
+/** A bundled SOG (`.sog`) Gaussian splat URL the viewer may load, or null. */
+export function resolveSplatUrl(url: string, origin: string, cdnOrigins: readonly string[]): string | null {
+  return resolveMediaUrl(url, origin, cdnOrigins, SPLAT_EXTENSIONS);
+}
+
 export const PANORAMA_LIMITS = {
   minPitchDeg: -85,
   maxPitchDeg: 85,
@@ -91,6 +97,52 @@ export function isValidView(view: unknown): view is PanoramaView {
   return !!v && finite(v.yawDeg) && finite(v.pitchDeg) && finite(v.fovDeg);
 }
 
+export const SPLAT_VIEW_LIMITS = {
+  minPitchDeg: -30,
+  maxPitchDeg: 80,
+  /** Closest and farthest camera, as multiples of the scene's bounding radius. */
+  minDistanceFactor: 0.15,
+  maxDistanceFactor: 6,
+  defaultView: { yawDeg: 35, pitchDeg: 20, distanceFactor: 2.2 },
+} as const;
+
+export function isValidSplatView(view: unknown): view is SplatView {
+  const v = view as Partial<SplatView> | null;
+  return !!v && finite(v.yawDeg) && finite(v.pitchDeg) && finite(v.distanceFactor);
+}
+
+/** Normalises yaw to (−180, 180] and clamps pitch and distance to what the splat controls allow. */
+export function normalizeSplatView(view: SplatView): SplatView {
+  const yaw = ((((view.yawDeg + 180) % 360) + 360) % 360) - 180;
+  const L = SPLAT_VIEW_LIMITS;
+  return {
+    yawDeg: yaw === -180 ? 180 : yaw,
+    pitchDeg: Math.min(L.maxPitchDeg, Math.max(L.minPitchDeg, view.pitchDeg)),
+    distanceFactor: Math.min(L.maxDistanceFactor, Math.max(L.minDistanceFactor, view.distanceFactor)),
+  };
+}
+
+const nonNegativeInt = (v: unknown): number | null => (typeof v === "number" && Number.isSafeInteger(v) && v >= 0 ? v : null);
+
+/**
+ * Rebuilds a splat descriptor from untrusted input (a parsed source key or
+ * server data), keeping only known fields. The URL is checked later, against
+ * the page's origin and CDN, by `resolveSplatUrl`.
+ */
+export function sanitizeSplatSource(input: unknown): Extract<ViewerSource, { kind: "splat" }> | undefined {
+  const v = input as Record<string, unknown> | null;
+  if (!v || typeof v !== "object" || v.kind !== "splat" || typeof v.url !== "string" || v.url.length === 0) return undefined;
+  if (v.upAxis !== undefined && v.upAxis !== "y-up" && v.upAxis !== "y-down") return undefined;
+  return {
+    kind: "splat",
+    url: v.url,
+    initialView: normalizeSplatView(isValidSplatView(v.initialView) ? v.initialView : SPLAT_VIEW_LIMITS.defaultView),
+    upAxis: v.upAxis === "y-down" ? "y-down" : "y-up",
+    sizeBytes: nonNegativeInt(v.sizeBytes),
+    gaussians: nonNegativeInt(v.gaussians),
+  };
+}
+
 const PROCEDURAL_KEY = "procedural";
 
 /**
@@ -106,6 +158,11 @@ export function sourceKey(source: ViewerSource | undefined): string {
       const { yawDeg, pitchDeg, fovDeg } = source.initialView;
       return `panorama:${yawDeg}|${pitchDeg}|${fovDeg}|${source.url}`;
     }
+    case "splat": {
+      // Fixed field order, so equal descriptors always give equal keys.
+      const { url, initialView, upAxis, sizeBytes, gaussians } = source;
+      return `splat:${JSON.stringify({ url, initialView: { yawDeg: initialView.yawDeg, pitchDeg: initialView.pitchDeg, distanceFactor: initialView.distanceFactor }, upAxis, sizeBytes, gaussians })}`;
+    }
   }
 }
 
@@ -116,6 +173,13 @@ export function sourceFromKey(key: string): ViewerSource | undefined {
     const initialView = { yawDeg: Number(yaw), pitchDeg: Number(pitch), fovDeg: Number(fov) };
     if (!isValidView(initialView) || rest.length === 0) return undefined;
     return { kind: "panorama", url: rest.join("|"), initialView };
+  }
+  if (key.startsWith("splat:")) {
+    try {
+      return sanitizeSplatSource({ ...JSON.parse(key.slice("splat:".length)), kind: "splat" });
+    } catch {
+      return undefined;
+    }
   }
   return undefined;
 }
