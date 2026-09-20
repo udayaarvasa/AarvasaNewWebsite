@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { Bodoni_Moda, IBM_Plex_Mono, Inter } from "next/font/google";
 import { Navbar } from "@/components/layout/navbar";
-import { ThemeProvider } from "@/components/layout/theme-provider";
+import { NavOverlayProvider } from "@/components/layout/nav-overlay";
 import { LuxuryFooter } from "@/components/shared/luxury-footer";
 import { SessionProvider } from "@/components/auth/session-provider";
 import { FloatingActions } from "@/components/shared/floating-actions";
@@ -49,13 +49,13 @@ export default function RootLayout({
     <html lang="en" className={`${bodoni.variable} ${inter.variable} ${plexMono.variable}`}>
       <body className="flex min-h-screen flex-col antialiased">
         <SessionProvider>
-          <ThemeProvider>
+          <NavOverlayProvider>
             <Navbar />
             <main className="flex-1">{children}</main>
             <LuxuryFooter />
             <FloatingActions />
             <Toaster position="top-center" />
-          </ThemeProvider>
+          </NavOverlayProvider>
         </SessionProvider>
       </body>
     </html>

@@ -4,44 +4,31 @@ import Image from "next/image";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { FormEvent, useEffect, useState } from "react";
-import {
-  BrainCircuit,
-  LayoutDashboard,
-  LogOut,
-  Menu,
-  Search,
-  Shield,
-  Sparkles,
-  X,
-} from "lucide-react";
-import { useSession, signOut } from "next-auth/react";
-import { Button } from "@/components/ui/button";
+import { LayoutDashboard, LogOut, Search, Shield, X } from "lucide-react";
+import { useSession } from "next-auth/react";
 import { cn } from "@/lib/utils";
-import { ThemeToggle } from "./theme-toggle";
+import { useNavOverlay } from "./nav-overlay";
 
-type NavLink = {
-  href: string;
-  label: string;
-  match?: string[];
-  children?: { href: string; label: string }[];
-};
+/**
+ * Global navigation — one bar, three states.
+ *
+ *   default   solid paper, hairline rule
+ *   overlay   transparent over a stage hero, until 40px of scroll
+ *   drawer    full-screen paper navigation on small viewports
+ *
+ * There is no mega-menu and no persistent bottom tab bar: contextual actions
+ * belong to the page, not to the shell.
+ */
 
+type NavLink = { href: string; label: string; match?: string[] };
+
+// Blockchain stays routable but is unlinked: it is roadmap, not product.
 const navLinks: NavLink[] = [
-  { href: "/", label: "Home" },
-  { href: "/properties", label: "Properties", match: ["/properties", "/listings"] },
-  { href: "/blockchain", label: "Blockchain" },
-  {
-    href: "/services",
-    label: "Services",
-    children: [
-      { href: "/services#buyers", label: "For Buyers" },
-      { href: "/services#investors", label: "For Investors" },
-      { href: "/services#builders", label: "For Builders" },
-      { href: "/services#agents", label: "For Agents" },
-    ],
-  },
+  { href: "/listings", label: "Properties", match: ["/listings", "/properties", "/property", "/projects"] },
+  { href: "/ai-chat", label: "Advisor" },
   { href: "/agents", label: "Agents" },
   { href: "/about", label: "About" },
+  { href: "/services", label: "Services" },
   { href: "/contact", label: "Contact" },
 ];
 
@@ -52,115 +39,36 @@ function isActivePath(pathname: string, link: NavLink) {
   );
 }
 
-function DesktopNavLink({
-  link,
-  active,
-}: {
-  link: NavLink;
-  active: boolean;
-}) {
-  return (
-    <Link
-      href={link.href}
-      className={cn(
-        "group relative inline-flex h-10 items-center gap-1.5 rounded-full px-1 text-[13px] font-semibold transition-all duration-300 ease-out will-change-transform",
-        active
-          ? "text-[#50080E]"
-          : "text-[#50080E]/72 hover:-translate-y-0.5 hover:text-[#50080E]",
-      )}
-    >
-      <span className="relative z-10">{link.label}</span>
-      <span
-        className={cn(
-          "absolute inset-x-0 bottom-1 mx-auto h-0.5 rounded-full bg-[#D4AF37] transition-all duration-300",
-          active ? "w-full opacity-100 shadow-[0_0_16px_rgba(212,175,55,0.45)]" : "w-0 opacity-0 group-hover:w-full group-hover:opacity-100",
-        )}
-      />
-      <span className="absolute inset-0 -z-0 rounded-full bg-[#D4AF37]/0 transition-colors duration-300 group-hover:bg-[#D4AF37]/10" />
-    </Link>
-  );
-}
-
-function MobileNavLink({
-  link,
-  active,
-  onClick,
-}: {
-  link: NavLink;
-  active: boolean;
-  onClick: () => void;
-}) {
-  return (
-    <Link
-      href={link.href}
-      onClick={onClick}
-      className={cn(
-        "group flex items-center justify-between rounded-2xl border px-4 py-3 text-sm transition-all duration-300",
-        active
-          ? "border-[#D4AF37]/35 bg-[#D4AF37]/10 font-bold text-[#50080E] shadow-[0_10px_28px_rgba(212,175,55,0.12)]"
-          : "border-transparent font-semibold text-[#50080E]/82 hover:border-[#DCCDCE]/60 hover:bg-white/45 hover:text-[#50080E]",
-      )}
-    >
-      <span>{link.label}</span>
-      <span className="h-1.5 w-1.5 rounded-full bg-[#D4AF37]/0 transition-colors group-hover:bg-[#D4AF37]" />
-    </Link>
-  );
-}
-
-function LogoLockup() {
-  return (
-    <Link
-      href="/"
-      className="group flex min-w-0 items-center rounded-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#D4AF37]/70"
-      aria-label="Aarvasa home"
-    >
-      <Image
-        src="/aarvasa-navbar-logo.png"
-        alt="Aarvasa Logo"
-        width={653}
-        height={169}
-        sizes="(max-width: 640px) 164px, (max-width: 1024px) 184px, 206px"
-        className="h-10 w-auto max-w-[164px] transition-transform duration-300 group-hover:scale-[1.03] sm:h-11 sm:max-w-[184px] lg:h-12 lg:max-w-[206px]"
-        priority
-      />
-    </Link>
-  );
-}
-
 export function Navbar() {
   const pathname = usePathname();
   const router = useRouter();
+  const { overlay } = useNavOverlay();
   const [scrolled, setScrolled] = useState(false);
   const [open, setOpen] = useState(false);
-  const [searchOpen, setSearchOpen] = useState(false);
+  const [profileOpen, setProfileOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const { data: session, status } = useSession();
-  
+
   const user = session?.user;
   const authLoading = status === "loading";
-  const [profileOpen, setProfileOpen] = useState(false);
+  const role = (user as { role?: string } | undefined)?.role;
+  const floating = overlay && !scrolled;
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
-      const target = event.target as HTMLElement;
-      if (!target.closest("#user-profile-menu")) {
-        setProfileOpen(false);
-      }
+      if (!(event.target as HTMLElement).closest("#user-profile-menu")) setProfileOpen(false);
     };
-    if (profileOpen) {
-      document.addEventListener("click", handleClickOutside);
-    }
+    if (profileOpen) document.addEventListener("click", handleClickOutside);
     return () => document.removeEventListener("click", handleClickOutside);
   }, [profileOpen]);
 
   useEffect(() => {
     setProfileOpen(false);
-    setSearchOpen(false);
     setOpen(false);
   }, [pathname]);
 
   useEffect(() => {
-    const onScroll = () => setScrolled(window.scrollY > 18);
+    const onScroll = () => setScrolled(window.scrollY > 40);
     onScroll();
     window.addEventListener("scroll", onScroll, { passive: true });
     return () => window.removeEventListener("scroll", onScroll);
@@ -169,15 +77,23 @@ export function Navbar() {
   useEffect(() => {
     const onKeyDown = (event: KeyboardEvent) => {
       if (event.key === "Escape") {
-        setSearchOpen(false);
         setOpen(false);
         setProfileOpen(false);
       }
     };
-
     window.addEventListener("keydown", onKeyDown);
     return () => window.removeEventListener("keydown", onKeyDown);
   }, []);
+
+  // The drawer is a full screen: stop the page behind it from scrolling.
+  useEffect(() => {
+    if (!open) return;
+    const previous = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.body.style.overflow = previous;
+    };
+  }, [open]);
 
   const handleLogout = () => {
     window.location.href = "/api/auth/logout";
@@ -186,315 +102,295 @@ export function Navbar() {
   const handleSearch = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     const query = searchQuery.trim();
-
-    if (query) {
-      router.push(`/listings?search=${encodeURIComponent(query)}`);
-    } else {
-      router.push("/listings");
-    }
-
-    setSearchOpen(false);
+    router.push(query ? `/listings?search=${encodeURIComponent(query)}` : "/listings");
     setOpen(false);
   };
 
   return (
     <>
       <header
+        data-surface={floating ? "stage" : undefined}
         className={cn(
-          "fixed inset-x-0 top-0 z-50 px-2 pt-2 transition-all duration-300 sm:px-4",
-          scrolled ? "drop-shadow-[0_18px_42px_rgba(80,8,14,0.12)]" : "bg-transparent",
+          "sticky top-0 z-50 transition-colors duration-300",
+          floating
+            ? "absolute inset-x-0 border-b border-transparent bg-transparent"
+            : "border-b border-rule bg-paper",
         )}
       >
-        <div className="relative mx-auto max-w-7xl">
-          <div className="flex h-16 items-center justify-between gap-3 rounded-2xl border border-[#DCCDCE]/45 bg-[#F2F1ED]/92 px-4 shadow-luxury-sm backdrop-blur-2xl transition-all duration-300 sm:px-6 lg:h-[4.35rem] lg:px-7">
-            <div className="flex items-center justify-start flex-shrink-0">
-              <LogoLockup />
-            </div>
+        <div className="mx-auto flex h-[var(--nav-h)] max-w-[var(--container)] items-center gap-6 px-[var(--gutter)]">
+          <Link
+            href="/"
+            aria-label="Aarvasa home"
+            className="flex flex-shrink-0 items-center"
+          >
+            <Image
+              src="/aarvasa-navbar-logo.png"
+              alt="Aarvasa"
+              width={653}
+              height={169}
+              sizes="(max-width: 767px) 132px, 160px"
+              className={cn("h-8 w-auto", floating && "brightness-0 invert")}
+              priority
+            />
+          </Link>
 
-            <nav className="hidden min-w-0 flex-grow items-center justify-center gap-4 px-2 xl:flex xl:gap-5">
-              {navLinks.map((link) => (
-                <DesktopNavLink
+          <nav className="ml-4 hidden items-center gap-5 lg:flex">
+            {navLinks.map((link) => {
+              const active = isActivePath(pathname, link);
+              return (
+                <Link
                   key={link.href}
-                  link={link}
-                  active={isActivePath(pathname, link)}
-                />
-              ))}
-            </nav>
-
-            <div className="hidden items-center justify-end gap-2 xl:flex flex-shrink-0">
-              <Button
-                type="button"
-                variant="glass"
-                size="icon"
-                onClick={() => setSearchOpen((value) => !value)}
-                aria-label="Search properties"
-                aria-expanded={searchOpen}
-                className="h-10 w-10 rounded-full border-[#DCCDCE]/55 bg-white/35 text-[#50080E] shadow-luxury-sm hover:-translate-y-0.5 hover:border-[#D4AF37]/45 hover:bg-[#D4AF37]/10 hover:text-[#50080E]"
-              >
-                <Search className="h-4 w-4" />
-              </Button>
-
-              {!authLoading && user ? (
-                <div id="user-profile-menu" className="relative flex items-center gap-2">
-                  <button
-                    onClick={() => setProfileOpen((prev) => !prev)}
-                    className="flex h-10 w-10 items-center justify-center rounded-full bg-[#902941] text-sm font-bold text-white shadow-[0_8px_22px_rgba(80,8,14,0.18)] transition-all hover:scale-105 focus:outline-none focus:ring-2 focus:ring-[#D4AF37]/75 cursor-pointer"
-                    aria-label="User profile menu"
-                    aria-expanded={profileOpen}
-                  >
-                    {user.name ? user.name.charAt(0).toUpperCase() : "A"}
-                  </button>
-
-                  {profileOpen && (
-                    <div className="absolute right-0 top-[calc(100%+0.5rem)] w-56 origin-top-right rounded-2xl border border-[#DCCDCE]/55 bg-[#F2F1ED]/96 p-2 shadow-luxury-lg backdrop-blur-2xl animate-fade-up z-50">
-                      <div className="px-3 py-2">
-                        <p className="text-[10px] font-bold uppercase tracking-wider text-[#50080E]/60">Logged in as</p>
-                        <p className="truncate text-sm font-bold text-[#50080E]">{user.name || "User"}</p>
-                        <p className="truncate text-xs text-[#50080E]/70">{user.email}</p>
-                      </div>
-                      
-                      <div className="my-1 border-t border-[#DCCDCE]/45" />
-                      
-                      <Link
-                        href="/dashboard"
-                        className="flex w-full items-center gap-2.5 rounded-xl px-3 py-2 text-sm font-semibold text-[#50080E] transition-colors hover:bg-[#50080E]/5 hover:text-[#D4AF37]"
-                        onClick={() => setProfileOpen(false)}
-                      >
-                        <LayoutDashboard className="h-4 w-4 text-[#D4AF37]" />
-                        Dashboard
-                      </Link>
-                      
-                      {(user as any).role === "ADMIN" && (
-                        <Link
-                          href="/admin"
-                          className="flex w-full items-center gap-2.5 rounded-xl px-3 py-2 text-sm font-semibold text-[#50080E] transition-colors hover:bg-[#50080E]/5 hover:text-[#D4AF37]"
-                          onClick={() => setProfileOpen(false)}
-                        >
-                          <Shield className="h-4 w-4 text-[#D4AF37]" />
-                          Admin Panel
-                        </Link>
-                      )}
-                      
-                      <div className="my-1 border-t border-[#DCCDCE]/45" />
-                      
-                      <button
-                        onClick={() => {
-                          setProfileOpen(false);
-                          handleLogout();
-                        }}
-                        className="flex w-full items-center gap-2.5 rounded-xl px-3 py-2 text-sm font-semibold text-red-700/85 transition-colors hover:bg-red-500/10 hover:text-red-700 cursor-pointer"
-                      >
-                        <LogOut className="h-4 w-4 text-red-600" />
-                        Logout
-                      </button>
-                    </div>
+                  href={link.href}
+                  aria-current={active ? "page" : undefined}
+                  className={cn(
+                    "border-b border-transparent pb-[3px] text-[13px] font-medium transition-colors duration-200",
+                    floating
+                      ? "text-stage-ink/80 hover:text-stage-ink"
+                      : "text-ink-muted hover:text-ink",
+                    active && (floating ? "border-gold text-stage-ink" : "border-gold-ink text-ink"),
                   )}
-                </div>
-              ) : !authLoading ? (
-                <>
-                  <Button
-                    asChild
-                    variant="ghost"
-                    size="sm"
-                    className="rounded-full px-4 text-sm text-[#50080E] hover:bg-[#50080E]/5 hover:text-[#D4AF37]"
-                  >
-                    <Link href="/login">Login</Link>
-                  </Button>
-                  <Button
-                    asChild
-                    variant="gold"
-                    size="sm"
-                    className="rounded-full px-5 text-xs font-bold uppercase tracking-wider shadow-[0_10px_26px_rgba(212,175,55,0.26)]"
-                  >
-                    <Link href="/dashboard">
-                      <LayoutDashboard className="h-3.5 w-3.5" />
+                >
+                  {link.label}
+                </Link>
+              );
+            })}
+          </nav>
+
+          <div className="ml-auto flex items-center gap-3">
+            <form
+              onSubmit={handleSearch}
+              className={cn(
+                "hidden items-center gap-2 rounded-xs border px-3 py-[7px] xl:flex",
+                floating ? "border-stage-ink/30 bg-stage-ink/10" : "border-rule bg-paper-raised",
+              )}
+            >
+              <Search
+                className={cn("h-3.5 w-3.5 flex-shrink-0", floating ? "text-stage-muted" : "text-ink-muted")}
+                aria-hidden="true"
+              />
+              <label htmlFor="navbar-search" className="sr-only">
+                Search properties
+              </label>
+              <input
+                id="navbar-search"
+                value={searchQuery}
+                onChange={(event) => setSearchQuery(event.target.value)}
+                placeholder="City, project or developer"
+                className={cn(
+                  "w-[200px] min-w-0 bg-transparent text-[13px] outline-none",
+                  floating
+                    ? "text-stage-ink placeholder:text-stage-muted"
+                    : "text-ink placeholder:text-ink-muted",
+                )}
+              />
+            </form>
+
+            {!authLoading && user ? (
+              <div id="user-profile-menu" className="relative hidden lg:block">
+                <button
+                  type="button"
+                  onClick={() => setProfileOpen((prev) => !prev)}
+                  aria-label="Account menu"
+                  aria-expanded={profileOpen}
+                  className="flex h-9 w-9 items-center justify-center rounded-full bg-burgundy text-[13px] font-semibold text-paper"
+                >
+                  {user.name ? user.name.charAt(0).toUpperCase() : "A"}
+                </button>
+
+                {profileOpen && (
+                  <div className="absolute right-0 top-[calc(100%+8px)] z-50 w-60 rounded-sm border border-rule bg-paper-raised p-2 shadow-over">
+                    <div className="px-3 py-2">
+                      <p className="av-label text-ink-muted">Signed in as</p>
+                      <p className="truncate text-sm font-semibold text-ink">{user.name || "User"}</p>
+                      <p className="truncate text-xs text-ink-muted">{user.email}</p>
+                    </div>
+                    <div className="my-1 border-t border-rule" />
+                    <Link
+                      href="/dashboard"
+                      onClick={() => setProfileOpen(false)}
+                      className="flex items-center gap-2.5 rounded-xs px-3 py-2 text-sm text-ink transition-colors hover:bg-paper-sunken"
+                    >
+                      <LayoutDashboard className="h-4 w-4 text-ink-muted" />
                       Dashboard
                     </Link>
-                  </Button>
-                </>
-              ) : (
-                <div className="h-9 w-32 animate-pulse rounded-full bg-[#DCCDCE]/35" />
-              )}
-            </div>
-
-            <div className="flex items-center gap-2 xl:hidden">
-              <Button
-                type="button"
-                variant="glass"
-                size="icon"
-                onClick={() => setSearchOpen((value) => !value)}
-                aria-label="Search properties"
-                aria-expanded={searchOpen}
-                className="h-9 w-9 rounded-full bg-white/35 text-[#50080E]"
-              >
-                <Search className="h-4 w-4" />
-              </Button>
-              <Button
-                variant="glass"
-                size="icon"
-                onClick={() => setOpen((value) => !value)}
-                aria-label={open ? "Close navigation" : "Open navigation"}
-                aria-expanded={open}
-                className="h-9 w-9 rounded-full bg-white/35 text-[#50080E]"
-              >
-                {open ? <X className="h-4 w-4" /> : <Menu className="h-4 w-4" />}
-              </Button>
-            </div>
-          </div>
-
-          {searchOpen ? (
-            <div className="absolute right-0 top-[calc(100%+0.5rem)] w-full max-w-md animate-fade-up rounded-2xl border border-[#DCCDCE]/55 bg-[#F2F1ED]/96 p-3 shadow-luxury-lg backdrop-blur-2xl sm:right-2">
-              <form onSubmit={handleSearch} className="flex items-center gap-2">
-                <label htmlFor="navbar-search" className="sr-only">
-                  Search properties
-                </label>
-                <div className="flex min-w-0 flex-1 items-center gap-2 rounded-full border border-[#DCCDCE]/60 bg-white/60 px-4 py-2 text-[#50080E] shadow-inner">
-                  <Search className="h-4 w-4 flex-shrink-0 text-[#D4AF37]" aria-hidden="true" />
-                  <input
-                    id="navbar-search"
-                    value={searchQuery}
-                    onChange={(event) => setSearchQuery(event.target.value)}
-                    placeholder="Search city, ROI, property type"
-                    autoFocus
-                    className="min-w-0 flex-1 bg-transparent text-sm font-medium text-[#50080E] outline-none placeholder:text-[#72383D]/55"
-                  />
-                </div>
-                <Button type="submit" variant="gold" size="sm" className="rounded-full px-4">
-                  Search
-                </Button>
-              </form>
-            </div>
-          ) : null}
-
-          {open ? (
-            <div className="animate-fade-up xl:hidden">
-              <div className="mt-2 rounded-2xl border border-[#DCCDCE]/45 bg-[#F2F1ED]/97 p-3 shadow-luxury-lg backdrop-blur-2xl">
-                <div className="mb-3 flex items-center justify-between rounded-2xl border border-[#DCCDCE]/35 bg-white/35 px-4 py-3">
-                  <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-[0.18em] text-[#50080E]/70">
-                    <Sparkles className="h-3.5 w-3.5 text-[#D4AF37]" />
-                    Investor Navigation
-                  </div>
-                  <div className="rounded-full bg-[#50080E] p-1 text-white sm:hidden">
-                    <ThemeToggle />
-                  </div>
-                </div>
-
-                <div className="grid gap-1.5 md:grid-cols-2">
-                  {navLinks.map((link) => (
-                    <MobileNavLink
-                      key={link.href}
-                      link={link}
-                      active={isActivePath(pathname, link)}
-                      onClick={() => setOpen(false)}
-                    />
-                  ))}
-                </div>
-
-                <div className="mt-3 border-t border-[#DCCDCE]/45 pt-3">
-                  {!authLoading && user ? (
-                    <div className="flex flex-col gap-2">
-                      <div className="flex items-center gap-3 rounded-2xl border border-[#DCCDCE]/60 bg-white/45 px-4 py-2.5 text-[#50080E]">
-                        <div className="flex h-9 w-9 items-center justify-center rounded-full bg-[#902941] text-sm font-bold text-white shadow-[0_4px_12px_rgba(80,8,14,0.12)]">
-                          {user.name ? user.name.charAt(0).toUpperCase() : "A"}
-                        </div>
-                        <div className="min-w-0 flex-1">
-                          <p className="truncate text-sm font-bold text-[#50080E]">{user.name || "User"}</p>
-                          <p className="truncate text-xs text-[#50080E]/70">{user.email}</p>
-                        </div>
-                      </div>
-                      
-                      <div className="grid gap-2 sm:grid-cols-2">
-                        <Button
-                          asChild
-                          variant="outline"
-                          size="sm"
-                          onClick={() => setOpen(false)}
-                          className="rounded-full bg-white/35 border-[#DCCDCE]/70"
-                        >
-                          <Link href="/dashboard" className="flex items-center justify-center gap-2">
-                            <LayoutDashboard className="h-3.5 w-3.5" />
-                            Dashboard
-                          </Link>
-                        </Button>
-                        
-                        {(user as any).role === "ADMIN" && (
-                          <Button
-                            asChild
-                            variant="outline"
-                            size="sm"
-                            onClick={() => setOpen(false)}
-                            className="rounded-full bg-white/35 border-[#DCCDCE]/70"
-                          >
-                            <Link href="/admin" className="flex items-center justify-center gap-2">
-                              <Shield className="h-3.5 w-3.5" />
-                              Admin Panel
-                            </Link>
-                          </Button>
-                        )}
-                        
-                        <Button
-                          onClick={() => {
-                            handleLogout();
-                            setOpen(false);
-                          }}
-                          variant="gold"
-                          size="sm"
-                          className={cn(
-                            "rounded-full",
-                            (user as any).role !== "ADMIN" ? "sm:col-span-1" : "sm:col-span-2"
-                          )}
-                        >
-                          <LogOut className="h-3.5 w-3.5" />
-                          Logout
-                        </Button>
-                      </div>
-                    </div>
-                  ) : !authLoading ? (
-                    <div className="grid gap-2 sm:grid-cols-2">
-                      <Button
-                        asChild
-                        variant="outline"
-                        size="sm"
-                        onClick={() => setOpen(false)}
-                        className="rounded-full bg-white/35"
+                    {role === "ADMIN" && (
+                      <Link
+                        href="/admin"
+                        onClick={() => setProfileOpen(false)}
+                        className="flex items-center gap-2.5 rounded-xs px-3 py-2 text-sm text-ink transition-colors hover:bg-paper-sunken"
                       >
-                        <Link href="/login">Login</Link>
-                      </Button>
-                      <Button
-                        asChild
-                        variant="gold"
-                        size="sm"
-                        onClick={() => setOpen(false)}
-                        className="rounded-full"
-                      >
-                        <Link href="/dashboard">
-                          <LayoutDashboard className="h-3.5 w-3.5" />
-                          Dashboard
-                        </Link>
-                      </Button>
-                    </div>
-                  ) : (
-                    <div className="h-10 animate-pulse rounded-full bg-[#DCCDCE]/35" />
-                  )}
-                </div>
-
-                <div className="mt-3 rounded-2xl border border-[#D4AF37]/20 bg-[#D4AF37]/10 px-4 py-3">
-                  <div className="flex items-center gap-2 text-[11px] font-bold uppercase tracking-[0.16em] text-[#50080E]/75">
-                    <BrainCircuit className="h-3.5 w-3.5 text-[#D4AF37]" />
-                    AI-ranked property intelligence
+                        <Shield className="h-4 w-4 text-ink-muted" />
+                        Admin panel
+                      </Link>
+                    )}
+                    <div className="my-1 border-t border-rule" />
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setProfileOpen(false);
+                        handleLogout();
+                      }}
+                      className="flex w-full items-center gap-2.5 rounded-xs px-3 py-2 text-sm text-ink transition-colors hover:bg-paper-sunken"
+                    >
+                      <LogOut className="h-4 w-4 text-ink-muted" />
+                      Sign out
+                    </button>
                   </div>
-                </div>
+                )}
               </div>
-            </div>
-          ) : null}
+            ) : !authLoading ? (
+              <Link
+                href="/login"
+                className={cn(
+                  "av-label hidden rounded-xs border px-4 py-2.5 transition-colors duration-300 lg:inline-flex",
+                  floating
+                    ? "border-stage-ink/35 text-stage-ink hover:border-stage-ink"
+                    : "border-rule-firm text-ink hover:bg-paper-sunken",
+                )}
+              >
+                Sign in
+              </Link>
+            ) : null}
+
+            <button
+              type="button"
+              onClick={() => setOpen(true)}
+              aria-label="Open navigation"
+              aria-expanded={open}
+              className={cn(
+                "av-label lg:hidden",
+                floating ? "text-stage-ink" : "text-ink",
+              )}
+            >
+              Menu
+            </button>
+          </div>
         </div>
       </header>
 
-      <div className="fixed inset-x-4 bottom-4 z-40 md:hidden">
-        <Button asChild className="h-12 w-full rounded-xl shadow-[0_16px_38px_rgba(80,8,14,0.18)]">
-          <Link href="/listings">Explore Properties</Link>
-        </Button>
-      </div>
+      {/* ── Full-screen drawer ─────────────────────────────────────────────
+          Mobile navigation is its own screen, not a squeezed desktop menu. */}
+      {open && (
+        <div className="fixed inset-0 z-[60] flex flex-col overflow-y-auto bg-paper lg:hidden">
+          <div className="flex items-center justify-between border-b border-rule px-[var(--gutter)] py-4">
+            <Image
+              src="/aarvasa-navbar-logo.png"
+              alt="Aarvasa"
+              width={653}
+              height={169}
+              sizes="132px"
+              className="h-8 w-auto"
+            />
+            <button
+              type="button"
+              onClick={() => setOpen(false)}
+              aria-label="Close navigation"
+              className="av-label flex items-center gap-2 text-ink"
+            >
+              Close
+              <X className="h-4 w-4" />
+            </button>
+          </div>
+
+          <div className="px-[var(--gutter)] pt-5">
+            <form
+              onSubmit={handleSearch}
+              className="flex items-center gap-2 rounded-xs border border-rule-firm bg-paper-raised px-3 py-3"
+            >
+              <Search className="h-4 w-4 flex-shrink-0 text-ink-muted" aria-hidden="true" />
+              <label htmlFor="drawer-search" className="sr-only">
+                Search properties
+              </label>
+              <input
+                id="drawer-search"
+                value={searchQuery}
+                onChange={(event) => setSearchQuery(event.target.value)}
+                placeholder="City, project or developer"
+                className="min-w-0 flex-1 bg-transparent text-sm text-ink outline-none placeholder:text-ink-muted"
+              />
+            </form>
+          </div>
+
+          <nav className="flex-1 px-[var(--gutter)] py-6">
+            {navLinks.map((link) => {
+              const active = isActivePath(pathname, link);
+              return (
+                <Link
+                  key={link.href}
+                  href={link.href}
+                  onClick={() => setOpen(false)}
+                  aria-current={active ? "page" : undefined}
+                  className={cn(
+                    "av-display block border-b border-rule py-3.5 text-[30px] leading-[1.25]",
+                    active ? "text-burgundy" : "text-ink",
+                  )}
+                >
+                  {link.label}
+                </Link>
+              );
+            })}
+          </nav>
+
+          <div className="border-t border-rule px-[var(--gutter)] py-5">
+            {!authLoading && user ? (
+              <div className="flex flex-col gap-3">
+                <div className="flex items-center gap-3">
+                  <span className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-full bg-burgundy text-[13px] font-semibold text-paper">
+                    {user.name ? user.name.charAt(0).toUpperCase() : "A"}
+                  </span>
+                  <span className="min-w-0">
+                    <span className="block truncate text-sm font-semibold text-ink">{user.name || "User"}</span>
+                    <span className="block truncate text-xs text-ink-muted">{user.email}</span>
+                  </span>
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  <Link
+                    href="/dashboard"
+                    onClick={() => setOpen(false)}
+                    className="av-label rounded-xs border border-rule-firm px-4 py-2.5 text-ink"
+                  >
+                    Dashboard
+                  </Link>
+                  {role === "ADMIN" && (
+                    <Link
+                      href="/admin"
+                      onClick={() => setOpen(false)}
+                      className="av-label rounded-xs border border-rule-firm px-4 py-2.5 text-ink"
+                    >
+                      Admin panel
+                    </Link>
+                  )}
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setOpen(false);
+                      handleLogout();
+                    }}
+                    className="av-label rounded-xs border border-rule-firm px-4 py-2.5 text-ink"
+                  >
+                    Sign out
+                  </button>
+                </div>
+              </div>
+            ) : !authLoading ? (
+              <Link
+                href="/login"
+                onClick={() => setOpen(false)}
+                className="av-label inline-flex rounded-xs bg-burgundy px-5 py-3 text-paper"
+              >
+                Sign in
+              </Link>
+            ) : null}
+          </div>
+
+          <div data-surface="stage" className="bg-stage px-[var(--gutter)] py-5">
+            <p className="av-meta text-gold">Discover · Explore · Evaluate</p>
+            <p className="mt-2 text-[13px] leading-relaxed text-stage-muted">
+              Investment and ownership services are in development and are not offered today.
+            </p>
+          </div>
+        </div>
+      )}
     </>
   );
 }

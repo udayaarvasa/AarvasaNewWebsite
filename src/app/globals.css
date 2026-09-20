@@ -126,6 +126,33 @@
   --ring: var(--burgundy);
 }
 
+/* ── The stage scope ──────────────────────────────────────────────────────
+   Anything inside a stage surface re-resolves the semantic names against the
+   dark palette. Two things follow for free: shadcn-style components placed on
+   a stage invert correctly, and the PlayCanvas viewer — which reads
+   --background/--foreground/--accent from its own host element via
+   readViewerTheme() — picks up the stage palette with no change to viewer
+   code. */
+[data-surface="stage"] {
+  --background: var(--stage);
+  --foreground: var(--stage-ink);
+  --card: var(--stage-raised);
+  --card-foreground: var(--stage-ink);
+  --primary: var(--gold);
+  --primary-foreground: var(--stage);
+  --secondary: var(--stage-raised);
+  --secondary-foreground: var(--stage-muted);
+  --muted: var(--stage-raised);
+  --muted-foreground: var(--stage-muted);
+  --accent: var(--gold);
+  --accent-foreground: var(--stage);
+  --border: var(--stage-rule);
+  --input: var(--stage-rule);
+  --ring: var(--stage-ink);
+
+  color: var(--stage-ink);
+}
+
 /* Gutters step down with the viewport; the container never touches an edge. */
 @media (max-width: 1279px) {
   :root { --gutter: 32px; --band: 80px; }
