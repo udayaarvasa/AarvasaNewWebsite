@@ -1,4 +1,5 @@
 import { BoundingBox, type AppBase, type ContainerResource, type RenderComponent } from "playcanvas";
+import { OrbitControls } from "./orbit-controls";
 import type { SceneContent } from "./scene-content";
 
 // Asset.resource is typed as `object`, and the GLB parser's resource class does
@@ -36,8 +37,15 @@ export function loadModel(app: AppBase, url: string): Promise<SceneContent> {
       }
       const root = resource.instantiateRenderEntity();
 
-      resolve({
+      const content: SceneContent = {
+        kind: "object",
         root,
+        createControls(camera, element, onChange) {
+          const controls = new OrbitControls(camera, element, onChange);
+          const { center, radius } = content.bounds();
+          controls.frame(center, radius);
+          return controls;
+        },
         bounds() {
           const box = new BoundingBox();
           let empty = true;
@@ -57,7 +65,8 @@ export function loadModel(app: AppBase, url: string): Promise<SceneContent> {
           app.assets.remove(asset);
           asset.unload();
         },
-      });
+      };
+      resolve(content);
     });
   });
 }

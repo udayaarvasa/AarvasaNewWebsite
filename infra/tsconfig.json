@@ -33,7 +33,22 @@
     "../src/lib/services/media-review.service.ts",
     "../src/lib/media/processing-queue.ts",
     "../src/lib/media/published-storage.ts",
-    "../src/lib/media/admin-upload-client.ts"
+    "../src/lib/media/admin-upload-client.ts",
+    "../src/lib/currency.ts",
+    "../src/lib/project-types.ts",
+    "../src/lib/projects.ts",
+    "../src/lib/reef-projects.ts",
+    "../src/lib/viewer/types.ts",
+    "../src/lib/viewer/source.ts",
+    "../src/lib/viewer/media-origin.ts",
+    "../src/lib/viewer/panorama-math.ts",
+    "../src/lib/viewer/load-gate.ts",
+    "../src/lib/viewer/tour.ts",
+    "../src/lib/viewer/analytics.ts",
+    "../src/lib/viewer/panorama-fixtures.ts",
+    "../src/lib/viewer/published-panoramas.ts",
+    "../src/lib/viewer/project-tour.ts",
+    "../src/lib/viewer/project-media.ts"
   ],
   "exclude": ["node_modules", "dist", "cdk.out"]
 }

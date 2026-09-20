@@ -1,4 +1,5 @@
 import { Vec3, type Entity } from "playcanvas";
+import type { ViewerControls } from "./scene-content";
 
 const DEG = Math.PI / 180;
 const MIN_PITCH = 5 * DEG;
@@ -11,6 +12,7 @@ const SETTLED = 1e-4;
 
 type Pose = { yaw: number; pitch: number; distance: number };
 
+
 const clamp = (v: number, min: number, max: number) => Math.min(max, Math.max(min, v));
 
 /**
@@ -18,7 +20,7 @@ const clamp = (v: number, min: number, max: number) => Math.min(max, Math.max(mi
  * the wheel, and the keyboard. It only reports changes; the engine decides when
  * to render, so an idle viewer costs nothing.
  */
-export class OrbitControls {
+export class OrbitControls implements ViewerControls {
   private readonly target = new Vec3();
   private readonly current: Pose = { yaw: 35 * DEG, pitch: 25 * DEG, distance: 6 };
   private readonly goal: Pose = { ...this.current };
@@ -122,6 +124,10 @@ export class OrbitControls {
     this.goal.yaw += dYaw;
     this.goal.pitch = clamp(this.goal.pitch + dPitch, MIN_PITCH, MAX_PITCH);
     this.onChange();
+  }
+
+  zoomBy(factor: number): void {
+    this.zoom(factor);
   }
 
   private zoom(factor: number): void {

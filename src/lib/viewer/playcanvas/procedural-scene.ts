@@ -1,6 +1,7 @@
 import { Entity, StandardMaterial, Vec3 } from "playcanvas";
 import { mix } from "../theme";
 import type { RGB, ViewerTheme } from "../types";
+import { OrbitControls } from "./orbit-controls";
 import type { SceneContent } from "./scene-content";
 
 function createMaterial(gloss: number, metalness: number): StandardMaterial {
@@ -49,8 +50,14 @@ export function createProceduralScene(): SceneContent {
   add("sphere", "sphere", neutral, [0.8, 0.35, 1.0], [0.7, 0.7, 0.7]);
 
   return {
+    kind: "object",
     root,
     bounds: () => ({ center: new Vec3(0, 0.6, 0), radius: 1.9 }),
+    createControls(camera, element, onChange) {
+      const controls = new OrbitControls(camera, element, onChange);
+      controls.frame(new Vec3(0, 0.6, 0), 1.9);
+      return controls;
+    },
     applyTheme(theme: ViewerTheme) {
       setDiffuse(ground, mix(theme.background, theme.foreground, 0.08));
       setDiffuse(primary, theme.foreground);

@@ -1,4 +1,4 @@
-import type { Project, ProjectImmersiveMedia } from "./project-types";
+import type { Project, ProjectImmersiveMedia, ProjectPanoramaTour } from "./project-types";
 import { reefProjects } from "./reef-projects";
 
 /**
@@ -151,6 +151,66 @@ const REEF_996_PILOT_MEDIA: ProjectImmersiveMedia = {
   review: "placeholder",
 };
 
+/**
+ * Development pilot for the 360° tour pipeline (Phase 6). Every scene is a
+ * generated test grid (src/lib/viewer/panorama-fixtures.ts), not a photograph of
+ * REEF 996, and the tour is a "placeholder", so production builds never show it.
+ * To use real rooms, replace each image with { source: "published", mediaAssetId }
+ * once that panorama is PUBLISHED, and set review to "approved".
+ */
+const REEF_996_PILOT_TOUR: ProjectPanoramaTour = {
+  label: "Pilot 360° tour for REEF 996",
+  review: "placeholder",
+  startSceneId: "room-a",
+  scenes: [
+    {
+      id: "room-a",
+      title: "Test room A",
+      floor: "Test level 1",
+      image: { source: "fixture", fixture: "test-room-a" },
+      alt: "Placeholder 360° test grid labelled Test room A, with compass headings. Not a photo of REEF 996.",
+      initialView: { yawDeg: 0, pitchDeg: 0, fovDeg: 75 },
+      hotspots: [
+        { id: "to-room-b", label: "Go to Test room B", yawDeg: 90, pitchDeg: -10, type: "navigation", targetSceneId: "room-b" },
+        { id: "to-room-c", label: "Go to Test room C", yawDeg: -90, pitchDeg: -10, type: "navigation", targetSceneId: "room-c" },
+        {
+          id: "about-grid",
+          label: "About this test image",
+          yawDeg: 0,
+          pitchDeg: 20,
+          type: "info",
+          description: "A generated grid used to check panorama orientation: yaw 0 is the image centre and each line is 30° apart.",
+        },
+      ],
+    },
+    {
+      id: "room-b",
+      title: "Test room B",
+      floor: "Test level 1",
+      image: { source: "fixture", fixture: "test-room-b" },
+      alt: "Placeholder 360° test grid labelled Test room B. Not a photo of REEF 996.",
+      initialView: { yawDeg: -90, pitchDeg: 0, fovDeg: 75 },
+      hotspots: [{ id: "to-room-a", label: "Back to Test room A", yawDeg: -90, pitchDeg: -10, type: "navigation", targetSceneId: "room-a" }],
+    },
+    {
+      id: "room-c",
+      title: "Test room C",
+      floor: "Test level 2",
+      image: { source: "fixture", fixture: "test-room-c" },
+      alt: "Placeholder 360° test grid labelled Test room C. Not a photo of REEF 996.",
+      initialView: { yawDeg: 90, pitchDeg: 0, fovDeg: 75 },
+      hotspots: [
+        { id: "to-room-a", label: "Back to Test room A", yawDeg: 90, pitchDeg: -10, type: "navigation", targetSceneId: "room-a" },
+        { id: "to-room-b", label: "Go to Test room B", yawDeg: 180, pitchDeg: -10, type: "navigation", targetSceneId: "room-b" },
+      ],
+    },
+  ],
+};
+
+const TOUR_BY_SLUG: Readonly<Record<string, ProjectPanoramaTour>> = {
+  "reef-996-dubai-production-city": REEF_996_PILOT_TOUR,
+};
+
 // reef-projects.ts is generated, so immersive media is attached here instead.
 const IMMERSIVE_BY_SLUG: Readonly<Record<string, ProjectImmersiveMedia>> = {
   "reef-996-dubai-production-city": REEF_996_PILOT_MEDIA,
@@ -160,7 +220,11 @@ export const projects: Project[] = [
   ...reefProjects,
   aaradhyamPearl,
   aaradhyamPrime,
-].map((p) => (IMMERSIVE_BY_SLUG[p.slug] ? { ...p, immersive: IMMERSIVE_BY_SLUG[p.slug] } : p));
+].map((p) => ({
+  ...p,
+  ...(IMMERSIVE_BY_SLUG[p.slug] ? { immersive: IMMERSIVE_BY_SLUG[p.slug] } : {}),
+  ...(TOUR_BY_SLUG[p.slug] ? { tour: TOUR_BY_SLUG[p.slug] } : {}),
+}));
 
 /** Live on the site. Set per project rather than inferred from imagery. */
 export const isPublished = (p: Project): boolean => p.published;

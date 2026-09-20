@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import { useCallback, useEffect, useId, useRef, useState, useSyncExternalStore } from "react";
-import { Box, Loader2, Maximize2, Minimize2, RotateCcw, TriangleAlert } from "lucide-react";
+import { Box, Loader2, Maximize2, Minimize2, RotateCcw, TriangleAlert, ZoomIn, ZoomOut } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import {
@@ -19,8 +19,11 @@ import { readViewerTheme } from "@/lib/viewer/theme";
 import type { ViewerEngine, ViewerSource, ViewerStatus } from "@/lib/viewer/types";
 
 const MAX_PIXEL_RATIO = 2;
-const CANVAS_LABEL =
-  "Interactive 3D view. Drag or use the arrow keys to orbit; scroll, pinch, or use plus and minus to zoom.";
+const CANVAS_LABELS = {
+  model: "Interactive 3D view. Drag or use the arrow keys to orbit; scroll, pinch, or use plus and minus to zoom.",
+  panorama: "Interactive 360° view. Drag or use the arrow keys to look around; scroll, pinch, or use plus and minus to zoom.",
+} as const;
+const ZOOM_STEP = 1.2;
 
 export type Aarvasa3DViewerProps = {
   /** Accessible name for the viewer, e.g. the subject being shown. */
@@ -39,6 +42,15 @@ export type Aarvasa3DViewerProps = {
   poster?: { src: string; width: number; height: number; alt: string };
   className?: string;
   onStatusChange?: (status: ViewerStatus) => void;
+  /**
+   * Extra UI drawn over the canvas once something has been shown (e.g. 360°
+   * hotspots and room controls). It stays mounted while a new source loads or
+   * fails, so the visitor can always pick another room. Receives the engine so
+   * it can project directions, and the status so it can hide stale hotspots.
+   */
+  overlay?: (engine: ViewerEngine, status: ViewerStatus) => React.ReactNode;
+  /** Replaces the load button's text (default "Load 3D view", or "Open 360° view" for panoramas). */
+  loadLabel?: string;
 };
 
 type Phase =
@@ -64,6 +76,8 @@ export function Aarvasa3DViewer({
   poster,
   className,
   onStatusChange,
+  overlay,
+  loadLabel,
 }: Aarvasa3DViewerProps) {
   const viewerId = useId();
   const containerRef = useRef<HTMLElement>(null);
@@ -87,6 +101,8 @@ export function Aarvasa3DViewer({
   );
 
   const key = sourceKey(source);
+  const kind = source?.kind === "panorama" ? "panorama" : "model";
+  const noun = kind === "panorama" ? "360° view" : "3D view";
 
   // Capability check happens here, at the moment loading is requested, so an
   // unsupported browser never downloads the engine.
@@ -128,7 +144,7 @@ export function Aarvasa3DViewer({
         if (cancelled) return;
         created = createViewerEngine(host, {
           maxPixelRatio: MAX_PIXEL_RATIO,
-          canvasLabel: CANVAS_LABEL,
+          canvasLabel: CANVAS_LABELS[kind],
           theme: readViewerTheme(host),
           onContextLost: () => setPhase({ status: "context-lost" }),
           onContextRestored: () => setPhase({ status: "running" }),
@@ -146,6 +162,8 @@ export function Aarvasa3DViewer({
       setEngine(null);
       setLoadedKey(null);
     };
+    // The canvas label follows the kind of the first source; a viewer does not switch kinds.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [engineWanted, attempt]);
 
   // Source loading. Keyed by a string so a new-but-equal `source` object from
@@ -225,6 +243,11 @@ export function Aarvasa3DViewer({
     }
   };
 
+  // Something is on screen: the previous source stays visible while the next one loads.
+  const hasContent = phase.status === "running" && engine !== null && loadedKey !== null;
+  const switching = hasContent && status === "loading";
+  const showControls = hasContent && (status === "ready" || status === "loading");
+
   const errorMessage =
     phase.status === "error" ? phase.message : sourceError?.key === key ? sourceError.message : null;
 
@@ -233,8 +256,9 @@ export function Aarvasa3DViewer({
       ref={containerRef}
       data-viewer-id={viewerId}
       data-viewer-status={status}
+      data-viewer-kind={kind}
       aria-label={label}
-      aria-roledescription="3D viewer"
+      aria-roledescription={kind === "panorama" ? "360° viewer" : "3D viewer"}
       aria-busy={status === "loading"}
       className={cn(
         "relative isolate aspect-[4/3] w-full overflow-hidden rounded-2xl border border-border bg-background text-foreground sm:aspect-video",
@@ -255,34 +279,41 @@ export function Aarvasa3DViewer({
         <Panel overPoster={Boolean(poster)} icon={<Box className="h-8 w-8 text-accent" aria-hidden />} title={label}>
           {loadOn === "interaction" ? (
             <Button onClick={requestLoad} className="mt-2">
-              Load 3D view
+              {loadLabel ?? (kind === "panorama" ? "Open 360° view" : "Load 3D view")}
             </Button>
           ) : (
-            <p className="text-sm text-muted-foreground">The 3D view loads when it scrolls into view.</p>
+            <p className="text-sm text-muted-foreground">The {noun} loads when it scrolls into view.</p>
           )}
         </Panel>
       )}
 
-      {(status === "loading" || status === "context-lost") && (
+      {switching && (
+        <p className="pointer-events-none absolute left-1/2 top-3 z-10 flex -translate-x-1/2 items-center gap-2 rounded-full bg-[var(--glass-strong)] px-3 py-1.5 text-xs font-medium text-foreground backdrop-blur-md">
+          <Loader2 className="h-3.5 w-3.5 animate-spin text-accent motion-reduce:animate-none" aria-hidden />
+          Loading…
+        </p>
+      )}
+
+      {((status === "loading" && !switching) || status === "context-lost") && (
         <Panel
           translucent
           icon={<Loader2 className="h-7 w-7 animate-spin text-accent motion-reduce:animate-none" aria-hidden />}
-          title={status === "loading" ? "Loading 3D view…" : "Graphics interrupted — restoring…"}
+          title={status === "loading" ? `Loading ${noun}…` : "Graphics interrupted — restoring…"}
         />
       )}
 
       {status === "unsupported" && phase.status === "unsupported" && (
-        <Panel overPoster={Boolean(poster)} icon={<TriangleAlert className="h-7 w-7 text-accent" aria-hidden />} title="3D view unavailable">
+        <Panel overPoster={Boolean(poster)} icon={<TriangleAlert className="h-7 w-7 text-accent" aria-hidden />} title={`${noun === "3D view" ? "3D" : "360°"} view unavailable`}>
           <p className="max-w-sm text-sm text-muted-foreground">
             {phase.webgl1
-              ? "This browser only supports WebGL 1, and the 3D viewer needs WebGL 2."
+              ? `This browser only supports WebGL 1, and the ${noun} needs WebGL 2.`
               : "WebGL is unavailable or disabled in this browser."}
           </p>
         </Panel>
       )}
 
       {status === "error" && (
-        <Panel overPoster={Boolean(poster)} icon={<TriangleAlert className="h-7 w-7 text-accent" aria-hidden />} title="Couldn't load the 3D view">
+        <Panel overPoster={Boolean(poster)} icon={<TriangleAlert className="h-7 w-7 text-accent" aria-hidden />} title={`Couldn't load the ${noun}`}>
           {errorMessage && <p className="max-w-sm text-xs text-muted-foreground">{errorMessage}</p>}
           <Button variant="outline" size="sm" onClick={retry} className="mt-2 text-foreground">
             Try again
@@ -290,9 +321,29 @@ export function Aarvasa3DViewer({
         </Panel>
       )}
 
-      {status === "ready" && (
+      {showControls && (
         <>
           <div className="absolute right-3 top-3 flex gap-2">
+            <Button
+              variant="glass"
+              size="icon"
+              onClick={() => engine?.zoomBy(1 / ZOOM_STEP)}
+              aria-label="Zoom in"
+              title="Zoom in"
+              className="text-foreground"
+            >
+              <ZoomIn className="h-4 w-4" aria-hidden />
+            </Button>
+            <Button
+              variant="glass"
+              size="icon"
+              onClick={() => engine?.zoomBy(ZOOM_STEP)}
+              aria-label="Zoom out"
+              title="Zoom out"
+              className="text-foreground"
+            >
+              <ZoomOut className="h-4 w-4" aria-hidden />
+            </Button>
             <Button
               variant="glass"
               size="icon"
@@ -320,15 +371,18 @@ export function Aarvasa3DViewer({
               </Button>
             )}
           </div>
-          <p className="pointer-events-none absolute bottom-3 left-3 rounded-full bg-[var(--glass-strong)] px-3 py-1.5 text-[11px] font-medium text-muted-foreground backdrop-blur-md">
-            <span className="pointer-coarse:hidden">Drag to orbit · Scroll to zoom</span>
-            <span className="hidden pointer-coarse:inline">Drag to orbit · Pinch to zoom</span>
+          <p className={cn("pointer-events-none absolute bottom-3 left-3 rounded-full bg-[var(--glass-strong)] px-3 py-1.5 text-[11px] font-medium text-muted-foreground backdrop-blur-md", overlay && "max-sm:hidden")}>
+            <span className="pointer-coarse:hidden">Drag to {kind === "panorama" ? "look around" : "orbit"} · Scroll to zoom</span>
+            <span className="hidden pointer-coarse:inline">Drag to {kind === "panorama" ? "look around" : "orbit"} · Pinch to zoom</span>
           </p>
         </>
       )}
 
+      {/* Last, so it sits above the loading and error panels. */}
+      {hasContent && engine && overlay?.(engine, status)}
+
       <p className="sr-only" aria-live="polite">
-        {status === "loading" ? "Loading 3D view" : status === "ready" ? "3D view ready" : ""}
+        {status === "loading" ? `Loading ${noun}` : status === "ready" ? `${noun === "3D view" ? "3D" : "360°"} view ready` : ""}
       </p>
     </section>
   );

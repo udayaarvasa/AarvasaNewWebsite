@@ -6,16 +6,32 @@
  * runs in the browser.
  */
 
-/**
- * What the viewer displays. A discriminated union so new asset kinds
- * (panoramas, splats) can be added without changing the public component's
- * props. Phase 1 implements `model` (glTF binary) only.
- */
-export type ViewerSource = {
-  kind: "model";
-  /** Same-origin, root-relative `.glb` path, or a `.glb` URL on the media CDN. See `resolveModelUrl`. */
-  url: string;
+/** Where a panorama opens, in degrees. Yaw 0 faces the centre of the equirectangular image; positive yaw turns right, positive pitch looks up. */
+export type PanoramaView = {
+  yawDeg: number;
+  pitchDeg: number;
+  /** Vertical field of view. */
+  fovDeg: number;
 };
+
+/**
+ * What the viewer displays. A discriminated union so new asset kinds can be
+ * added without changing the public component's props. `model` is a glTF
+ * binary (Phase 1); `panorama` is one equirectangular 360° image (Phase 6).
+ * Splats are not supported.
+ */
+export type ViewerSource =
+  | {
+      kind: "model";
+      /** Same-origin, root-relative `.glb` path, or a `.glb` URL on the media CDN. See `resolveModelUrl`. */
+      url: string;
+    }
+  | {
+      kind: "panorama";
+      /** Same-origin `.jpg`/`.webp` path, or a published `m/…` panorama on the media CDN. See `resolvePanoramaUrl`. */
+      url: string;
+      initialView: PanoramaView;
+    };
 
 export type ViewerSourceKind = ViewerSource["kind"];
 
@@ -61,5 +77,15 @@ export interface ViewerEngine {
   setActive(active: boolean): void;
   setMotion(motion: { autoRotate: boolean; reducedMotion: boolean }): void;
   resetView(): void;
+  /** Multiplies the zoom (orbit distance or panorama field of view); < 1 zooms in. */
+  zoomBy(factor: number): void;
+  /**
+   * Where a direction on the panorama sphere appears on the canvas, in CSS
+   * pixels from its top-left corner, or null when it is behind the camera or no
+   * panorama is shown.
+   */
+  projectDirection(yawDeg: number, pitchDeg: number): { x: number; y: number } | null;
+  /** Called after every rendered frame in which the view changed. Returns an unsubscribe function. */
+  onViewChange(listener: () => void): () => void;
   destroy(): void;
 }

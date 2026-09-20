@@ -51,6 +51,46 @@ export type ProjectImmersiveMedia = {
   review: "placeholder" | "approved";
 };
 
+/**
+ * Where a tour scene's panorama comes from. "published" names a MediaAsset
+ * (kind PANORAMA) of this project; it is only shown once that asset is
+ * PUBLISHED. "fixture" is a generated development test image
+ * (src/lib/viewer/panorama-fixtures.ts), never shown in production.
+ */
+export type ProjectTourImage =
+  | { source: "published"; mediaAssetId: string }
+  | { source: "fixture"; fixture: string };
+
+/** One room of a project's 360° tour. Hotspots use the viewer's tour shape (src/lib/viewer/tour.ts). */
+export type ProjectTourScene = {
+  id: string;
+  title: string;
+  floor?: string;
+  image: ProjectTourImage;
+  /** Screen-reader description. Published assets fall back to their reviewed alt text. */
+  alt?: string;
+  /** Opening direction. Published assets fall back to their reviewed view defaults. */
+  initialView?: { yawDeg: number; pitchDeg: number; fovDeg: number };
+  hotspots: {
+    id: string;
+    label: string;
+    yawDeg: number;
+    pitchDeg: number;
+    type?: "navigation" | "info";
+    targetSceneId?: string;
+    description?: string;
+  }[];
+};
+
+/** A project's 360° panoramic tour. Mapped for the viewer in src/lib/viewer/project-tour.ts. */
+export type ProjectPanoramaTour = {
+  label: string;
+  /** Same meaning as ProjectImmersiveMedia.review: "placeholder" tours never reach production. */
+  review: "placeholder" | "approved";
+  startSceneId: string;
+  scenes: ProjectTourScene[];
+};
+
 export type Project = {
   slug: string;
   name: string;
@@ -95,4 +135,6 @@ export type Project = {
   coordinates: { lat: number; lng: number } | null;
   /** Optional interactive 3D media. Absent for most projects. */
   immersive?: ProjectImmersiveMedia;
+  /** Optional 360° panoramic tour. Absent for most projects. */
+  tour?: ProjectPanoramaTour;
 };

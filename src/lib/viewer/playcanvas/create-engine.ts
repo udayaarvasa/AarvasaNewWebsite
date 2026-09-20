@@ -9,15 +9,23 @@ import {
   RenderComponentSystem,
   RESOLUTION_AUTO,
   TextureHandler,
+  Vec3,
   WebglGraphicsDevice,
 } from "playcanvas";
+import { LoadGate } from "../load-gate";
 import { MEDIA_CDN_ORIGIN } from "../media-origin";
-import { resolveModelUrl } from "../source";
+import { resolveModelUrl, resolvePanoramaUrl } from "../source";
 import type { RGB, ViewerEngine, ViewerEngineOptions, ViewerSource, ViewerTheme } from "../types";
+import { directionFor } from "./look-controls";
 import { loadModel } from "./model-loader";
-import { OrbitControls } from "./orbit-controls";
+import { loadPanorama } from "./panorama";
 import { createProceduralScene } from "./procedural-scene";
-import type { SceneContent } from "./scene-content";
+import type { SceneContent, ViewerControls } from "./scene-content";
+
+/** Field of view for models; panoramas set their own. */
+const OBJECT_FOV = 40;
+/** Hotspot projection distance; anything inside the panorama sphere projects the same. */
+const PROJECT_DISTANCE = 10;
 
 // Only used to give each canvas a unique id. PlayCanvas keeps a static
 // application registry keyed by canvas id, so two viewers sharing an id (or the
@@ -71,7 +79,7 @@ export function createViewerEngine(host: HTMLElement, options: ViewerEngineOptio
 
   const camera = new Entity("camera");
   camera.addComponent("camera", {
-    fov: 40,
+    fov: OBJECT_FOV,
     nearClip: 0.05,
     farClip: 200,
     clearColor: toColor(options.theme.background),
@@ -114,12 +122,16 @@ export function createViewerEngine(host: HTMLElement, options: ViewerEngineOptio
     startLoop();
   };
 
-  const controls = new OrbitControls(camera, canvas, requestFrame);
+  // Created by the content being shown: orbit for models, look-around for panoramas.
+  let controls: ViewerControls | null = null;
+  let motion = { autoRotate: false, reducedMotion: false };
+  const viewListeners = new Set<() => void>();
 
-  app.on("update", (dt: number) => controls.update(dt));
+  app.on("update", (dt: number) => controls?.update(dt));
   app.on("frameend", () => {
     if (pendingFrames > 0) pendingFrames--;
-    if (!active || (pendingFrames === 0 && !controls.isMoving)) stopLoop();
+    for (const listener of viewListeners) listener();
+    if (!active || (pendingFrames === 0 && !controls?.isMoving)) stopLoop();
   });
 
   device.on("devicelost", () => {
@@ -140,16 +152,24 @@ export function createViewerEngine(host: HTMLElement, options: ViewerEngineOptio
   // ── Content ──────────────────────────────────────────────────────────────
   let theme: ViewerTheme = options.theme;
   let content: SceneContent | null = null;
-  let sourceRequest = 0;
+  // A newer source makes any in-flight load obsolete: its download is aborted and its result discarded.
+  const loads = new LoadGate();
 
+  // Only one piece of content (and so one panorama texture) is resident at a time.
   const show = (next: SceneContent) => {
     content?.destroy();
+    controls?.destroy();
     content = next;
     app.root.addChild(next.root);
     next.applyTheme(theme);
-    const { center, radius } = next.bounds();
-    controls.frame(center, radius);
+    if (camera.camera) camera.camera.fov = OBJECT_FOV;
+    controls = next.createControls(camera, canvas, requestFrame);
+    controls.setMotion(motion.autoRotate, motion.reducedMotion);
+    requestFrame();
   };
+
+  const projected = new Vec3();
+  const direction = new Vec3();
 
   // start() runs system initialisation and schedules the first tick.
   setLoopState("running");
@@ -158,7 +178,8 @@ export function createViewerEngine(host: HTMLElement, options: ViewerEngineOptio
   return {
     async setSource(source: ViewerSource | undefined) {
       if (destroyed) return;
-      const request = ++sourceRequest;
+      const ticket = loads.begin();
+      const cdnOrigins = MEDIA_CDN_ORIGIN ? [MEDIA_CDN_ORIGIN] : [];
 
       let next: SceneContent;
       if (!source) {
@@ -166,9 +187,15 @@ export function createViewerEngine(host: HTMLElement, options: ViewerEngineOptio
       } else {
         switch (source.kind) {
           case "model": {
-            const url = resolveModelUrl(source.url, window.location.origin, MEDIA_CDN_ORIGIN ? [MEDIA_CDN_ORIGIN] : []);
+            const url = resolveModelUrl(source.url, window.location.origin, cdnOrigins);
             if (!url) throw new Error("Model URL is not allowed: use a same-origin .glb path or the media CDN");
             next = await loadModel(app, url);
+            break;
+          }
+          case "panorama": {
+            const url = resolvePanoramaUrl(source.url, window.location.origin, cdnOrigins);
+            if (!url) throw new Error("Panorama URL is not allowed: use a same-origin image or a published panorama on the media CDN");
+            next = await loadPanorama(app, url, source.initialView, ticket.signal);
             break;
           }
         }
@@ -177,7 +204,7 @@ export function createViewerEngine(host: HTMLElement, options: ViewerEngineOptio
       // Superseded by a newer source, or the viewer went away while loading.
       // After destroy() the app has already released every asset it loaded.
       if (destroyed) return;
-      if (request !== sourceRequest) {
+      if (!ticket.isCurrent()) {
         next.destroy();
         return;
       }
@@ -201,20 +228,49 @@ export function createViewerEngine(host: HTMLElement, options: ViewerEngineOptio
 
     setMotion({ autoRotate, reducedMotion }) {
       if (destroyed) return;
-      controls.setMotion(autoRotate, reducedMotion);
+      motion = { autoRotate, reducedMotion };
+      controls?.setMotion(autoRotate, reducedMotion);
     },
 
     resetView() {
       if (destroyed) return;
-      controls.reset();
+      controls?.reset();
+    },
+
+    zoomBy(factor: number) {
+      if (destroyed || !Number.isFinite(factor) || factor <= 0) return;
+      controls?.zoomBy(factor);
+    },
+
+    projectDirection(yawDeg: number, pitchDeg: number) {
+      if (destroyed || content?.kind !== "panorama" || !camera.camera) return null;
+      directionFor(yawDeg, pitchDeg, direction);
+      // Behind the camera, a projection would mirror onto the screen.
+      if (direction.dot(camera.forward) <= 0.05) return null;
+      direction.mulScalar(PROJECT_DISTANCE);
+      camera.camera.worldToScreen(direction, projected);
+      return { x: projected.x, y: projected.y };
+    },
+
+    onViewChange(listener: () => void) {
+      if (destroyed) return () => {};
+      viewListeners.add(listener);
+      requestFrame();
+      return () => {
+        viewListeners.delete(listener);
+      };
     },
 
     destroy() {
       if (destroyed) return;
       destroyed = true;
 
+      loads.close();
+      viewListeners.clear();
       resizeObserver.disconnect();
-      controls.destroy();
+      controls?.destroy();
+      content?.destroy();
+      content = null;
       stopLoop();
 
       // Called from React effect cleanup, never from inside a tick, so this is

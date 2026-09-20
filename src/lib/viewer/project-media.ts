@@ -1,5 +1,5 @@
 import { MEDIA_KEY_PATTERN, publishedObjectMetadata } from "../../../shared/media-contract";
-import type { Project } from "@/lib/project-types";
+import type { Project } from "../project-types";
 import { MEDIA_CDN_ORIGIN } from "./media-origin";
 import type { ViewerSource } from "./types";
 

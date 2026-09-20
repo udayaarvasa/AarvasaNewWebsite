@@ -745,3 +745,220 @@ npx cdk deploy AarvasaMediaDev-Processing -c aarvasa:accountId=<dev-account-id> 
 - A PUBLISHED asset whose publication failed after the decision stays PUBLISHED
   with files missing until an admin approves again (the API says so).
 - Published derivatives of an asset archived later are kept (no cleanup yet).
+
+## 15. Public viewer, 360° tours and hotspots (Phase 6)
+
+Phase 6 puts approved media on project pages: the existing 3D model viewer, plus
+360° panoramic tours with hotspots and room-to-room navigation. It adds no AWS
+resources, no database model and no migration, and does not change upload,
+processing or review. Gaussian splats, AR, VR and WebXR are **not** implemented.
+
+### Architecture
+
+```
+MediaAsset (PUBLISHED, PANORAMA, this project)     project data (src/lib/projects.ts)
+        │  publishedPanoramaQuery: allow-listed columns       │  Project.tour: rooms, hotspots,
+        ▼                                                     ▼  image = published id | dev fixture
+toPublishedPanoramas ──────────────► projectTourConfig (server) ──► sanitizeTour ──► PanoramaTour (props)
+                                                                                         │
+project page (static) ─► ImmersiveSection ─► ImmersiveExperience (tabs, client, lazy) ◄──┘
+                                              ├─ 3D model: Aarvasa3DViewer (source kind "model")
+                                              └─ 360° tour: PanoramaTourViewer
+                                                   └─ Aarvasa3DViewer (source kind "panorama")
+                                                        + overlay: hotspots, rooms, toggle, exit
+                                                        └─ PlayCanvas engine (dynamic import)
+                                                             └─ loadPanorama: sphere + sRGB texture
+```
+
+| File | Role |
+|---|---|
+| `src/lib/viewer/types.ts` | `ViewerSource` (`model` \| `panorama`), `PanoramaView`, engine API (`zoomBy`, `projectDirection`, `onViewChange`) |
+| `src/lib/viewer/source.ts` | URL policy (`resolvePanoramaUrl`, `resolveModelUrl`), view normalisation, source keys |
+| `src/lib/viewer/tour.ts` | Tour/hotspot schema, `sanitizeTour`, `navigate`, `tourFloors` |
+| `src/lib/viewer/published-panoramas.ts` | PUBLISHED-only query and row mapper (public fields only) |
+| `src/lib/viewer/project-tour.ts` | Server-side gating: project tour → public `PanoramaTour` |
+| `src/lib/services/project-panoramas.ts` | The one database read (`loadProjectTour`) |
+| `src/lib/viewer/panorama-math.ts`, `load-gate.ts` | Pure geometry; "latest load wins" |
+| `src/lib/viewer/playcanvas/panorama.ts`, `look-controls.ts` | Panorama content and first-person controls |
+| `src/components/viewer/panorama-tour.tsx` | Tour UI over the viewer |
+| `src/app/projects/[slug]/immersive-*.tsx` | Page section and model/tour tabs |
+| `src/lib/viewer/analytics.ts` | First-party viewer events |
+| `src/app/labs/panoramas/[file]/route.ts` | Development-only generated test panoramas (404 in production) |
+
+### Panorama source contract
+
+A panorama is one **equirectangular** image, JPEG or WebP, 2:1 (±2 %), in sRGB.
+Yaw 0 is the image centre; positive yaw turns right; positive pitch looks up.
+
+```ts
+{ kind: "panorama", url: string, initialView: { yawDeg: number, pitchDeg: number, fovDeg: number } }
+```
+
+`url` must be a same-origin path or `https://{this build's media CDN}/m/{mediaId}/{hash}/{file}.jpg|.jpeg|.webp`
+with no credentials, query or fragment. Everything else is refused before any
+request: other hosts, `http:`, `review/`, `uploads/`, `originals/`, presigned
+URLs, traversal (plain or percent-encoded), protocol-relative and backslash
+tricks, `data:`/`javascript:` URLs, and non-image extensions. The viewer copies
+the contract's published-key regex (`VIEWER_MEDIA_KEY_PATTERN`, kept equal to
+`MEDIA_KEY_PATTERN` by a test) so browser bundles contain no private prefixes.
+Views are normalised: yaw to (−180, 180], pitch to ±85°, field of view 30–100°.
+
+### Hotspot schema
+
+```ts
+type TourHotspot = {
+  id: string;                     // /^[a-z0-9][a-z0-9-]{0,39}$/, unique within its scene
+  label: string;                  // 1–80 chars; the button's accessible name
+  yawDeg: number;                 // any finite value, normalised to (−180, 180]
+  pitchDeg: number;               // −90…90
+  type: "navigation" | "info";    // default "navigation"
+  targetSceneId?: string;         // navigation: another scene of the same tour (required)
+  description?: string;           // info: required, ≤ 280 chars
+};
+```
+
+Hotspots carry no project-specific logic. Invalid hotspots are dropped (and
+reported to the server log in development), as are navigation hotspots whose
+target scene is missing or was dropped. Limits: 40 scenes, 24 hotspots per scene.
+
+### Navigation model
+
+One engine serves the whole tour. Changing rooms changes the viewer's `source`,
+so the canvas and GPU context are kept and nothing remounts. While the next room
+loads, the current one stays on screen with a small "Loading…" indicator and
+hotspots hidden; the room controls stay usable. Each load takes a `LoadGate`
+ticket: starting another aborts the previous download (`AbortController`) and
+marks it stale, so rapid switching always ends on the last room requested and
+a late response is destroyed instead of shown. A missing target shows "That
+room isn't available" and records a `viewer_error` (`missing-target`). The
+opening room and each room's initial view come from the data; `Reset view`
+returns to it. There is no URL routing per room.
+
+### Project-page integration
+
+`/projects/[slug]` renders the section when the project has a model, a tour, or
+both. With both, a tab list (arrow-key navigable) switches between **3D model**
+and **360° tour**; only the selected viewer is mounted, and each waits for the
+visitor to press its button, so neither downloads automatically and never both.
+Switching tabs or pressing **Close tour** destroys the engine and releases the
+GPU context. Without WebGL 2 the viewer explains why and never downloads the
+engine; a failed room shows an error with **Try again** while the room list
+stays available. Projects without media render no section.
+
+### Public versus review media
+
+The browser never decides what is approved. The server looks up only the asset
+ids a project's tour names, and only rows with `status = PUBLISHED`,
+`kind = PANORAMA`, `subjectType = PROJECT` and this `projectSlug`, selecting
+`id, status, kind, subjectType, projectSlug, storageKey, entryFile, altText,
+viewDefaults` — never `sourceKey`, checksums, review keys, diagnostics or reviewer
+ids. The row mapper re-checks all of that and the storage contract, then the URL
+is built from the published key and `MEDIA_CDN_ORIGIN`. UPLOADED, PROCESSING,
+PENDING_REVIEW, REJECTED, FAILED and ARCHIVED assets are not loadable; review
+copies stay behind presigned admin links. Tours marked `"placeholder"` and
+development fixtures never reach production builds, and production has no media
+origin yet, so production shows no CDN media at all. Project pages are
+statically generated: a newly published or withdrawn panorama appears on the
+next build. Projects that use only fixtures (the pilot) never touch the database.
+
+### Performance
+
+- Nothing loads until the visitor opens a viewer; the tour component itself is a
+  separate lazy chunk, and PlayCanvas loads only on "Open".
+- Only the current room's panorama is fetched (`credentials: "omit"`) and
+  resident; the previous texture, material and mesh are destroyed when the next
+  room is shown. Rooms are not preloaded.
+- Images wider than the device cap are downscaled while decoding
+  (`createImageBitmap`): 8192 px on desktop, 4096 px on touch devices, never
+  above the GPU's `maxTextureSize`. No mipmaps (a 360° view is never minified much).
+- Device pixel ratio is capped at 2; rendering is on demand and stops when the
+  view is still, off-screen or in a hidden tab. Hotspot positions are written to
+  the DOM from the per-frame callback, so looking around never re-renders React.
+
+### Accessibility
+
+The canvas is focusable with an explanatory label (arrow keys turn, `+`/`-` zoom);
+zoom, reset, fullscreen, room list, hotspot toggle and close are buttons with
+labels (40–44 px touch targets). Every hotspot is a real button, and the rooms
+panel lists all rooms (grouped by floor when the data has floors) and every
+hotspot of the current room, so nothing requires dragging or finding a hotspot
+on screen. Room changes are announced (`aria-live`) with the room's alt text and
+focus moves to the room name. Reduced motion removes damping and animations;
+panoramas never auto-rotate.
+
+### Analytics
+
+`trackViewerEvent` dispatches a `CustomEvent("aarvasa:viewer")` on `window`; no
+vendor SDK and nothing is sent anywhere yet. Events: `viewer_opened`,
+`viewer_mode_selected`, `panorama_opened`, `hotspot_clicked`,
+`panorama_navigation`, `viewer_error`. Properties are rebuilt from an allow-list
+(project slug, scene/hotspot ids, fixed enums, `placeholder`); URLs, keys, error
+messages and free text are dropped. In development React Strict Mode fires
+mount effects twice, so `panorama_opened` can appear twice there.
+
+### How to add a tour to a project
+
+1. Upload each room through Admin → Media for the project as a **360° panorama** (equirectangular
+   JPEG/WebP, 2:1), with alt text; let it process, then **approve** it.
+2. Add a `ProjectPanoramaTour` for the slug in `TOUR_BY_SLUG`
+   (`src/lib/projects.ts`), referencing each asset by id, with `review: "approved"`.
+3. Place hotspots: open the tour in development and read headings off the
+   image (or the fixture grid), or compute yaw = (x / width − 0.5) × 360 and
+   pitch = (0.5 − y / height) × 180 from pixel coordinates.
+4. Run `npm test` in `infra/` and rebuild; the page picks up PUBLISHED rooms.
+5. Production additionally needs a production media origin (see §11/§12).
+
+Example:
+
+```ts
+const EXAMPLE_TOUR: ProjectPanoramaTour = {
+  label: "Show apartment 360° tour",
+  review: "approved",
+  startSceneId: "living",
+  scenes: [
+    {
+      id: "living",
+      title: "Living room",
+      floor: "Ground floor",
+      image: { source: "published", mediaAssetId: "cm1abcd2ef3gh4" },
+      initialView: { yawDeg: 0, pitchDeg: 0, fovDeg: 75 }, // optional; else the asset's viewDefaults
+      hotspots: [
+        { id: "to-kitchen", label: "Go to kitchen", yawDeg: 95, pitchDeg: -8, type: "navigation", targetSceneId: "kitchen" },
+        { id: "balcony", label: "Balcony", yawDeg: -160, pitchDeg: 0, type: "info", description: "Opens onto the east-facing balcony." },
+      ],
+    },
+    {
+      id: "kitchen",
+      title: "Kitchen",
+      floor: "Ground floor",
+      image: { source: "published", mediaAssetId: "cm5ijkl6mn7op8" },
+      hotspots: [{ id: "to-living", label: "Back to living room", yawDeg: -85, pitchDeg: -8, targetSceneId: "living" }],
+    },
+  ],
+};
+```
+
+The REEF 996 pilot (`REEF_996_PILOT_TOUR`) uses three generated test grids
+(`test-room-a/b/c`) with compass headings, labelled "placeholder" in the image,
+the alt text and the page note. They depict no real property; no image file is
+committed and no customer asset was uploaded.
+
+### Assumptions
+
+- Panoramas are monoscopic, full 360 × 180 equirectangular images; partial
+  panoramas and cube maps are not supported.
+- A tour's rooms belong to one project; cross-project asset ids are ignored.
+- Each project page rebuild is acceptable latency for publication changes.
+
+### Known limitations
+
+- Production shows no immersive media until a production media origin exists;
+  tours were validated locally with fixtures only (no DEV database, nothing
+  published).
+- Real-device testing (iOS Safari, Android Chrome, low-memory phones) is
+  outstanding; mobile was checked in desktop-browser emulation only.
+- No per-room deep links; no transition animation between rooms (the previous
+  room stays visible until the next is ready); no hotspot authoring UI.
+- Panoramas are single images; very large sources are downscaled on the client
+  rather than tiled.
+- Analytics events are dispatched locally only; no collector is wired up.
