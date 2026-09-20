@@ -48,8 +48,10 @@ export function StageHero({ children, className }: { children: React.ReactNode; 
     return () => setOverlay(false);
   }, [setOverlay]);
 
+  // Pulled up by the bar's height so the media runs behind it. The bar keeps
+  // its place in flow, so nothing shifts when it solidifies on scroll.
   return (
-    <section data-surface="stage" className={className}>
+    <section data-surface="stage" className={["-mt-[var(--nav-h)]", className].filter(Boolean).join(" ")}>
       {children}
     </section>
   );

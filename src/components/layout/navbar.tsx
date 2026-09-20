@@ -111,10 +111,8 @@ export function Navbar() {
       <header
         data-surface={floating ? "stage" : undefined}
         className={cn(
-          "sticky top-0 z-50 transition-colors duration-300",
-          floating
-            ? "absolute inset-x-0 border-b border-transparent bg-transparent"
-            : "border-b border-rule bg-paper",
+          "sticky top-0 z-50 border-b transition-colors duration-300",
+          floating ? "border-transparent bg-transparent" : "border-rule bg-paper",
         )}
       >
         <div className="mx-auto flex h-[var(--nav-h)] max-w-[var(--container)] items-center gap-6 px-[var(--gutter)]">
