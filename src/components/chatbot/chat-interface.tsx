@@ -38,16 +38,17 @@ const STARTERS = [
   "Which of your projects has government approvals?",
 ];
 
+// Progress copy describes what the advisor actually does. The previous set
+// ("Evaluating ROI signals", "Scoring investment profiles", "Ranking by
+// risk-adjusted returns") described analysis this platform does not perform.
 const LOADING_MESSAGES = [
-  "Querying Aarvasa verified database...",
-  "Scanning external market feeds...",
-  "Evaluating ROI signals...",
-  "Cross-referencing infrastructure data...",
-  "Scoring investment profiles...",
-  "Aggregating multi-source intelligence...",
-  "Analyzing rental yield patterns...",
-  "Ranking by risk-adjusted returns...",
-];
+  "Reading the Aarvasa listing data...",
+  "Checking developer filings...",
+  "Matching on specification...",
+  "Comparing locality data...",
+  "Gathering approvals and handover dates...",
+  "Putting the answer together...",
+]
 
 // ─── Markdown-lite Renderer ──────────────────────────────────────────────────
 
@@ -407,7 +408,7 @@ export function ChatInterface({ initialPrompt }: { initialPrompt?: string }) {
                     className={`flex h-8 w-8 items-center justify-center rounded-lg ${
                       message.isError
                         ? "bg-red-100 text-red-600"
-                        : "maroon-gradient text-primary-foreground"
+                        : "bg-burgundy text-paper"
                     }`}
                   >
                     {message.isError ? (

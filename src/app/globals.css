@@ -329,67 +329,25 @@ body {
 }
 
 /* ═══════════════════════════════════════════════════════════════════════════
-   DEPRECATED — the pre-redesign surface language.
+   LEGACY — still referenced by surfaces this redesign did not cover.
 
-   Retained only so pages that have not yet been rebuilt keep rendering during
-   the migration. Nothing new may use these. Each is deleted as its page is
-   migrated; whatever remains is removed in the final cleanup commit.
-
-   Tracking: glass-card, gold-text, gold-gradient, maroon-gradient,
-   footer-dark, the about/services cinematic utilities and every ambient
-   keyframe below.
+   Only what is still used remains: the Button `gold` variant, the serif
+   heading utility on the policy and labs pages, and the cinematic utilities on
+   /blockchain, which stays routable but is unlinked from navigation because it
+   is roadmap rather than product. Everything else that lived here was deleted
+   once its last consumer was migrated.
    ═══════════════════════════════════════════════════════════════════════════ */
 
-.glass-card {
-  border: 1px solid var(--rule);
-  background: var(--paper-raised);
-  box-shadow: none;
-}
-
 .gold-gradient { background: linear-gradient(135deg, #d4af37 0%, #f5d27a 52%, #b9872f 100%); }
-.maroon-gradient { background: linear-gradient(135deg, #50080e 0%, #72383d 48%, #2a0815 100%); }
 
-.gold-text {
-  background: linear-gradient(135deg, #d4af37 0%, #f5d27a 52%, #b9872f 100%);
-  -webkit-background-clip: text;
-  background-clip: text;
-  color: transparent;
-}
-
-.footer-dark {
-  background: var(--stage);
-  color: var(--stage-ink);
-}
-
-/* Property and project names. Superseded by .av-display. */
+/* Property and project names on pages not yet migrated. Superseded by .av-display. */
 .heading-serif {
   font-family: var(--font-bodoni), "Bodoni Moda", Georgia, serif;
   font-weight: 400;
   letter-spacing: -0.015em;
 }
 
-@keyframes fade-up {
-  from { opacity: 0; transform: translateY(20px); }
-  to { opacity: 1; transform: translateY(0); }
-}
-
-.animate-fade-up { animation: fade-up 0.6s var(--ease-enter) both; }
-
-/* Ambient loops. The design language allows none; these are inert stubs so the
-   un-migrated About and Services pages keep their layout while losing the
-   motion. Removed with those pages. */
-.animate-pulse-glow,
-.animate-float,
-.animate-shimmer,
-.animate-gradient-rotate,
-.animate-orb-drift,
-.animate-icon-glow,
-.animate-stat-float,
-.animate-border-glow,
-.timeline-node {
-  animation: none;
-}
-
+/* /blockchain only. */
 .gold-shimmer-text {
   background: linear-gradient(90deg, #d4af37 0%, #f5d27a 25%, #d4af37 50%, #b9872f 75%, #d4af37 100%);
   -webkit-background-clip: text;
@@ -397,17 +355,8 @@ body {
   color: transparent;
 }
 
-.about-hero-gradient { background: var(--stage); }
 .services-cinematic-bg { background: var(--stage); }
-.services-vignette::after,
-.services-noise::before,
-.services-grid-lines::after { content: none; }
-
-.service-card-glass {
-  background: var(--stage-raised);
-  border: 1px solid var(--stage-rule);
-  border-radius: var(--r-2);
-}
+.services-vignette::after { content: none; }
 
 .service-card-ivory {
   background: var(--paper-raised);
@@ -415,16 +364,9 @@ body {
   border-radius: var(--r-2);
 }
 
-.timeline-beam-core,
-.timeline-beam-glow,
-.timeline-beam-ambient,
-.timeline-flow-particle {
-  display: none;
-}
-
-.timeline-connector,
-.timeline-connector-right {
-  position: relative;
-  height: 1px;
-  background: var(--rule-firm);
+/* Ambient loops are inert: the design language allows none. */
+.animate-orb-drift,
+.animate-pulse-glow,
+.animate-gradient-rotate {
+  animation: none;
 }

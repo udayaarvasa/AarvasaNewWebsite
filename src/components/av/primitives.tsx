@@ -74,10 +74,10 @@ export function Ledger({ rows, className }: { rows: LedgerRow[]; className?: str
       {rows.map((row, i) => (
         <div
           key={`${row.term}-${i}`}
-          className="grid grid-cols-[130px_1fr] gap-[var(--s-5)] border-b border-rule py-[11px] text-[13.5px] lg:grid-cols-[150px_1fr]"
+          className="grid grid-cols-[110px_minmax(0,1fr)] gap-[var(--s-4)] border-b border-rule py-[11px] text-[13.5px] sm:grid-cols-[130px_minmax(0,1fr)] sm:gap-[var(--s-5)] lg:grid-cols-[150px_minmax(0,1fr)]"
         >
-          <dt className="text-ink-muted">{row.term}</dt>
-          <dd className="av-num font-medium">{row.value}</dd>
+          <dt className="min-w-0 break-words text-ink-muted">{row.term}</dt>
+          <dd className="av-num min-w-0 break-words font-medium">{row.value}</dd>
         </div>
       ))}
     </dl>

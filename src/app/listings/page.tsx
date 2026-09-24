@@ -21,9 +21,8 @@ export const metadata = {
  */
 export default function ListingsPage() {
   return (
-    <CompareProvider>
-      <div className="pb-[var(--s-24)]">
-        <Wrap className="pt-[var(--s-10)]">
+    <div className="pb-[var(--s-24)]">
+      <Wrap className="pt-[var(--s-10)]">
           <span className="av-label text-gold-ink">Discover</span>
           <h1 className="av-display mt-2 text-[clamp(32px,4.4vw,52px)] leading-[1.04]">
             Premium property, examined properly
@@ -34,8 +33,8 @@ export default function ListingsPage() {
           </p>
         </Wrap>
 
-        {/* Developer projects — these carry real immersive media, so they lead */}
-        <Wrap className="pt-[var(--band)]">
+      {/* Developer projects — these carry real immersive media, so they lead */}
+      <Wrap className="pt-[var(--band)]">
           <SectionHead
             label="Projects"
             title="Developer inventory"
@@ -44,13 +43,16 @@ export default function ListingsPage() {
           <ProjectCards />
         </Wrap>
 
-        <Wrap className="pt-[var(--band)]">
-          <SectionHead label="All listings" title="Everything on the platform" />
+      <Wrap className="pt-[var(--band)]">
+        <SectionHead label="All listings" title="Everything on the platform" />
+        {/* The shortlist context wraps only the grid and its tray; the static
+            header and project plates above stay outside the client boundary. */}
+        <CompareProvider>
           <Suspense fallback={<PropertyGridSkeleton count={6} />}>
             <ListingsGrid />
           </Suspense>
-        </Wrap>
-      </div>
-    </CompareProvider>
+        </CompareProvider>
+      </Wrap>
+    </div>
   );
 }

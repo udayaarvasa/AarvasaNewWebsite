@@ -202,7 +202,7 @@ export default async function ProjectPage({
 
       {/* ── EVALUATE ──────────────────────────────────────────────────── */}
       <Wrap className="pt-[var(--band)]">
-        <div className="grid items-start gap-[var(--s-14)] lg:grid-cols-[minmax(0,1fr)_var(--aside)]">
+        <div className="grid grid-cols-1 items-start gap-[var(--s-14)] lg:grid-cols-[minmax(0,1fr)_var(--aside)]">
           <div>
             <MotionReveal>
               <SectionHead label="Overview" />

@@ -33,7 +33,7 @@ export default function ContactPage() {
       </Wrap>
 
       <Wrap className="pt-[var(--band-tight)]">
-        <div className="grid items-start gap-[var(--s-10)] lg:grid-cols-[1.25fr_0.75fr]">
+        <div className="grid grid-cols-1 items-start gap-[var(--s-10)] lg:grid-cols-[1.25fr_0.75fr]">
           <div className="rounded-sm border border-rule bg-paper-raised p-[var(--s-5)] sm:p-[var(--s-8)]">
             <h2 className="text-[17px] font-semibold">Send a message</h2>
             <p className="mt-1 text-[13px] leading-relaxed text-ink-muted">

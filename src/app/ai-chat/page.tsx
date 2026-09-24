@@ -39,7 +39,7 @@ export default async function AiChatPage({
       </Wrap>
 
       <Wrap className="pt-[var(--band-tight)]">
-        <div className="grid items-start gap-[var(--s-10)] lg:grid-cols-[minmax(0,1fr)_300px]">
+        <div className="grid grid-cols-1 items-start gap-[var(--s-10)] lg:grid-cols-[minmax(0,1fr)_300px]">
           <Suspense fallback={<Skeleton className="h-[640px] w-full rounded-sm" />}>
             <ChatInterface initialPrompt={prompt} />
           </Suspense>

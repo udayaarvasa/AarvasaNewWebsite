@@ -107,7 +107,7 @@ export default function ServicesPage() {
         <Wrap key={a.label} className="pt-[var(--band)]">
           <MotionReveal delay={Math.min(i, 2) * 0.06}>
             <SectionHead label={a.label} title={a.title} />
-            <div className="-mt-[var(--s-6)] grid items-start gap-[var(--s-10)] lg:grid-cols-2">
+            <div className="-mt-[var(--s-6)] grid grid-cols-1 items-start gap-[var(--s-10)] lg:grid-cols-2">
               <p className="max-w-[var(--measure)] text-[17px] leading-[1.75]">{a.body}</p>
               <Ledger rows={a.includes.map(([t, d]) => ({ term: t, value: d }))} />
             </div>

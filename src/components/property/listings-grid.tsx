@@ -81,7 +81,7 @@ export function ListingsGrid() {
   const selected = properties.filter((p) => compare.has(p.id));
 
   return (
-    <div className="grid items-start gap-[var(--s-8)] lg:grid-cols-[var(--rail)_minmax(0,1fr)]">
+    <div className="grid grid-cols-1 items-start gap-[var(--s-8)] lg:grid-cols-[var(--rail)_minmax(0,1fr)]">
       <PropertyFilters />
 
       <div>

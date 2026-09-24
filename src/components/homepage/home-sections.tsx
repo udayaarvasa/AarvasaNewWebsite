@@ -120,7 +120,7 @@ export function FeaturedProject() {
         label="Featured project"
         note="One project takes the full spread. Inventory and pricing are sourced from the developer."
       />
-      <div className="grid items-start gap-[var(--s-14)] lg:grid-cols-[0.9fr_1.1fr]">
+      <div className="grid grid-cols-1 items-start gap-[var(--s-14)] lg:grid-cols-[0.9fr_1.1fr]">
         <MotionReveal>
           <Link href={`/projects/${project.slug}`} data-hov className="block">
             <Plate ratio="plate">
@@ -330,7 +330,7 @@ export function AdvisorPanel() {
         label="Property intelligence"
         note="The advisor sits in the margin of the page, where a good editor sits."
       />
-      <div className="grid items-start gap-[var(--s-14)] lg:grid-cols-[minmax(0,1fr)_340px]">
+      <div className="grid grid-cols-1 items-start gap-[var(--s-14)] lg:grid-cols-[minmax(0,1fr)_340px]">
         <div>
           <p className="av-display max-w-[24ch] text-[clamp(24px,2.8vw,34px)] italic leading-[1.26] text-burgundy">
             “A two-bedroom near a metro line in Gurugram, ready to move, under ₹4 Cr.”
