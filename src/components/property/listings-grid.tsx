@@ -10,6 +10,8 @@ import { PropertyGridSkeleton } from "@/components/property/property-skeleton";
 import { PropertyFilters } from "@/components/property/property-filters";
 import { COMPARE_MAX, useCompare } from "@/components/property/compare-store";
 import { Plate, Status } from "@/components/av/primitives";
+import { RevealGroup, RevealItem } from "@/components/av/motion";
+import { ElevationMotif } from "@/components/av/graphics";
 import { currencyForCountry, formatCurrency } from "@/lib/currency";
 import { cn } from "@/lib/utils";
 import type { PropertyListing } from "@/types/property";
@@ -114,12 +116,20 @@ export function ListingsGrid() {
         {loading ? (
           <PropertyGridSkeleton count={6} />
         ) : properties.length === 0 ? (
-          <div className="border border-rule bg-paper-raised px-6 py-20 text-center">
-            <h3 className="av-display text-[24px]">No properties match those filters</h3>
-            <p className="mx-auto mt-2 max-w-[42ch] text-[13.5px] text-ink-muted">
-              Try widening the price range or clearing a filter. Every listing here comes from the
-              developer or their appointed channel partner.
-            </p>
+          <div className="relative isolate overflow-hidden border border-rule bg-paper-raised px-6 py-[var(--s-14)]">
+            <div aria-hidden="true" className="pointer-events-none absolute -right-6 top-1/2 h-[260px] w-[220px] -translate-y-1/2 opacity-25 max-sm:hidden">
+              <ElevationMotif storeys={12} accentRow={3} />
+            </div>
+            <div className="relative z-[2] max-w-[46ch]">
+              <span className="av-label text-gold-ink">No matches</span>
+              <h3 className="av-display mt-2 text-[26px] leading-tight">
+                Nothing on the platform fits those filters
+              </h3>
+              <p className="mt-3 text-[13.5px] leading-relaxed text-ink-muted">
+                Try widening the price range or clearing a filter. Every listing here comes from the
+                developer or their appointed channel partner, so the set is deliberately small.
+              </p>
+            </div>
           </div>
         ) : view === "table" ? (
           <div className="hidden border-t border-rule-firm lg:block">
@@ -157,11 +167,13 @@ export function ListingsGrid() {
             ))}
           </div>
         ) : (
-          <div className="grid gap-[var(--s-8)] sm:grid-cols-2 xl:grid-cols-3">
+          <RevealGroup className="grid gap-[var(--s-8)] sm:grid-cols-2 xl:grid-cols-3">
             {properties.map((p) => (
-              <DbPropertyCard key={p.id} property={p} />
+              <RevealItem key={p.id}>
+                <DbPropertyCard property={p} />
+              </RevealItem>
             ))}
-          </div>
+          </RevealGroup>
         )}
 
         {/* Pagination */}

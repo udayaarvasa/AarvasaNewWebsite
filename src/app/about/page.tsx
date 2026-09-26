@@ -1,7 +1,10 @@
 import Image from "next/image";
 import Link from "next/link";
-import { MotionReveal } from "@/components/layout/motion-reveal";
 import { Ledger, Note, Plate, SectionHead, Wrap } from "@/components/av/primitives";
+import { DraftingGrid, Grain, MeasureRule, SectionIndex } from "@/components/av/graphics";
+import { RevealGroup, RevealItem, TextReveal } from "@/components/av/motion";
+import { CinematicBanner, StatementBanner } from "@/components/av/banner";
+import { publishedProjects } from "@/lib/projects";
 
 export const metadata = {
   title: "About | Aarvasa",
@@ -96,14 +99,25 @@ const roadmap = [
 ];
 
 export default function AboutPage() {
+  const lead = publishedProjects().find((p) => p.images[0]) ?? null;
+
   return (
     <div className="pb-[var(--s-24)]">
-      <Wrap className="pt-[var(--s-10)]">
-        <span className="av-label text-gold-ink">About</span>
-        <h1 className="av-display mt-2 max-w-[20ch] text-[clamp(32px,4.8vw,58px)] leading-[1.02]">
-          Most property is sold on a brochure. We think it should be read like a drawing.
-        </h1>
-      </Wrap>
+      <section className="relative isolate overflow-hidden bg-paper-sunken pb-[var(--band-tight)] pt-[var(--s-10)]">
+        <DraftingGrid size={44} fade="radial" className="opacity-25" />
+        <Grain opacity={0.04} />
+        <Wrap className="relative z-[2]">
+          <span className="av-label text-gold-ink">About</span>
+          <TextReveal
+            as="h1"
+            text="Most property is sold on a brochure. We think it should be read like a drawing."
+            className="av-display mt-2 max-w-[20ch] text-[clamp(32px,4.8vw,58px)] leading-[1.02]"
+          />
+          <div className="mt-[var(--s-6)] max-w-[460px]">
+            <MeasureRule />
+          </div>
+        </Wrap>
+      </section>
 
       <Wrap read className="pt-[var(--band-tight)]">
         <p className="text-[19px] leading-[1.75]">
@@ -122,7 +136,22 @@ export default function AboutPage() {
         </p>
       </Wrap>
 
+      {lead && (
+        <div className="mt-[var(--band)]">
+          <CinematicBanner
+            src={lead.images[0]}
+            alt={`${lead.name}, ${lead.location}`}
+            eyebrow="What we publish"
+            title="Filed, not written."
+            body="Specification comes from the developer's own filing. Where a figure has not been filed, the row reads dash rather than an estimate."
+            height="short"
+            position="50% 45%"
+          />
+        </div>
+      )}
+
       <Wrap className="pt-[var(--band)]">
+        <SectionIndex n={1} total={5} className="mb-[var(--s-3)]" />
         <SectionHead
           label="What we publish"
           title="Three rules we do not bend"
@@ -150,11 +179,12 @@ export default function AboutPage() {
         />
       </Wrap>
 
-      <Wrap className="pt-[var(--band)]" >
+      <Wrap className="pt-[var(--band)]">
+        <SectionIndex n={2} total={5} className="mb-[var(--s-3)]" />
         <SectionHead label="The team" title="Who runs Aarvasa" />
-        <div className="grid gap-[var(--s-10)] sm:grid-cols-2 lg:grid-cols-4">
+        <RevealGroup className="grid gap-[var(--s-10)] sm:grid-cols-2 lg:grid-cols-4">
           {team.map((person, i) => (
-            <MotionReveal key={person.name} delay={Math.min(i, 3) * 0.08}>
+            <RevealItem key={person.name}>
               <article id={i === 0 ? "team" : undefined}>
                 <Plate ratio="plate" className="border-b border-rule-firm">
                   <Image
@@ -192,12 +222,13 @@ export default function AboutPage() {
                   </a>
                 </p>
               </article>
-            </MotionReveal>
+            </RevealItem>
           ))}
-        </div>
+        </RevealGroup>
       </Wrap>
 
       <Wrap className="pt-[var(--band)]">
+        <SectionIndex n={3} total={5} className="mb-[var(--s-3)]" />
         <SectionHead
           label="Recognition"
           title="Where Aarvasa has been recognised"
@@ -207,6 +238,7 @@ export default function AboutPage() {
       </Wrap>
 
       <Wrap className="pt-[var(--band)]">
+        <SectionIndex n={4} total={5} className="mb-[var(--s-3)]" />
         <SectionHead label="Offices" title="Where we work" />
         <Ledger
           className="-mt-[var(--s-6)]"
@@ -225,7 +257,16 @@ export default function AboutPage() {
         </div>
       </Wrap>
 
+      <div className="mt-[var(--band)]">
+        <StatementBanner
+          eyebrow="How we are paid"
+          title="We hold no inventory and take no fee from buyers."
+          body="Developers pay Aarvasa when an enquiry becomes a sale. That is the whole business model, and it is why the specification on this site is the developer's own filing rather than a sales description."
+        />
+      </div>
+
       <Wrap className="pt-[var(--band)]">
+        <SectionIndex n={5} total={5} className="mb-[var(--s-3)]" />
         <SectionHead
           label="Roadmap"
           title="What is built and what is not"

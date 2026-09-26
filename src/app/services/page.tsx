@@ -1,6 +1,16 @@
 import Link from "next/link";
-import { MotionReveal } from "@/components/layout/motion-reveal";
 import { Ledger, Note, SectionHead, Wrap } from "@/components/av/primitives";
+import {
+  ContourField,
+  DraftingGrid,
+  ElevationMotif,
+  Grain,
+  MeasureRule,
+  PlanMotif,
+  SectionIndex,
+} from "@/components/av/graphics";
+import { Reveal, TextReveal } from "@/components/av/motion";
+import { StatementBanner } from "@/components/av/banner";
 
 export const metadata = {
   title: "Services | Aarvasa",
@@ -22,11 +32,14 @@ export const metadata = {
  * carried over: neither is verifiable from the platform's own data.
  */
 
+type Motif = "elevation" | "plan" | "contour";
+
 const audiences: {
   label: string;
   title: string;
   body: string;
   includes: [string, string][];
+  motif: Motif;
 }[] = [
   {
     label: "For buyers",
@@ -38,6 +51,7 @@ const audiences: {
       ["Side-by-side comparison", "Up to three properties on price, specification and locality"],
       ["Direct enquiry", "Routed to the developer or their appointed channel partner"],
     ],
+    motif: "elevation",
   },
   {
     label: "For owners and occupiers",
@@ -49,6 +63,7 @@ const audiences: {
       ["Payment schedules", "Published plans, with the currency the developer contracts in"],
       ["Layout drawings", "Published as drawings and labelled as such, never as photography"],
     ],
+    motif: "plan",
   },
   {
     label: "For builders",
@@ -60,6 +75,7 @@ const audiences: {
       ["Review and publishing", "Assets go live only once reviewed and published"],
       ["Enquiry routing", "Enquiries delivered with the context the buyer already gave"],
     ],
+    motif: "contour",
   },
   {
     label: "For channel partners",
@@ -71,8 +87,19 @@ const audiences: {
       ["Shortlist context", "What else the buyer is comparing this against"],
       ["Agent network", "A listed presence on the Aarvasa agents directory"],
     ],
+    motif: "plan",
   },
 ];
+
+function Motif({ kind, tone }: { kind: Motif; tone: "paper" | "stage" }) {
+  if (kind === "elevation") return <ElevationMotif tone={tone} storeys={15} accentRow={4} />;
+  if (kind === "plan") return <PlanMotif tone={tone} />;
+  return (
+    <div className="relative h-full w-full">
+      <ContourField tone={tone} seed={9} />
+    </div>
+  );
+}
 
 const process = [
   ["Discover", "Search the platform on the specification that decides it, or describe what you want to the advisor."],
@@ -83,16 +110,25 @@ const process = [
 export default function ServicesPage() {
   return (
     <div className="pb-[var(--s-24)]">
-      <Wrap className="pt-[var(--s-10)]">
+      <section className="relative isolate overflow-hidden bg-paper-sunken pb-[var(--band-tight)] pt-[var(--s-10)]">
+        <DraftingGrid size={44} fade="radial" className="opacity-25" />
+        <Grain opacity={0.04} />
+        <Wrap className="relative z-[2]">
         <span className="av-label text-gold-ink">Services</span>
-        <h1 className="av-display mt-2 max-w-[20ch] text-[clamp(32px,4.6vw,56px)] leading-[1.02]">
-          Four people use Aarvasa. It is built for all four.
-        </h1>
+        <TextReveal
+          as="h1"
+          text="Four people use Aarvasa. It is built for all four."
+          className="av-display mt-2 max-w-[20ch] text-[clamp(32px,4.6vw,56px)] leading-[1.02]"
+        />
         <p className="mt-[var(--s-4)] max-w-[54ch] text-[17px] leading-relaxed text-ink-muted">
           Buyers and occupiers on one side, builders and their channel partners on the other. The
           same captured project serves both.
         </p>
-      </Wrap>
+        <div className="mt-[var(--s-6)] max-w-[440px]">
+          <MeasureRule />
+        </div>
+        </Wrap>
+      </section>
 
       <Wrap className="pt-[var(--band)]">
         <SectionHead
@@ -104,16 +140,45 @@ export default function ServicesPage() {
       </Wrap>
 
       {audiences.map((a, i) => (
-        <Wrap key={a.label} className="pt-[var(--band)]">
-          <MotionReveal delay={Math.min(i, 2) * 0.06}>
-            <SectionHead label={a.label} title={a.title} />
-            <div className="-mt-[var(--s-6)] grid grid-cols-1 items-start gap-[var(--s-10)] lg:grid-cols-2">
-              <p className="max-w-[var(--measure)] text-[17px] leading-[1.75]">{a.body}</p>
-              <Ledger rows={a.includes.map(([t, d]) => ({ term: t, value: d }))} />
-            </div>
-          </MotionReveal>
-        </Wrap>
+        <section
+          key={a.label}
+          className={
+            i % 2 === 1
+              ? "relative isolate mt-[var(--band)] overflow-hidden bg-paper-sunken py-[var(--band-tight)]"
+              : "mt-[var(--band)]"
+          }
+        >
+          {i % 2 === 1 && <DraftingGrid size={40} fade="radial" className="opacity-20" />}
+          <Wrap className="relative z-[2]">
+            <Reveal>
+              <SectionIndex n={i + 2} total={audiences.length + 2} className="mb-[var(--s-3)]" />
+              <SectionHead label={a.label} title={a.title} />
+              <div className="-mt-[var(--s-6)] grid grid-cols-1 items-center gap-[var(--s-10)] lg:grid-cols-[1fr_0.85fr]">
+                <div className={i % 2 === 1 ? "lg:order-2" : undefined}>
+                  <p className="max-w-[var(--measure)] text-[17px] leading-[1.75]">{a.body}</p>
+                  <div className="mt-[var(--s-6)]">
+                    <Ledger rows={a.includes.map(([t, d]) => ({ term: t, value: d }))} />
+                  </div>
+                </div>
+                <div
+                  aria-hidden="true"
+                  className={`relative h-[300px] md:h-[400px] ${i % 2 === 1 ? "lg:order-1" : ""}`}
+                >
+                  <Motif kind={a.motif} tone="paper" />
+                </div>
+              </div>
+            </Reveal>
+          </Wrap>
+        </section>
       ))}
+
+      <div className="mt-[var(--band)]">
+        <StatementBanner
+          eyebrow="What we do not do"
+          title="No yields. No forecasts. No ownership claims."
+          body="Aarvasa is a property discovery and marketing platform. Everything below is in development and is not offered today."
+        />
+      </div>
 
       <Wrap className="pt-[var(--band)]">
         <SectionHead

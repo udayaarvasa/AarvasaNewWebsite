@@ -1,5 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { Ledger, Note, SectionHead, Wrap } from "@/components/av/primitives";
+import { ContourField, DraftingGrid, Grain, MeasureRule, PlanMotif } from "@/components/av/graphics";
+import { Reveal, TextReveal } from "@/components/av/motion";
 
 export const metadata = {
   title: "Contact | Aarvasa",
@@ -21,20 +23,32 @@ export const metadata = {
 export default function ContactPage() {
   return (
     <div className="pb-[var(--s-24)]">
-      <Wrap className="pt-[var(--s-10)]">
-        <span className="av-label text-gold-ink">Contact</span>
-        <h1 className="av-display mt-2 text-[clamp(32px,4.4vw,52px)] leading-[1.04]">
-          Talk to the desk
-        </h1>
-        <p className="mt-[var(--s-4)] max-w-[52ch] text-[17px] leading-relaxed text-ink-muted">
-          A property enquiry reaches the developer or their appointed channel partner directly.
-          Anything else reaches us.
-        </p>
-      </Wrap>
+      <section className="relative isolate overflow-hidden bg-paper-sunken pb-[var(--band-tight)] pt-[var(--s-10)]">
+        <DraftingGrid size={44} fade="radial" className="opacity-25" />
+        <ContourField seed={5} className="opacity-25" />
+        <Grain opacity={0.04} />
+        <Wrap className="relative z-[2]">
+          <span className="av-label text-gold-ink">Contact</span>
+          <TextReveal
+            as="h1"
+            text="Talk to the desk"
+            className="av-display mt-2 text-[clamp(32px,4.4vw,52px)] leading-[1.04]"
+          />
+          <p className="mt-[var(--s-4)] max-w-[52ch] text-[17px] leading-relaxed text-ink-muted">
+            A property enquiry reaches the developer or their appointed channel partner directly.
+            Anything else reaches us.
+          </p>
+          <div className="mt-[var(--s-6)] max-w-[400px]">
+            <MeasureRule />
+          </div>
+        </Wrap>
+      </section>
 
       <Wrap className="pt-[var(--band-tight)]">
         <div className="grid grid-cols-1 items-start gap-[var(--s-10)] lg:grid-cols-[1.25fr_0.75fr]">
-          <div className="rounded-sm border border-rule bg-paper-raised p-[var(--s-5)] sm:p-[var(--s-8)]">
+          <Reveal className="relative isolate overflow-hidden rounded-sm border border-rule bg-paper-raised p-[var(--s-5)] sm:p-[var(--s-8)]">
+            <DraftingGrid size={32} fade="radial" className="opacity-20" />
+            <div className="relative z-[2]">
             <h2 className="text-[17px] font-semibold">Send a message</h2>
             <p className="mt-1 text-[13px] leading-relaxed text-ink-muted">
               Tell us the city, the configuration and the budget you have in mind, and name any
@@ -52,7 +66,7 @@ export default function ContactPage() {
                     name="name"
                     type="text"
                     autoComplete="name"
-                    className="w-full rounded-xs border border-rule-firm bg-paper px-3 py-[10px] text-[14px] outline-none focus:border-burgundy"
+                    className="w-full rounded-xs border border-rule-firm bg-paper px-3 py-[10px] text-[14px] outline-none transition-[border-color,box-shadow] duration-200 hover:border-ink-muted focus:border-burgundy focus:shadow-[0_0_0_3px_var(--burgundy-wash)]"
                   />
                 </div>
                 <div>
@@ -64,7 +78,7 @@ export default function ContactPage() {
                     name="email"
                     type="email"
                     autoComplete="email"
-                    className="w-full rounded-xs border border-rule-firm bg-paper px-3 py-[10px] text-[14px] outline-none focus:border-burgundy"
+                    className="w-full rounded-xs border border-rule-firm bg-paper px-3 py-[10px] text-[14px] outline-none transition-[border-color,box-shadow] duration-200 hover:border-ink-muted focus:border-burgundy focus:shadow-[0_0_0_3px_var(--burgundy-wash)]"
                   />
                 </div>
               </div>
@@ -80,7 +94,7 @@ export default function ContactPage() {
                     type="tel"
                     autoComplete="tel"
                     placeholder="+91"
-                    className="w-full rounded-xs border border-rule-firm bg-paper px-3 py-[10px] text-[14px] outline-none placeholder:text-ink-muted focus:border-burgundy"
+                    className="w-full rounded-xs border border-rule-firm bg-paper px-3 py-[10px] text-[14px] outline-none transition-[border-color,box-shadow] duration-200 placeholder:text-ink-muted hover:border-ink-muted focus:border-burgundy focus:shadow-[0_0_0_3px_var(--burgundy-wash)]"
                   />
                 </div>
                 <div>
@@ -91,7 +105,7 @@ export default function ContactPage() {
                     id="c-city"
                     name="city"
                     type="text"
-                    className="w-full rounded-xs border border-rule-firm bg-paper px-3 py-[10px] text-[14px] outline-none focus:border-burgundy"
+                    className="w-full rounded-xs border border-rule-firm bg-paper px-3 py-[10px] text-[14px] outline-none transition-[border-color,box-shadow] duration-200 hover:border-ink-muted focus:border-burgundy focus:shadow-[0_0_0_3px_var(--burgundy-wash)]"
                   />
                 </div>
               </div>
@@ -105,7 +119,7 @@ export default function ContactPage() {
                   name="message"
                   rows={5}
                   placeholder="Configuration, budget, and any project you have already looked at."
-                  className="w-full rounded-xs border border-rule-firm bg-paper px-3 py-[10px] text-[14px] leading-relaxed outline-none placeholder:text-ink-muted focus:border-burgundy"
+                  className="w-full rounded-xs border border-rule-firm bg-paper px-3 py-[10px] text-[14px] leading-relaxed outline-none transition-[border-color,box-shadow] duration-200 placeholder:text-ink-muted hover:border-ink-muted focus:border-burgundy focus:shadow-[0_0_0_3px_var(--burgundy-wash)]"
                 />
               </div>
 
@@ -118,7 +132,8 @@ export default function ContactPage() {
                 you name.
               </p>
             </form>
-          </div>
+            </div>
+          </Reveal>
 
           <aside className="grid gap-[var(--s-5)]">
             <div>
@@ -157,6 +172,10 @@ export default function ContactPage() {
               Aarvasa holds no inventory and charges buyers nothing. Enquiries about a specific
               property are routed to that developer or their appointed channel partner.
             </Note>
+
+            <div aria-hidden="true" className="relative h-[200px] opacity-45 max-lg:hidden">
+              <PlanMotif />
+            </div>
           </aside>
         </div>
       </Wrap>

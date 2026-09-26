@@ -6,6 +6,16 @@ import { Button } from "@/components/ui/button";
 import { MotionReveal } from "@/components/layout/motion-reveal";
 import { StageHero } from "@/components/layout/nav-overlay";
 import {
+  CoordinateMarks,
+  DraftingGrid,
+  Grain,
+  MeasureRule,
+  SectionIndex,
+} from "@/components/av/graphics";
+import { Parallax, Reveal, TextReveal } from "@/components/av/motion";
+import { TextureBanner } from "@/components/av/banner";
+import { Gallery, type GalleryItem } from "@/components/property/gallery";
+import {
   CapMark,
   Ledger,
   Note,
@@ -90,6 +100,18 @@ export default async function ProjectPage({
     ...(project.planImages.length > 0 ? ["Plan"] : []),
   ];
 
+  /* Photographs only. The developer's filed layout drawing keeps its own
+     captioned section below, so it is never shown as a photograph and never
+     appears twice on the page. */
+  const galleryItems: GalleryItem[] = [
+    ...project.images.map((src, i) => ({
+      src,
+      alt: `${project.name}, ${project.location} — view ${i + 1}`,
+      caption: i === 0 ? `${project.name} · ${project.location}` : undefined,
+      kind: "photo" as const,
+    })),
+  ];
+
   const railItems = [
     { label: project.fromPrice > 0 ? "Starting from" : "Rate", value: price.primary },
     {
@@ -117,27 +139,34 @@ export default async function ProjectPage({
           Cinematic hero. Photography where it exists, otherwise a typographic
           panel — never a stock photo standing in for the real site. */}
       <StageHero className="relative">
-        <Plate ratio="auto" scrim={Boolean(hero)} className="h-[68vh] min-h-[420px] bg-stage">
+        <Plate ratio="auto" scrim={Boolean(hero)} className="h-[74vh] min-h-[460px] bg-stage">
           {hero ? (
-            <Image
-              src={hero}
-              alt={`${project.name}, ${project.location}`}
-              fill
-              sizes="100vw"
-              className="object-cover"
-              priority
-            />
+            <Parallax distance={32} className="absolute inset-0">
+              <Image
+                src={hero}
+                alt={`${project.name}, ${project.location}`}
+                fill
+                sizes="100vw"
+                className="object-cover"
+                priority
+              />
+            </Parallax>
           ) : (
             <div className="absolute inset-0 bg-stage" />
           )}
+          <DraftingGrid tone="stage" size={64} fade="top" className="z-[1] opacity-25" />
+          <Grain opacity={0.06} className="z-[1]" />
+          <CoordinateMarks tone="stage" className="z-[2] max-md:hidden" />
           <div className="absolute inset-x-0 bottom-0 z-[2] pb-[var(--s-10)]">
             <Wrap>
               <span className="av-meta text-gold">
                 {project.kind === "plots" ? "Plotted development" : "Residences"} · {project.city}
               </span>
-              <h1 className="av-display mt-3 max-w-[14ch] text-[clamp(36px,6vw,64px)] leading-[1.0] text-stage-ink">
-                {project.name}
-              </h1>
+              <TextReveal
+                as="h1"
+                text={project.name}
+                className="av-display mt-3 max-w-[14ch] text-[clamp(36px,6vw,64px)] leading-[1.0] text-stage-ink"
+              />
               <p className="av-meta mt-3 text-stage-muted">
                 {project.location} · {project.developer}
               </p>
@@ -200,11 +229,24 @@ export default async function ProjectPage({
         </StageBand>
       )}
 
+      {!hasImmersive && (
+        <div className="mt-[var(--s-14)]">
+          <TextureBanner
+            eyebrow="Explore"
+            title="This project has not been captured yet."
+            body="When a 3D model, a 360° tour or a scan is produced for this project, it appears here and on the listing. Until then the specification below is the record."
+            motif="contour"
+            tone="stage"
+          />
+        </div>
+      )}
+
       {/* ── EVALUATE ──────────────────────────────────────────────────── */}
       <Wrap className="pt-[var(--band)]">
         <div className="grid grid-cols-1 items-start gap-[var(--s-14)] lg:grid-cols-[minmax(0,1fr)_var(--aside)]">
           <div>
             <MotionReveal>
+              <SectionIndex n={1} total={6} className="mb-[var(--s-3)]" />
               <SectionHead label="Overview" />
               <Ledger rows={specRows} className="-mt-[var(--s-6)]" />
             </MotionReveal>
@@ -293,6 +335,7 @@ export default async function ProjectPage({
             {project.paymentPlans.length > 0 && (
               <MotionReveal>
                 <section className="mt-[var(--s-14)]">
+                  <SectionIndex n={3} total={6} className="mb-[var(--s-3)]" />
                   <SectionHead label="Payment" title="Payment plans" />
                   <div className="-mt-[var(--s-6)] grid gap-[var(--s-5)] sm:grid-cols-2">
                     {project.paymentPlans.map((plan) => (
@@ -318,6 +361,7 @@ export default async function ProjectPage({
             {project.usps.length > 0 && (
               <MotionReveal>
                 <section className="mt-[var(--s-14)]">
+                  <SectionIndex n={4} total={6} className="mb-[var(--s-3)]" />
                   <SectionHead label="Highlights" title={`Why ${project.name}`} />
                   <div className="-mt-[var(--s-6)] grid gap-0 sm:grid-cols-2 sm:gap-x-[var(--s-10)]">
                     {project.usps.map((usp) => (
@@ -376,26 +420,25 @@ export default async function ProjectPage({
               </MotionReveal>
             )}
 
-            {/* Gallery */}
-            {project.images.length > 1 && (
-              <MotionReveal>
+            <div className="mt-[var(--s-14)] max-w-[420px]">
+              <MeasureRule />
+            </div>
+
+            {/* Gallery — photography in a lightbox with keyboard controls */}
+            {galleryItems.length > 0 && (
+              <Reveal>
                 <section className="mt-[var(--s-14)]">
-                  <SectionHead label="Gallery" title="On site" />
-                  <div className="-mt-[var(--s-6)] grid gap-[var(--s-4)] sm:grid-cols-2">
-                    {project.images.map((src, i) => (
-                      <Plate key={src} ratio="card">
-                        <Image
-                          src={src}
-                          alt={`${project.name} render ${i + 1}`}
-                          fill
-                          sizes="(min-width: 640px) 50vw, 100vw"
-                          className="object-cover"
-                        />
-                      </Plate>
-                    ))}
+                  <SectionIndex n={6} total={6} className="mb-[var(--s-3)]" />
+                  <SectionHead
+                    label="Gallery"
+                    title="On site"
+                    note="Select any frame to open it full screen. Arrow keys move between frames."
+                  />
+                  <div className="-mt-[var(--s-6)]">
+                    <Gallery items={galleryItems} projectName={project.name} />
                   </div>
                 </section>
-              </MotionReveal>
+              </Reveal>
             )}
           </div>
 

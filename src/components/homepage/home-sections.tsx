@@ -1,6 +1,5 @@
 import Image from "next/image";
 import Link from "next/link";
-import { MotionReveal } from "@/components/layout/motion-reveal";
 import { StageHero } from "@/components/layout/nav-overlay";
 import {
   Ledger,
@@ -10,6 +9,16 @@ import {
   Status,
   Wrap,
 } from "@/components/av/primitives";
+import {
+  ContourField,
+  CoordinateMarks,
+  CornerBrackets,
+  DraftingGrid,
+  Grain,
+  MeasureRule,
+  SectionIndex,
+} from "@/components/av/graphics";
+import { ImageReveal, Parallax, Reveal, RevealGroup, RevealItem, TextReveal } from "@/components/av/motion";
 import { ProjectCards } from "@/components/property/project-cards";
 import { publishedProjects } from "@/lib/projects";
 import { formatCompact, inrEstimate } from "@/lib/currency";
@@ -31,73 +40,71 @@ export function HomeHero() {
   const feature = publishedProjects().find((p) => p.images[0]) ?? publishedProjects()[0];
   const cover = feature?.images[0] ?? null;
 
-  const copy = (
-    <>
-      <span className="av-meta text-gold">Discover · Explore · Evaluate</span>
-      <h1 className="av-display mt-3 max-w-[13ch] text-[clamp(38px,6.6vw,84px)] leading-[0.98] text-stage-ink">
-        Know the building before you stand in it.
-      </h1>
-      <p className="mt-[var(--s-4)] max-w-[46ch] text-[16px] leading-relaxed text-stage-muted md:text-[17px]">
-        Premium homes, plots and offices — photographed, measured and, where they have been
-        captured, walkable in three dimensions.
-      </p>
-      <div className="mt-[var(--s-6)] flex flex-wrap gap-[var(--s-3)]">
-        <Link
-          href="/listings"
-          className="av-label rounded-xs border border-gold bg-gold px-6 py-[14px] text-stage transition-colors hover:bg-transparent hover:text-gold"
-        >
-          Browse properties
-        </Link>
-        {feature && (
-          <Link
-            href={`/projects/${feature.slug}`}
-            className="av-label rounded-xs border border-stage-ink/35 px-6 py-[14px] text-stage-ink transition-colors hover:border-stage-ink"
-          >
-            Open {feature.name}
-          </Link>
-        )}
-      </div>
-    </>
-  );
-
+  /* One DOM tree, two compositions.
+     Below md the copy sits on solid stage beneath a portrait plate; from md it
+     lifts over the frame. Rendering it once keeps a single h1 on the page —
+     two branches meant the heading existed twice, once hidden. */
   return (
     <StageHero className="relative bg-stage">
-      {/* Mobile: a portrait plate with the copy on solid stage beneath it. A
-          scrim heavy enough to carry type over a bright render would bury the
-          photograph on a narrow screen, so the two are separated instead. */}
-      <div className="md:hidden">
-        <Plate ratio="plate" className="bg-stage">
+      <div className="relative">
+        <Plate
+          ratio="auto"
+          className="aspect-[4/5] bg-stage md:aspect-auto md:h-[82vh] md:min-h-[560px]"
+        >
           {cover && (
-            <Image
-              src={cover}
-              alt={`${feature.name}, ${feature.location}`}
-              fill
-              sizes="100vw"
-              className="object-cover object-[50%_35%]"
-              priority
-            />
+            <Parallax distance={34} className="absolute inset-0">
+              <Image
+                src={cover}
+                alt={`${feature.name}, ${feature.location}`}
+                fill
+                sizes="100vw"
+                className="object-cover object-[50%_35%] md:object-[50%_28%]"
+                priority
+              />
+            </Parallax>
           )}
-        </Plate>
-        <Wrap className="py-[var(--s-10)]">{copy}</Wrap>
-      </div>
 
-      {/* Desktop: one cinematic frame, copy over the scrim. */}
-      <div className="hidden md:block">
-        <Plate ratio="auto" scrim={Boolean(cover)} className="h-[78vh] min-h-[520px] bg-stage">
-          {cover && (
-            <Image
-              src={cover}
-              alt={`${feature.name}, ${feature.location}`}
-              fill
-              sizes="100vw"
-              className="object-cover object-[50%_28%]"
-              priority
-            />
+          {/* Scrim only where type lands on the media */}
+          <div aria-hidden="true" className="av-scrim pointer-events-none absolute inset-0 z-[1] hidden md:block" />
+          <DraftingGrid tone="stage" size={72} fade="top" className="z-[1] opacity-25" />
+          <Grain opacity={0.06} className="z-[1]" />
+          <CoordinateMarks tone="stage" className="z-[2] max-md:hidden" />
+
+          {feature && (
+            <span className="av-meta absolute left-[var(--gutter)] top-[calc(var(--nav-h)+var(--s-5))] z-[3] hidden text-stage-muted md:block">
+              {feature.location} · {feature.city}
+            </span>
           )}
-          <div className="absolute inset-x-0 bottom-0 z-[2] pb-[var(--s-14)]">
-            <Wrap>{copy}</Wrap>
-          </div>
         </Plate>
+
+        <Wrap className="relative z-[3] py-[var(--s-10)] md:absolute md:inset-x-0 md:bottom-0 md:py-0 md:pb-[var(--s-14)]">
+          <span className="av-meta text-gold">Discover · Explore · Evaluate</span>
+          <TextReveal
+            as="h1"
+            text="Know the building before you stand in it."
+            className="av-display mt-3 max-w-[13ch] text-[clamp(38px,6.6vw,84px)] leading-[0.98] text-stage-ink"
+          />
+          <p className="mt-[var(--s-4)] max-w-[46ch] text-[16px] leading-relaxed text-stage-muted md:text-[17px]">
+            Premium homes, plots and offices — photographed, measured and, where they have been
+            captured, walkable in three dimensions.
+          </p>
+          <div className="mt-[var(--s-6)] flex flex-wrap gap-[var(--s-3)]">
+            <Link
+              href="/listings"
+              className="av-label rounded-xs border border-gold bg-gold px-6 py-[14px] text-stage transition-colors duration-300 hover:bg-transparent hover:text-gold"
+            >
+              Browse properties
+            </Link>
+            {feature && (
+              <Link
+                href={`/projects/${feature.slug}`}
+                className="av-label rounded-xs border border-stage-ink/35 px-6 py-[14px] text-stage-ink transition-colors duration-300 hover:border-stage-ink"
+              >
+                Open {feature.name}
+              </Link>
+            )}
+          </div>
+        </Wrap>
       </div>
     </StageHero>
   );
@@ -116,12 +123,13 @@ export function FeaturedProject() {
 
   return (
     <Wrap className="pt-[var(--band)]">
+      <SectionIndex n={1} total={8} className="mb-[var(--s-3)]" />
       <SectionHead
         label="Featured project"
         note="One project takes the full spread. Inventory and pricing are sourced from the developer."
       />
       <div className="grid grid-cols-1 items-start gap-[var(--s-14)] lg:grid-cols-[0.9fr_1.1fr]">
-        <MotionReveal>
+        <ImageReveal>
           <Link href={`/projects/${project.slug}`} data-hov className="block">
             <Plate ratio="plate">
               {plate ? (
@@ -139,9 +147,12 @@ export function FeaturedProject() {
               )}
             </Plate>
           </Link>
-        </MotionReveal>
+          <div className="mt-[var(--s-4)] max-w-[320px]">
+            <MeasureRule />
+          </div>
+        </ImageReveal>
 
-        <MotionReveal delay={0.09}>
+        <Reveal delay={0.09}>
           <span className="av-meta text-ink-muted">
             {project.location} · {project.developer}
           </span>
@@ -181,7 +192,7 @@ export function FeaturedProject() {
               All properties
             </Link>
           </div>
-        </MotionReveal>
+        </Reveal>
       </div>
     </Wrap>
   );
@@ -201,8 +212,12 @@ export function ImmersiveHome() {
   const cover = feature.images[0] ?? null;
 
   return (
-    <StageBand className="mt-[var(--band)] py-[var(--band)]">
-      <Wrap>
+    <StageBand className="relative isolate mt-[var(--band)] overflow-hidden py-[var(--band)]">
+      <ContourField tone="stage" seed={3} className="opacity-45" />
+      <DraftingGrid tone="stage" size={56} fade="radial" className="opacity-30" />
+      <Grain opacity={0.05} />
+      <Wrap className="relative z-[2]">
+        <SectionIndex n={3} total={8} tone="stage" className="mb-[var(--s-3)]" />
         <SectionHead
           label="Explore"
           title="Walk it from where you are"
@@ -220,11 +235,7 @@ export function ImmersiveHome() {
               />
             )}
             {/* The reticle means navigable media, and only that */}
-            <span aria-hidden="true" className="pointer-events-none absolute inset-[14px] z-[2]">
-              {["top-0 left-0 border-r-0 border-b-0", "top-0 right-0 border-l-0 border-b-0", "bottom-0 left-0 border-r-0 border-t-0", "bottom-0 right-0 border-l-0 border-t-0"].map((pos) => (
-                <i key={pos} className={`absolute h-4 w-4 border border-gold opacity-90 ${pos}`} />
-              ))}
-            </span>
+            <CornerBrackets tone="stage" />
             <span className="av-meta absolute left-6 top-5 z-[2] text-stage-muted">
               3D model · {feature.name}
             </span>
@@ -244,6 +255,7 @@ export function ImmersiveHome() {
 export function CuratedProjects() {
   return (
     <Wrap className="pt-[var(--band)]">
+      <SectionIndex n={4} total={8} className="mb-[var(--s-3)]" />
       <SectionHead
         label="Curated"
         title="Developer inventory"
@@ -287,11 +299,15 @@ const JOURNEY = [
 export function HowAarvasaWorks() {
   return (
     <Wrap className="pt-[var(--band)]">
+      <SectionIndex n={5} total={8} className="mb-[var(--s-3)]" />
       <SectionHead
         label="How Aarvasa works"
         title="Three steps today, five eventually"
         note="The last two are in development. They are drawn as roadmap here and appear nowhere else on the site."
       />
+      <div className="mb-[var(--s-5)]">
+        <MeasureRule ticks={60} />
+      </div>
       <div className="grid border-t border-rule-firm md:grid-cols-3 lg:grid-cols-5">
         {JOURNEY.map((step, i) => (
           <div
@@ -326,6 +342,7 @@ export function HowAarvasaWorks() {
 export function AdvisorPanel() {
   return (
     <Wrap className="pt-[var(--band)]">
+      <SectionIndex n={6} total={8} className="mb-[var(--s-3)]" />
       <SectionHead
         label="Property intelligence"
         note="The advisor sits in the margin of the page, where a good editor sits."
@@ -382,6 +399,7 @@ export function TrustPartners() {
 
   return (
     <Wrap className="pt-[var(--band)]">
+      <SectionIndex n={7} total={8} className="mb-[var(--s-3)]" />
       <SectionHead
         label="Who we work with"
         note="Listings come from the developer or their appointed channel partner. Aarvasa holds no inventory and takes no fee from buyers."
@@ -399,19 +417,19 @@ export function TrustPartners() {
 
       <div className="mt-[var(--s-8)]">
         <span className="av-label text-ink-muted">Partners and programmes</span>
-        <div className="mt-[var(--s-5)] grid grid-cols-2 items-center gap-[var(--s-8)] sm:grid-cols-4">
+        <RevealGroup className="mt-[var(--s-5)] grid grid-cols-2 items-center gap-[var(--s-8)] sm:grid-cols-4">
           {PARTNERS.map((partner) => (
-            <div key={partner.name} className="relative h-10">
+            <RevealItem key={partner.name} className="relative h-10">
               <Image
                 src={partner.image}
                 alt={partner.name}
                 fill
                 sizes="140px"
-                className="object-contain object-left opacity-70 grayscale transition duration-300 hover:opacity-100 hover:grayscale-0"
+                className="object-contain object-left opacity-70 grayscale transition duration-500 hover:opacity-100 hover:grayscale-0"
               />
-            </div>
+            </RevealItem>
           ))}
-        </div>
+        </RevealGroup>
       </div>
     </Wrap>
   );
@@ -425,21 +443,23 @@ export function ClosingCTA() {
 
   return (
     <StageBand className="mt-[var(--band)]">
-      <Plate ratio="auto" scrim={Boolean(cover)} className="min-h-[420px] bg-stage">
+      <Plate ratio="auto" scrim={Boolean(cover)} className="min-h-[460px] bg-stage">
         {cover && (
-          <Image
-            src={cover}
-            alt=""
-            fill
-            sizes="100vw"
-            className="object-cover object-[50%_35%]"
-          />
+          <Parallax distance={30} className="absolute inset-0">
+            <Image src={cover} alt="" fill sizes="100vw" className="object-cover object-[50%_35%]" />
+          </Parallax>
         )}
-        <div className="absolute inset-x-0 bottom-0 z-[2] pb-[var(--s-14)] pt-[var(--s-24)]">
+        <DraftingGrid tone="stage" size={64} fade="bottom" className="z-[1] opacity-25" />
+        <Grain opacity={0.06} className="z-[1]" />
+        <CoordinateMarks tone="stage" className="z-[2] max-md:hidden" />
+        <div className="absolute inset-x-0 bottom-0 z-[3] pb-[var(--s-14)] pt-[var(--s-24)]">
           <Wrap>
-            <h2 className="av-display max-w-[16ch] text-[clamp(28px,4.4vw,56px)] leading-[1.02] text-stage-ink">
-              Start with one building.
-            </h2>
+            <SectionIndex n={8} total={8} tone="stage" className="mb-[var(--s-3)]" />
+            <TextReveal
+              as="h2"
+              text="Start with one building."
+              className="av-display max-w-[16ch] text-[clamp(28px,4.4vw,56px)] leading-[1.02] text-stage-ink"
+            />
             <p className="mt-[var(--s-3)] max-w-[48ch] text-[15px] leading-relaxed text-stage-muted">
               Search, walk it, compare it. Enquiries go straight to the developer — there is nothing
               to sign up for first.
