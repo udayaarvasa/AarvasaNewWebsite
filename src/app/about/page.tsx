@@ -4,6 +4,7 @@ import { Ledger, Note, Plate, SectionHead, Wrap } from "@/components/av/primitiv
 import { DraftingGrid, Grain, MeasureRule, SectionIndex } from "@/components/av/graphics";
 import { RevealGroup, RevealItem, TextReveal } from "@/components/av/motion";
 import { CinematicBanner, StatementBanner } from "@/components/av/banner";
+import { projectImageSrc } from "@/lib/project-types";
 import { publishedProjects } from "@/lib/projects";
 
 export const metadata = {
@@ -100,6 +101,12 @@ const roadmap = [
 
 export default function AboutPage() {
   const lead = publishedProjects().find((p) => p.images[0]) ?? null;
+  /* This band sits under an editorial headline, so the image has to say what it
+     is. Uses a banner frame rather than the project hero so About and the
+     project page do not open on the same picture. */
+  const leadImage = lead?.imagery?.banners[0] ?? null;
+  const leadSrc = leadImage ? projectImageSrc(leadImage, "16x9") : (lead?.images[0] ?? null);
+  const leadNote = leadImage?.origin === "render" ? "Developer render" : undefined;
 
   return (
     <div className="pb-[var(--s-24)]">
@@ -136,11 +143,12 @@ export default function AboutPage() {
         </p>
       </Wrap>
 
-      {lead && (
+      {lead && leadSrc && (
         <div className="mt-[var(--band)]">
           <CinematicBanner
-            src={lead.images[0]}
-            alt={`${lead.name}, ${lead.location}`}
+            src={leadSrc}
+            alt={leadImage?.alt ?? `${lead.name}, ${lead.location}`}
+            note={leadNote}
             eyebrow="What we publish"
             title="Filed, not written."
             body="Specification comes from the developer's own filing. Where a figure has not been filed, the row reads dash rather than an estimate."

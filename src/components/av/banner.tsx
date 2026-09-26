@@ -11,13 +11,17 @@ import { cn } from "@/lib/utils";
  * These exist to give the page rhythm — to stop long stretches of plain paper
  * — and are used sparingly between major bands. Three kinds:
  *
- *   CinematicBanner   real photography, oversized type, parallax
+ *   CinematicBanner   a real image, oversized type, parallax
  *   StatementBanner   typographic, on the dark stage, architectural graphics
  *   TextureBanner     graphics only; carries no photograph and claims none
  *
  * TextureBanner is the one to reach for when no real image of the subject
  * exists. It is deliberately abstract so it can never read as a photograph of
  * a property.
+ *
+ * A CinematicBanner carrying an architectural RENDER must pass `note`. These
+ * banners sit under editorial headlines, which is exactly where an unlabelled
+ * render of an unbuilt building reads as a photograph of a finished one.
  */
 
 /* ── Cinematic banner ────────────────────────────────────────────────── */
@@ -32,6 +36,7 @@ export function CinematicBanner({
   cta,
   height = "tall",
   position = "50% 40%",
+  note,
 }: {
   src: string;
   alt: string;
@@ -42,6 +47,8 @@ export function CinematicBanner({
   cta?: string;
   height?: "tall" | "short";
   position?: string;
+  /** Provenance, e.g. "Developer render". Required when `src` is not a photograph. */
+  note?: string;
 }) {
   return (
     <section data-surface="stage" className="relative isolate overflow-hidden bg-stage">
@@ -55,6 +62,11 @@ export function CinematicBanner({
       <div aria-hidden="true" className="av-scrim pointer-events-none absolute inset-0 z-[1]" />
       <Grain opacity={0.06} className="z-[1]" />
       <CoordinateMarks tone="stage" className="z-[2] max-md:hidden" />
+      {note && (
+        <span className="av-meta absolute right-[var(--gutter)] top-[var(--s-5)] z-[3] rounded-xs border border-stage-rule bg-[rgba(12,11,10,0.66)] px-2 py-1 text-stage-ink backdrop-blur-sm">
+          {note}
+        </span>
+      )}
 
       <div
         className={cn(

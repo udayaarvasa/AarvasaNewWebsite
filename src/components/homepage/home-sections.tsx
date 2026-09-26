@@ -20,6 +20,7 @@ import {
 } from "@/components/av/graphics";
 import { ImageReveal, Parallax, Reveal, RevealGroup, RevealItem, TextReveal } from "@/components/av/motion";
 import { ProjectCards } from "@/components/property/project-cards";
+import { projectImageSrc } from "@/lib/project-types";
 import { publishedProjects } from "@/lib/projects";
 import { formatCompact, inrEstimate } from "@/lib/currency";
 import { projectViewerConfig } from "@/lib/viewer/project-media";
@@ -38,7 +39,12 @@ import { projectViewerConfig } from "@/lib/viewer/project-media";
 
 export function HomeHero() {
   const feature = publishedProjects().find((p) => p.images[0]) ?? publishedProjects()[0];
-  const cover = feature?.images[0] ?? null;
+  /* Each homepage band that shows this project picks a DIFFERENT frame from the
+     curated library, so the page does not open, restate and close on one
+     picture. Hero: the balcony bands. Immersive: the night crown. Closing: the
+     full elevation. */
+  const heroImage = feature?.imagery?.gallery[0] ?? null;
+  const cover = heroImage ? projectImageSrc(heroImage, "4x5") : (feature?.images[0] ?? null);
 
   /* One DOM tree, two compositions.
      Below md the copy sits on solid stage beneath a portrait plate; from md it
@@ -116,7 +122,15 @@ export function FeaturedProject() {
   const project = publishedProjects().find((p) => p.images.length > 1) ?? publishedProjects()[0];
   if (!project) return null;
 
-  const plate = project.images[1] ?? project.images[0] ?? null;
+  /* A different frame from the one the project page leads with, so the two
+     pages do not open on the same picture. Falls back to the flat list for
+     projects with no curated library. */
+  const plateImage = project.imagery?.cards[0] ?? null;
+  const plate = plateImage
+    ? projectImageSrc(plateImage, "4x5")
+    : (project.images[1] ?? project.images[0] ?? null);
+  const plateAlt = plateImage?.alt ?? `${project.name}, ${project.location}`;
+  const plateNote = plateImage?.origin === "render" ? "Developer render" : null;
   const price =
     project.fromPrice > 0 ? formatCompact(project.fromPrice, project.currency) : "On request";
   const inr = inrEstimate(project.fromPrice, project.currency);
@@ -133,13 +147,20 @@ export function FeaturedProject() {
           <Link href={`/projects/${project.slug}`} data-hov className="block">
             <Plate ratio="plate">
               {plate ? (
-                <Image
-                  src={plate}
-                  alt={`${project.name}, ${project.location}`}
-                  fill
-                  sizes="(min-width: 1024px) 40vw, 100vw"
-                  className="object-cover transition-transform duration-[1200ms] ease-[var(--ease-enter)] hover:scale-[1.03]"
-                />
+                <>
+                  <Image
+                    src={plate}
+                    alt={plateAlt}
+                    fill
+                    sizes="(min-width: 1024px) 40vw, 100vw"
+                    className="object-cover transition-transform duration-[1200ms] ease-[var(--ease-enter)] hover:scale-[1.03]"
+                  />
+                  {plateNote && (
+                    <span className="av-meta absolute right-3 top-3 z-[3] rounded-xs bg-[rgba(12,11,10,0.72)] px-2 py-1 text-stage-ink backdrop-blur-sm">
+                      {plateNote}
+                    </span>
+                  )}
+                </>
               ) : (
                 <div className="absolute inset-0 flex items-end bg-paper-sunken p-4">
                   <span className="av-meta text-ink-disabled">Not yet photographed</span>
@@ -209,7 +230,8 @@ export function ImmersiveHome() {
   // rather than an empty shell with dead controls.
   if (!feature) return null;
 
-  const cover = feature.images[0] ?? null;
+  const coverImage = feature.imagery?.banners[0] ?? null;
+  const cover = coverImage ? projectImageSrc(coverImage, "16x9") : (feature.images[0] ?? null);
 
   return (
     <StageBand className="relative isolate mt-[var(--band)] overflow-hidden py-[var(--band)]">
@@ -439,7 +461,10 @@ export function TrustPartners() {
 
 export function ClosingCTA() {
   const project = publishedProjects().find((p) => p.images[0]);
-  const cover = project?.images[0] ?? null;
+  const closingImage = project?.imagery?.banners[1] ?? null;
+  const cover = closingImage
+    ? projectImageSrc(closingImage, "16x9")
+    : (project?.images[0] ?? null);
 
   return (
     <StageBand className="mt-[var(--band)]">

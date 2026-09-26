@@ -169,4 +169,47 @@ export type Project = {
   tour?: ProjectPanoramaTour;
   /** Optional Gaussian splat scene. Absent for most projects. */
   splat?: ProjectSplatMedia;
+  /**
+   * Optional curated imagery, attached where a project has a properly reviewed
+   * image library rather than the one or two frames `images` carries. Each
+   * entry states how it was produced, so an off-plan render is never shown as
+   * a photograph. See src/lib/reef-996-imagery.ts.
+   */
+  imagery?: ProjectImagery;
 };
+
+/** How an image was produced. Stated per image, never inferred from its subject. */
+export type ProjectImageOrigin = "photo" | "render";
+
+export type ProjectImageRatio = "16x9" | "4x5" | "3x2" | "1x1";
+
+export type ProjectCuratedImage = {
+  readonly id: string;
+  /** Public directory holding this image's crops, e.g. "/images/reef-996/hero". */
+  readonly dir: string;
+  readonly ratios: readonly ProjectImageRatio[];
+  readonly alt: string;
+  readonly caption: string;
+  readonly origin: ProjectImageOrigin;
+};
+
+/** Images grouped by the job they do on the site, so each surface gets a different frame. */
+export type ProjectImagery = {
+  readonly hero: ProjectCuratedImage;
+  readonly gallery: readonly ProjectCuratedImage[];
+  readonly cards: readonly ProjectCuratedImage[];
+  readonly details: readonly ProjectCuratedImage[];
+  readonly banners: readonly ProjectCuratedImage[];
+};
+
+/**
+ * Path to a generated crop. Ratios are fixed when the library is built, so a
+ * ratio the image does not have falls back to its first rather than 404ing.
+ */
+export function projectImageSrc(
+  image: ProjectCuratedImage,
+  ratio: ProjectImageRatio,
+): string {
+  const r = image.ratios.includes(ratio) ? ratio : image.ratios[0];
+  return `${image.dir}/${image.id}-${r}.jpg`;
+}

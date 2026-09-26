@@ -4,6 +4,7 @@ import { MotionReveal } from "@/components/layout/motion-reveal";
 import { Plate, Status } from "@/components/av/primitives";
 import { publishedProjects } from "@/lib/projects";
 import { formatCurrency, formatCompact, inrEstimate } from "@/lib/currency";
+import { projectImageSrc } from "@/lib/project-types";
 import { projectViewerConfig } from "@/lib/viewer/project-media";
 
 /**
@@ -25,10 +26,16 @@ export function ProjectCards() {
   return (
     <div className="grid gap-[var(--s-8)] md:grid-cols-2 lg:grid-cols-3">
       {items.map((project, i) => {
-        const cover = project.images[0] ?? project.planImages[0] ?? null;
+        /* A card frame, not the hero — the listing and the project page should
+           not open on the same picture. */
+        const coverImage = project.imagery?.cards[0] ?? null;
+        const cover = coverImage
+          ? projectImageSrc(coverImage, "3x2")
+          : (project.images[0] ?? project.planImages[0] ?? null);
         // True only when the cover is actually a drawing — a project with no
         // artwork at all shows the panel and no label.
         const isPlanCover = !project.images[0] && !!project.planImages[0];
+        const isRenderCover = coverImage?.origin === "render";
         const hasModel = Boolean(projectViewerConfig(project));
         const price =
           project.fromPrice > 0
@@ -45,7 +52,7 @@ export function ProjectCards() {
                 {cover ? (
                   <Image
                     src={cover}
-                    alt={`${project.name}, ${project.location}`}
+                    alt={coverImage?.alt ?? `${project.name}, ${project.location}`}
                     fill
                     sizes="(min-width: 1024px) 33vw, (min-width: 768px) 50vw, 100vw"
                     className={
@@ -62,6 +69,11 @@ export function ProjectCards() {
                 {isPlanCover && (
                   <span className="av-meta absolute bottom-3 left-3 rounded-xs border border-rule-firm bg-paper/90 px-2 py-1 text-ink">
                     Layout plan
+                  </span>
+                )}
+                {isRenderCover && (
+                  <span className="av-meta absolute bottom-3 left-3 rounded-xs border border-rule-firm bg-paper/90 px-2 py-1 text-ink">
+                    Render
                   </span>
                 )}
               </Plate>

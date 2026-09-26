@@ -7,6 +7,7 @@ import { SectionHead, Wrap } from "@/components/av/primitives";
 import { DraftingGrid, Grain, MeasureRule, SectionIndex } from "@/components/av/graphics";
 import { TextReveal } from "@/components/av/motion";
 import { CinematicBanner } from "@/components/av/banner";
+import { projectImageSrc } from "@/lib/project-types";
 import { publishedProjects } from "@/lib/projects";
 
 export const metadata = {
@@ -26,6 +27,11 @@ export const metadata = {
 export default function ListingsPage() {
   // The lead is whichever published project actually has photography.
   const lead = publishedProjects().find((p) => p.images[0]) ?? null;
+  /* The amenity frame, so the listings lead, the card below it and the project
+     page each open on a different picture. */
+  const leadImage = lead?.imagery?.gallery[1] ?? null;
+  const leadSrc = leadImage ? projectImageSrc(leadImage, "16x9") : (lead?.images[0] ?? null);
+  const leadNote = leadImage?.origin === "render" ? "Developer render" : undefined;
 
   return (
     <div className="pb-[var(--s-24)]">
@@ -49,11 +55,13 @@ export default function ListingsPage() {
         </Wrap>
       </section>
 
-      {/* A large visual lead: the one project with photography carries the page in */}
-      {lead && (
+      {/* A large visual lead. The frame differs from the project page hero, and
+          says whether it is a photograph or a render. */}
+      {lead && leadSrc && (
         <CinematicBanner
-          src={lead.images[0]}
-          alt={`${lead.name}, ${lead.location}`}
+          src={leadSrc}
+          alt={leadImage?.alt ?? `${lead.name}, ${lead.location}`}
+          note={leadNote}
           eyebrow={`${lead.location} · ${lead.developer}`}
           title={lead.name}
           body={lead.usps[0] ?? undefined}

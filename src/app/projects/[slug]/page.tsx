@@ -15,6 +15,7 @@ import {
 import { Parallax, Reveal, TextReveal } from "@/components/av/motion";
 import { TextureBanner } from "@/components/av/banner";
 import { Gallery, type GalleryItem } from "@/components/property/gallery";
+import { projectImageSrc } from "@/lib/project-types";
 import {
   CapMark,
   Ledger,
@@ -85,7 +86,15 @@ export default async function ProjectPage({
   if (!project) notFound();
 
   const price = headlinePrice(project);
-  const hero = project.images[0] ?? null;
+  /* A curated library wins over the flat `images` list: it carries a 16:9 crop
+     made for this slot and states how the frame was produced. */
+  const heroImage = project.imagery?.hero ?? null;
+  const hero = heroImage ? projectImageSrc(heroImage, "16x9") : (project.images[0] ?? null);
+  const heroAlt = heroImage?.alt ?? `${project.name}, ${project.location}`;
+  /* Named on the hero itself, so the first thing a reader sees is qualified
+     before they scroll. An off-plan tower photographs as a render or not at all. */
+  const heroOriginNote =
+    heroImage?.origin === "render" ? "Developer render — building not yet complete" : null;
   const isPlots = project.kind === "plots";
   const viewer = projectViewerConfig(project);
   const [tour, splat] = await Promise.all([loadProjectTour(project), loadProjectSplat(project)]);
@@ -100,17 +109,23 @@ export default async function ProjectPage({
     ...(project.planImages.length > 0 ? ["Plan"] : []),
   ];
 
-  /* Photographs only. The developer's filed layout drawing keeps its own
-     captioned section below, so it is never shown as a photograph and never
-     appears twice on the page. */
-  const galleryItems: GalleryItem[] = [
-    ...project.images.map((src, i) => ({
-      src,
-      alt: `${project.name}, ${project.location} — view ${i + 1}`,
-      caption: i === 0 ? `${project.name} · ${project.location}` : undefined,
-      kind: "photo" as const,
-    })),
-  ];
+  /* The developer's filed layout drawing keeps its own captioned section below,
+     so it is never shown as a photograph and never appears twice on the page.
+     Where a curated library exists, each frame carries its own provenance —
+     for an off-plan project most of them are renders and are marked as such. */
+  const galleryItems: GalleryItem[] = project.imagery
+    ? project.imagery.gallery.map((image) => ({
+        src: projectImageSrc(image, "3x2"),
+        alt: image.alt,
+        caption: image.caption,
+        kind: image.origin,
+      }))
+    : project.images.map((src, i) => ({
+        src,
+        alt: `${project.name}, ${project.location} — view ${i + 1}`,
+        caption: i === 0 ? `${project.name} · ${project.location}` : undefined,
+        kind: "photo" as const,
+      }));
 
   const railItems = [
     { label: project.fromPrice > 0 ? "Starting from" : "Rate", value: price.primary },
@@ -144,7 +159,7 @@ export default async function ProjectPage({
             <Parallax distance={32} className="absolute inset-0">
               <Image
                 src={hero}
-                alt={`${project.name}, ${project.location}`}
+                alt={heroAlt}
                 fill
                 sizes="100vw"
                 className="object-cover"
@@ -157,6 +172,11 @@ export default async function ProjectPage({
           <DraftingGrid tone="stage" size={64} fade="top" className="z-[1] opacity-25" />
           <Grain opacity={0.06} className="z-[1]" />
           <CoordinateMarks tone="stage" className="z-[2] max-md:hidden" />
+          {heroOriginNote && (
+            <span className="av-meta absolute right-[var(--gutter)] top-[var(--s-6)] z-[3] rounded-xs border border-stage-rule bg-[rgba(12,11,10,0.66)] px-2 py-1 text-stage-ink backdrop-blur-sm">
+              {heroOriginNote}
+            </span>
+          )}
           <div className="absolute inset-x-0 bottom-0 z-[2] pb-[var(--s-10)]">
             <Wrap>
               <span className="av-meta text-gold">

@@ -13,13 +13,24 @@ import { cn } from "@/lib/utils";
  * Shows only images the project actually has. Captions say what each frame is
  * — a photograph, a render, or the developer's own layout drawing — so a
  * drawing is never mistaken for a photograph of a finished building.
+ *
+ * `kind` is load-bearing, not decoration. For an off-plan project the gallery
+ * is mostly renders of a building that does not exist yet, so a render carries
+ * a visible mark in the strip and in the lightbox. Only "photo" is left
+ * unmarked, because only a photograph needs no qualification.
  */
 
 export type GalleryItem = {
   src: string;
   alt: string;
   caption?: string;
-  kind?: "photo" | "drawing";
+  kind?: "photo" | "render" | "drawing";
+};
+
+/** Short mark shown on anything that is not a photograph. */
+const KIND_MARK: Partial<Record<NonNullable<GalleryItem["kind"]>, string>> = {
+  render: "Render",
+  drawing: "Drawing",
 };
 
 export function Gallery({ items, projectName }: { items: GalleryItem[]; projectName: string }) {
@@ -82,6 +93,11 @@ export function Gallery({ items, projectName }: { items: GalleryItem[]; projectN
                   item.kind === "drawing" ? "bg-white object-contain p-1" : "object-cover",
                 )}
               />
+              {KIND_MARK[item.kind ?? "photo"] && (
+                <span className="av-meta absolute right-2 top-2 rounded-xs bg-[rgba(12,11,10,0.72)] px-1.5 py-0.5 text-stage-ink backdrop-blur-sm">
+                  {KIND_MARK[item.kind ?? "photo"]}
+                </span>
+              )}
             </button>
           ))}
         </div>
@@ -142,8 +158,13 @@ export function Gallery({ items, projectName }: { items: GalleryItem[]; projectN
             </button>
           </div>
 
-          {items[open].caption && (
-            <p className="border-t border-stage-rule px-[var(--gutter)] py-3 text-[13px] text-stage-muted">
+          {(items[open].caption || KIND_MARK[items[open].kind ?? "photo"]) && (
+            <p className="flex items-center gap-2 border-t border-stage-rule px-[var(--gutter)] py-3 text-[13px] text-stage-muted">
+              {KIND_MARK[items[open].kind ?? "photo"] && (
+                <span className="av-meta rounded-xs border border-stage-rule px-1.5 py-0.5 text-stage-ink">
+                  {KIND_MARK[items[open].kind ?? "photo"]}
+                </span>
+              )}
               {items[open].caption}
             </p>
           )}
@@ -189,6 +210,11 @@ function GalleryFrame({
         className="pointer-events-none absolute inset-0 bg-transparent transition-colors duration-500 group-hover:bg-[rgba(12,11,10,0.18)]"
       />
       <CornerBrackets tone="stage" inset={10} size={13} className="opacity-0 transition-opacity duration-500 group-hover:opacity-100" />
+      {KIND_MARK[item.kind ?? "photo"] && (
+        <span className="av-meta absolute right-3 top-3 z-[3] rounded-xs bg-[rgba(12,11,10,0.72)] px-2 py-1 text-stage-ink backdrop-blur-sm">
+          {KIND_MARK[item.kind ?? "photo"]}
+        </span>
+      )}
       {item.caption && (
         <span className="av-meta absolute bottom-3 left-3 z-[3] rounded-xs bg-[rgba(12,11,10,0.72)] px-2 py-1 text-stage-ink backdrop-blur-sm">
           {item.caption}

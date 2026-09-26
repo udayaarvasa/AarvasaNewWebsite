@@ -1,5 +1,19 @@
-import type { Project, ProjectImmersiveMedia, ProjectPanoramaTour, ProjectSplatMedia } from "./project-types";
+import {
+  projectImageSrc,
+  type Project,
+  type ProjectImagery,
+  type ProjectImmersiveMedia,
+  type ProjectPanoramaTour,
+  type ProjectSplatMedia,
+} from "./project-types";
 import { reefProjects } from "./reef-projects";
+import {
+  REEF_996_BANNERS,
+  REEF_996_CARDS,
+  REEF_996_DETAILS,
+  REEF_996_GALLERY,
+  REEF_996_HERO,
+} from "./reef-996-imagery";
 
 /**
  * Aaradhyam developments, Bhopal.
@@ -238,6 +252,34 @@ const IMMERSIVE_BY_SLUG: Readonly<Record<string, ProjectImmersiveMedia>> = {
   "reef-996-dubai-production-city": REEF_996_PILOT_MEDIA,
 };
 
+/**
+ * Curated imagery, attached here for the same reason as the media above:
+ * reef-projects.ts is generated and must not be hand-edited.
+ *
+ * REEF 996 is off-plan, so this library is mostly developer renders and each
+ * frame records that. `images` is replaced rather than appended to, because the
+ * two frames the generated record carries are superseded by properly reviewed
+ * crops of the same subjects.
+ */
+const REEF_996_IMAGERY: ProjectImagery = {
+  hero: REEF_996_HERO,
+  gallery: REEF_996_GALLERY,
+  cards: REEF_996_CARDS,
+  details: REEF_996_DETAILS,
+  banners: REEF_996_BANNERS,
+};
+
+const IMAGERY_BY_SLUG: Readonly<Record<string, ProjectImagery>> = {
+  "reef-996-dubai-production-city": REEF_996_IMAGERY,
+};
+
+/** Flat `images` stays populated so listing cards and any consumer that has not
+ *  been taught about `imagery` keep working. Order matches the gallery. */
+const flatImages = (imagery: ProjectImagery): string[] => [
+  projectImageSrc(imagery.hero, "3x2"),
+  ...imagery.gallery.map((i) => projectImageSrc(i, "3x2")),
+];
+
 export const projects: Project[] = [
   ...reefProjects,
   aaradhyamPearl,
@@ -247,6 +289,9 @@ export const projects: Project[] = [
   ...(IMMERSIVE_BY_SLUG[p.slug] ? { immersive: IMMERSIVE_BY_SLUG[p.slug] } : {}),
   ...(TOUR_BY_SLUG[p.slug] ? { tour: TOUR_BY_SLUG[p.slug] } : {}),
   ...(SPLAT_BY_SLUG[p.slug] ? { splat: SPLAT_BY_SLUG[p.slug] } : {}),
+  ...(IMAGERY_BY_SLUG[p.slug]
+    ? { imagery: IMAGERY_BY_SLUG[p.slug], images: flatImages(IMAGERY_BY_SLUG[p.slug]) }
+    : {}),
 }));
 
 /** Live on the site. Set per project rather than inferred from imagery. */
