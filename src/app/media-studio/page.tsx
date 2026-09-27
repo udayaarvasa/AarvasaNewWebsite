@@ -222,6 +222,12 @@ export default async function MediaStudioPage() {
               <p className="av-meta mt-[var(--s-4)] text-ink-disabled">
                 GLB · glTF — FBX and OBJ are not accepted; export to GLB first
               </p>
+              <Link
+                href="/media-studio/new"
+                className="av-label mt-[var(--s-5)] inline-block rounded-xs border border-rule-firm bg-paper px-3 py-[8px] text-ink transition-colors hover:border-burgundy hover:text-burgundy"
+              >
+                Upload a model
+              </Link>
             </article>
 
             <article className="border border-rule bg-paper-sunken p-[var(--s-6)]">
