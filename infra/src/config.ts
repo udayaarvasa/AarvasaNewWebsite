@@ -64,6 +64,14 @@ export interface MediaEnvironmentConfig {
     readonly artifactVersion: string | undefined;
     /** Secrets Manager secret holding the DEV application DATABASE_URL. Absent until one exists. */
     readonly databaseSecretArn: string | undefined;
+    /**
+     * VPC the processing functions join so they can reach a PRIVATE database.
+     * Absent leaves them outside a VPC, which means no database access at all —
+     * the alternative, a publicly reachable Postgres, is not one worth having.
+     */
+    readonly vpcId: string | undefined;
+    /** Security group for those functions; the database admits only this group. */
+    readonly lambdaSecurityGroupId: string | undefined;
   };
   readonly tags: Readonly<Record<string, string>>;
 }
@@ -106,7 +114,13 @@ export const DEV_DEFAULTS: MediaEnvironmentConfig = {
     publishedBucketBytesAlarm: 50 * GIB,
     ingestObjectCountAlarm: 5_000,
   },
-  processing: { artifactKey: "processing/processing-lambdas.zip", artifactVersion: undefined, databaseSecretArn: undefined },
+  processing: {
+    artifactKey: "processing/processing-lambdas.zip",
+    artifactVersion: undefined,
+    databaseSecretArn: undefined,
+    vpcId: undefined,
+    lambdaSecurityGroupId: undefined,
+  },
   tags: {
     Project: "aarvasa-media",
     Environment: "dev",
@@ -183,13 +197,28 @@ export function loadDevConfig(app: App): MediaEnvironmentConfig {
     throw new Error("aarvasa:databaseSecretArn must be a Secrets Manager secret ARN");
   }
 
+  /* Networking for the processing functions. Both are optional: without them
+     the functions stay outside a VPC and simply cannot reach a database, which
+     is the safe default — the alternative is a Postgres open to the internet. */
+  const vpcId = contextString(app, "aarvasa:vpcId");
+  if (vpcId !== undefined && !/^vpc-[0-9a-f]{8,17}$/.test(vpcId)) {
+    throw new Error("aarvasa:vpcId must be a VPC id, e.g. vpc-0123456789abcdef0");
+  }
+  const lambdaSecurityGroupId = contextString(app, "aarvasa:lambdaSecurityGroupId");
+  if (lambdaSecurityGroupId !== undefined && !/^sg-[0-9a-f]{8,17}$/.test(lambdaSecurityGroupId)) {
+    throw new Error("aarvasa:lambdaSecurityGroupId must be a security group id, e.g. sg-0123456789abcdef0");
+  }
+  if (vpcId === undefined && lambdaSecurityGroupId !== undefined) {
+    throw new Error("aarvasa:lambdaSecurityGroupId needs aarvasa:vpcId as well");
+  }
+
   return {
     ...DEV_DEFAULTS,
     accountId,
     allowedOrigins,
     cdn: { ...DEV_DEFAULTS.cdn, webAclArn },
     monitoring: { ...DEV_DEFAULTS.monitoring, distributionId },
-    processing: { artifactKey, artifactVersion, databaseSecretArn },
+    processing: { artifactKey, artifactVersion, databaseSecretArn, vpcId, lambdaSecurityGroupId },
   };
 }
 

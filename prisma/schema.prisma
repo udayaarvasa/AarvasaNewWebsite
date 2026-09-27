@@ -1,5 +1,9 @@
 generator client {
   provider = "prisma-client-js"
+  // The media processing Lambdas run on Node 24 / ARM64, so the client needs an
+  // engine for that platform as well as the developer's own machine. Without
+  // the second target the worker starts and then fails on its first query.
+  binaryTargets = ["native", "linux-arm64-openssl-3.0.x"]
 }
 
 datasource db {

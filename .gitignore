@@ -45,3 +45,6 @@ next-env.d.ts
 
 # generated CDK deploy outputs (--outputs-file)
 infra/cdk-outputs*.json
+
+# Lambda packaging staging directory (see infra/scripts/bundle-processing.sh)
+infra/dist-bundle/

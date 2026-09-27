@@ -163,11 +163,29 @@ describe("MediaAsset migrations", () => {
 
   it("baselines the pre-existing schema, then adds MediaAsset", () => {
     assert.ok(existsSync(join(MIGRATIONS, "migration_lock.toml")));
-    assert.deepEqual(dirs, ["0_init", "20260914120000_add_media_asset", "20260914140000_add_media_source_checksum", "20260919120000_add_media_processing_state"]);
+    assert.deepEqual(dirs, [
+      "0_init",
+      "20260914120000_add_media_asset",
+      "20260914140000_add_media_source_checksum",
+      "20260919120000_add_media_processing_state",
+      // Entitlements: the commercial boundary for premium creation. Listed here
+      // so an unreviewed migration appearing in this directory still fails.
+      "20260927102729_add_entitlements",
+    ]);
     const init = sql("0_init");
     assert.match(init, /NEVER execute this against an existing database/);
     assert.deepEqual([...init.matchAll(/CREATE TABLE "(\w+)"/g)].map((m) => m[1]), ["User", "Account", "Session", "VerificationToken", "Property", "Favorite", "Inquiry"]);
     assert.doesNotMatch(init, /MediaAsset|MediaSubjectType/);
+  });
+
+  it("adds entitlements without touching anything that already existed", () => {
+    const add = sql("20260927102729_add_entitlements");
+    assert.doesNotMatch(add, /\bDROP\b|\bTRUNCATE\b|^\s*DELETE\s+FROM\b/m);
+    // Only the two new tables are created; nothing pre-existing is redefined.
+    assert.deepEqual([...add.matchAll(/CREATE TABLE "(\w+)"/g)].map((m) => m[1]), ["Entitlement", "Payment"]);
+    // An entitlement row must not be permission by existing: the column defaults
+    // to the denying state.
+    assert.match(add, /"status" "EntitlementStatus" NOT NULL DEFAULT 'INACTIVE'/);
   });
 
   it("is purely additive: it never alters or drops existing tables or types", () => {

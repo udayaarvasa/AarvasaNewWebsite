@@ -8,6 +8,13 @@ import {
   validateModelBytes,
 } from "@/lib/media/model-validation";
 
+/** Base64 SHA-256 of the whole file, which the upload intent signs so S3 will
+ *  accept only these exact bytes. */
+async function sha256Base64(file: File): Promise<string> {
+  const digest = await crypto.subtle.digest("SHA-256", await file.arrayBuffer());
+  return btoa(String.fromCharCode(...new Uint8Array(digest)));
+}
+
 /**
  * Mode A — upload an existing 3D model.
  *
@@ -82,9 +89,13 @@ export function UploadModel({
           subjectType: "PROJECT",
           projectSlug: slug,
           kind: "MODEL",
-          contentType: file.type || "model/gltf-binary",
-          sizeBytes: file.size,
-          fileName: file.name,
+          expectedFormat: "GLB",
+          filename: file.name,
+          sourceSizeBytes: file.size,
+          sourceMimeType: file.type || "model/gltf-binary",
+          // S3 signs this and rejects any other bytes, so the object that lands
+          // is provably the file that was inspected here.
+          sha256: await sha256Base64(file),
         }),
       });
     } catch {
@@ -92,7 +103,10 @@ export function UploadModel({
       return;
     }
 
-    const data = await intent.json().catch(() => null);
+    const payload = await intent.json().catch(() => null);
+    /* The intent responds { success, data: { mediaAssetId, upload: {...} } }.
+       Reading it flat silently produced an undefined URL. */
+    const data = payload?.data ?? null;
 
     if (intent.status === 401) {
       setPhase({ k: "error", message: "Please sign in again." });
@@ -101,16 +115,16 @@ export function UploadModel({
     if (intent.status === 402) {
       setPhase({
         k: "error",
-        message: data?.error ?? "Immersive creation requires an active Media Studio plan.",
+        message: payload?.error ?? "Immersive creation requires an active Media Studio plan.",
       });
       return;
     }
-    if (!intent.ok || !data?.url) {
+    if (!intent.ok || !data?.upload?.url) {
       /* The most common cause in a non-production environment is that object
          storage is not configured. Saying so beats a generic failure. */
       setPhase({
         k: "error",
-        message: data?.error ?? "The upload could not be started.",
+        message: typeof payload?.error === "string" ? payload.error : "The upload could not be started.",
         detail:
           "If you are running this locally, object storage is probably not configured in this environment.",
       });
@@ -119,11 +133,11 @@ export function UploadModel({
 
     // Real progress, from the request itself.
     const xhr = new XMLHttpRequest();
-    xhr.open("PUT", data.url, true);
-    if (data.headers) {
-      for (const [h, val] of Object.entries(data.headers as Record<string, string>)) {
-        xhr.setRequestHeader(h, val);
-      }
+    xhr.open(data.upload.method ?? "PUT", data.upload.url, true);
+    for (const [h, val] of Object.entries(
+      (data.upload.headers ?? {}) as Record<string, string>,
+    )) {
+      xhr.setRequestHeader(h, val);
     }
     xhr.upload.onprogress = (e) => {
       if (e.lengthComputable) setPhase({ k: "uploading", sent: e.loaded, total: e.total });

@@ -5,6 +5,13 @@ import { Rule, Schedule } from "aws-cdk-lib/aws-events";
 import { LambdaFunction as LambdaTarget } from "aws-cdk-lib/aws-events-targets";
 import { AnyPrincipal, Effect, ManagedPolicy, PolicyStatement, Role, ServicePrincipal } from "aws-cdk-lib/aws-iam";
 import { Architecture, Code, Function as LambdaFunction, Runtime } from "aws-cdk-lib/aws-lambda";
+import {
+  GatewayVpcEndpointAwsService,
+  InterfaceVpcEndpointAwsService,
+  SecurityGroup,
+  SubnetType,
+  Vpc,
+} from "aws-cdk-lib/aws-ec2";
 import { SqsEventSource } from "aws-cdk-lib/aws-lambda-event-sources";
 import { FilterPattern, LogGroup, MetricFilter, RetentionDays } from "aws-cdk-lib/aws-logs";
 import { BlockPublicAccess, Bucket, BucketEncryption, ObjectOwnership } from "aws-cdk-lib/aws-s3";
@@ -177,7 +184,48 @@ export class MediaProcessingStack extends Stack {
     this.workerRole.addToPolicy(
       new PolicyStatement({ sid: "WriteOwnLogs", effect: Effect.ALLOW, actions: ["logs:CreateLogStream", "logs:PutLogEvents"], resources: [`${workerLogs.logGroupArn}`] }),
     );
+    /* ── Networking ────────────────────────────────────────────────────────
+     *
+     * The functions need the application database, and the only safe way to
+     * reach it is from inside the VPC: outside one, a Lambda has no fixed
+     * egress address, so a reachable database would have to accept 0.0.0.0/0 on
+     * 5432 — a Postgres open to the internet behind nothing but a password.
+     * The database is therefore private and these functions join the VPC.
+     *
+     * Attaching a Lambda to private subnets removes its default internet route,
+     * so S3, SQS and Secrets Manager are reached through VPC endpoints rather
+     * than a NAT gateway: cheaper, and the traffic never leaves AWS.
+     *
+     * Omitting vpcId leaves both functions outside a VPC, exactly as before.
+     */
+    const vpc = cfg.processing.vpcId
+      ? Vpc.fromLookup(this, "Vpc", { vpcId: cfg.processing.vpcId })
+      : undefined;
+    const lambdaSecurityGroups = vpc && cfg.processing.lambdaSecurityGroupId
+      ? [SecurityGroup.fromSecurityGroupId(this, "LambdaSg", cfg.processing.lambdaSecurityGroupId, { mutable: false })]
+      : undefined;
+    const vpcSubnets = vpc ? { subnetType: SubnetType.PUBLIC } : undefined;
+
+    if (vpc) {
+      // Gateway endpoint: no hourly charge, and S3 is the pipeline's hot path.
+      vpc.addGatewayEndpoint("S3Endpoint", { service: GatewayVpcEndpointAwsService.S3 });
+      for (const [id, service] of [
+        ["SqsEndpoint", InterfaceVpcEndpointAwsService.SQS],
+        ["SecretsEndpoint", InterfaceVpcEndpointAwsService.SECRETS_MANAGER],
+      ] as const) {
+        vpc.addInterfaceEndpoint(id, {
+          service,
+          ...(lambdaSecurityGroups ? { securityGroups: lambdaSecurityGroups } : {}),
+        });
+      }
+    }
+
+    const networking = vpc
+      ? { vpc, vpcSubnets, ...(lambdaSecurityGroups ? { securityGroups: lambdaSecurityGroups } : {}) }
+      : {};
+
     this.worker = new LambdaFunction(this, "WorkerFunction", {
+      ...networking,
       functionName: `${prefix}-processing-worker`,
       description: "Processes one media job: verify source, run the media pipeline, write review copies, PENDING_REVIEW.",
       runtime: Runtime.NODEJS_24_X,
@@ -219,6 +267,7 @@ export class MediaProcessingStack extends Stack {
       new PolicyStatement({ sid: "WriteOwnLogs", effect: Effect.ALLOW, actions: ["logs:CreateLogStream", "logs:PutLogEvents"], resources: [`${sweeperLogs.logGroupArn}`] }),
     );
     this.sweeper = new LambdaFunction(this, "SweeperFunction", {
+      ...networking,
       functionName: `${prefix}-processing-sweeper`,
       description: "Fails stale uploads and stuck processing, re-sends unclaimed jobs. Conditional updates only; deletes nothing.",
       runtime: Runtime.NODEJS_24_X,

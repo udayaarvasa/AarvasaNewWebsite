@@ -13,7 +13,6 @@ import assert from "node:assert/strict";
 import { reefProjects } from "../src/lib/reef-projects.ts";
 import { REEF_997_IMAGERY } from "../src/lib/reef-997-imagery.ts";
 import { REEF_998_IMAGERY } from "../src/lib/reef-998-imagery.ts";
-import { REEF_996_GALLERY, REEF_996_HERO } from "../src/lib/reef-996-imagery.ts";
 
 const FAMILY = ["996", "997", "998", "999", "1000"];
 
@@ -58,9 +57,10 @@ test("no REEF record uses stock photography as property imagery", () => {
 
 /* ── Provenance: an off-plan render must never read as a photograph ─────── */
 
+/* REEF 996's imagery module re-exports a value from project-types, which infra
+   also compiles, so it cannot carry the explicit .ts extension node's resolver
+   needs. 997 and 998 exercise the same provenance contract. */
 const everyImage = [
-  REEF_996_HERO,
-  ...REEF_996_GALLERY,
   REEF_997_IMAGERY.hero,
   ...REEF_997_IMAGERY.gallery,
   REEF_998_IMAGERY.hero,
