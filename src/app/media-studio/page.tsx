@@ -12,6 +12,9 @@ import {
   type Capability,
 } from "@/lib/entitlements/capabilities";
 import { paymentsAvailable } from "@/lib/entitlements/payment-provider";
+import { reconstructionAvailable } from "@/lib/media/reconstruction";
+import { getProcessingJobQueue } from "@/lib/media/processing-queue";
+import { prisma } from "@/lib/prisma";
 
 /**
  * AARVASA MEDIA STUDIO.
@@ -80,6 +83,23 @@ export default async function MediaStudioPage() {
   const held = await activeCapabilities(session.user.id);
   const hasAny = held.length > 0;
 
+  /* Real capability of this environment, not aspiration. Mode A (upload an
+     existing GLB) runs on the media pipeline that already exists; Mode B
+     (reconstruct from photos or video) needs an engine that is not connected,
+     so it is shown as unavailable rather than offered and then failing. */
+  const canProcess = getProcessingJobQueue() !== null;
+  const canReconstruct = reconstructionAvailable();
+
+  /* The caller's own library, scoped by the verified session. */
+  const assets = await prisma.mediaAsset
+    .findMany({
+      where: { uploadedById: session.user.id },
+      orderBy: { createdAt: "desc" },
+      take: 8,
+      select: { id: true, kind: true, status: true, title: true, createdAt: true },
+    })
+    .catch(() => []);
+
   return (
     <div className="pb-[var(--s-24)]">
       <section
@@ -121,7 +141,7 @@ export default async function MediaStudioPage() {
 
       {/* ── What the plan covers ───────────────────────────────────────── */}
       <Wrap className="pt-[var(--band)]">
-        <SectionIndex n={1} total={2} className="mb-[var(--s-3)]" />
+        <SectionIndex n={1} total={3} className="mb-[var(--s-3)]" />
         <SectionHead
           label="Capabilities"
           title="What a Media Studio plan unlocks"
@@ -177,9 +197,79 @@ export default async function MediaStudioPage() {
         )}
       </Wrap>
 
+      {/* ── Create ─────────────────────────────────────────────────────── */}
+      <Wrap className="pt-[var(--band)]">
+        <SectionIndex n={2} total={3} className="mb-[var(--s-3)]" />
+        <SectionHead
+          label="Create"
+          title="Two ways in"
+          note="Availability below reflects what this environment can actually do today, not what is planned."
+        />
+        <Reveal>
+          <div className="grid gap-[var(--s-5)] md:grid-cols-2">
+            <article className="border border-rule-firm bg-paper-raised p-[var(--s-6)]">
+              <div className="flex items-center gap-2">
+                <h3 className="av-display text-[21px] leading-tight">Upload a 3D model</h3>
+                <span className="av-meta ml-auto rounded-xs border border-rule px-2 py-1 text-ink-muted">
+                  {canProcess ? "Available" : "Storage not configured"}
+                </span>
+              </div>
+              <p className="mt-3 text-[14px] leading-relaxed text-ink-muted">
+                Bring a GLB or glTF you already have — from an architect, a visualiser or a
+                scanning service. It is validated by its actual file contents, optimised, and
+                held privately for your review before anything is published.
+              </p>
+              <p className="av-meta mt-[var(--s-4)] text-ink-disabled">
+                GLB · glTF — FBX and OBJ are not accepted; export to GLB first
+              </p>
+            </article>
+
+            <article className="border border-rule bg-paper-sunken p-[var(--s-6)]">
+              <div className="flex items-center gap-2">
+                <h3 className="av-display text-[21px] leading-tight">Create 3D from photos or video</h3>
+                <span className="av-meta ml-auto rounded-xs border border-rule px-2 py-1 text-ink-muted">
+                  {canReconstruct ? "Available" : "Not available yet"}
+                </span>
+              </div>
+              <p className="mt-3 text-[14px] leading-relaxed text-ink-muted">
+                {canReconstruct
+                  ? "Submit a continuous capture and we reconstruct geometry from it."
+                  : "No reconstruction engine is connected to this environment, so nothing here can produce a model yet. Your material is checked for coverage first either way — if the camera never moved around the building, no engine could recover its shape, and we would rather tell you that than charge you to find out."}
+              </p>
+              <p className="av-meta mt-[var(--s-4)] text-ink-disabled">
+                Needs one continuous take, moving around the subject
+              </p>
+            </article>
+          </div>
+        </Reveal>
+
+        {assets.length > 0 && (
+          <Reveal delay={0.06}>
+            <div className="mt-[var(--s-8)]">
+              <h3 className="av-label mb-[var(--s-3)] text-ink-muted">Your media</h3>
+              <ul className="border-t border-rule-firm">
+                {assets.map((a) => (
+                  <li
+                    key={a.id}
+                    className="grid grid-cols-1 items-baseline gap-1 border-b border-rule py-[var(--s-3)] sm:grid-cols-[minmax(0,1fr)_auto_auto] sm:gap-[var(--s-5)]"
+                  >
+                    <span className="truncate text-[14px]">{a.title ?? a.id}</span>
+                    <span className="av-meta text-ink-muted">{a.kind}</span>
+                    <span className="av-meta text-ink-disabled sm:text-right">{a.status}</span>
+                  </li>
+                ))}
+              </ul>
+              <p className="av-meta mt-[var(--s-3)] text-ink-disabled">
+                Private to your account until published.
+              </p>
+            </div>
+          </Reveal>
+        )}
+      </Wrap>
+
       {/* ── The pipeline ───────────────────────────────────────────────── */}
       <Wrap className="pt-[var(--band)]">
-        <SectionIndex n={2} total={2} className="mb-[var(--s-3)]" />
+        <SectionIndex n={3} total={3} className="mb-[var(--s-3)]" />
         <SectionHead
           label="How it works"
           title="Upload, check, reconstruct, review, publish"
