@@ -1,4 +1,4 @@
-import { type CfnElement, Validations } from "aws-cdk-lib";
+import { Token, type CfnElement, Validations } from "aws-cdk-lib";
 import type { IConstruct } from "constructs";
 import type { MediaEdgeStack } from "./stacks/media-edge-stack";
 import type { MediaMonitoringStack } from "./stacks/media-monitoring-stack";
@@ -33,11 +33,21 @@ export function applyNagSuppressions(stacks: {
 
   // Processing stack. Queues need nothing: both are encrypted, TLS-only, and cdk-nag
   // recognises the dead-letter queue as one.
-  const ingestUploads = `AwsSolutions::AwsSolutions-IAM5[Resource::arn:aws:s3:::${processing.namePrefix}-ingest-<AWS::AccountId>-${processing.region}/uploads/*]`;
-  Validations.of(resourceOf(processing.sweeperRole.node.findChild("DefaultPolicy"))).acknowledge({
-    id: ingestUploads,
-    reason: "HeadObject existence checks need s3:GetObject; scoped to the ingest bucket's uploads/ prefix only, whose keys are per upload.",
-  });
+  /* cdk-nag reports the ARN as CloudFormation renders it, which differs by how
+     the app was synthesized: "<AWS::AccountId>" when no account is supplied,
+     and the literal account once one is. Only the first was covered, so this
+     suppression silently stopped matching at exactly the moment it mattered —
+     a real deploy, which always names an account. Both forms are registered. */
+  const accountForms = Token.isUnresolved(processing.account)
+    ? ["<AWS::AccountId>"]
+    : ["<AWS::AccountId>", processing.account];
+  for (const account of accountForms) {
+    Validations.of(resourceOf(processing.sweeperRole.node.findChild("DefaultPolicy"))).acknowledge({
+      id: `AwsSolutions::AwsSolutions-IAM5[Resource::arn:aws:s3:::${processing.namePrefix}-ingest-${account}-${processing.region}/uploads/*]`,
+      reason:
+        "HeadObject existence checks need s3:GetObject; scoped to the ingest bucket's uploads/ prefix only, whose keys are per upload.",
+    });
+  }
 
   for (const bucket of [storage.ingestBucket, storage.publishedBucket, stacks.processing.artifactBucket]) {
     Validations.of(resourceOf(bucket)).acknowledge({

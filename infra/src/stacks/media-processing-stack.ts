@@ -204,7 +204,11 @@ export class MediaProcessingStack extends Stack {
     const lambdaSecurityGroups = vpc && cfg.processing.lambdaSecurityGroupId
       ? [SecurityGroup.fromSecurityGroupId(this, "LambdaSg", cfg.processing.lambdaSecurityGroupId, { mutable: false })]
       : undefined;
-    const vpcSubnets = vpc ? { subnetType: SubnetType.PUBLIC } : undefined;
+    /* Isolated subnets: no route to an internet gateway and no NAT, so the
+       functions can reach the database and the VPC endpoints and nothing else.
+       CDK refuses a public subnet here, correctly — a Lambda there has no
+       working egress at all. */
+    const vpcSubnets = vpc ? { subnetType: SubnetType.PRIVATE_ISOLATED } : undefined;
 
     if (vpc) {
       // Gateway endpoint: no hourly charge, and S3 is the pipeline's hot path.
