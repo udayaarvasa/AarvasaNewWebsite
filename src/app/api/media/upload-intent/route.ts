@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server"
 import { getAuthUser } from "@/lib/auth-context"
+import { requireCapability } from "@/lib/entitlements/route-guard"
 import { getIngestUploadSigner } from "@/lib/media/ingest-storage"
 import { getProject } from "@/lib/projects"
 import { handleUploadIntent, randomUploadIdentifier } from "@/lib/services/media-upload.service"
@@ -9,6 +10,13 @@ import { prismaUploadIntentStore } from "@/lib/services/media-upload.store"
 // source to the ingest bucket (Phase 5A). See lib/services/media-upload.service.ts.
 export async function POST(req: Request) {
   try {
+    // Entitlement first: a presigned upload URL commits Aarvasa to storing and
+    // then processing someone's media, so it is checked before any work — and
+    // before the signer is touched. Checked again when processing starts and
+    // when the asset is published; an entitlement can lapse between steps.
+    const guard = await requireCapability(req, "PROCESS_MEDIA")
+    if (!guard.ok) return guard.response
+
     const result = await handleUploadIntent(
       {
         caller: await getAuthUser(req),

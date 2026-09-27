@@ -87,11 +87,13 @@ model User {
   phone         String?
   bio           String?
 
-  accounts    Account[]
-  sessions    Session[]
-  properties  Property[]
-  favorites   Favorite[]
-  inquiries   Inquiry[]
+  accounts     Account[]
+  sessions     Session[]
+  properties   Property[]
+  entitlements Entitlement[]
+  payments     Payment[]
+  favorites    Favorite[]
+  inquiries    Inquiry[]
 
   uploadedMediaAssets MediaAsset[] @relation("MediaAssetUploadedBy")
   reviewedMediaAssets MediaAsset[] @relation("MediaAssetReviewedBy")
@@ -149,10 +151,10 @@ model Property {
   propertyType PropertyType   @default(APARTMENT)
   bedrooms     Int            @default(0)
   bathrooms    Int            @default(0)
-  area         Float          // sq ft
+  area         Float // sq ft
   roi          Float          @default(0)
   amenities    String[]
-  images       String[]       // Cloudinary URLs
+  images       String[] // Cloudinary URLs
   featured     Boolean        @default(false)
   verified     Boolean        @default(false)
   status       PropertyStatus @default(ACTIVE)
@@ -290,4 +292,106 @@ model MediaAsset {
   @@index([status, createdAt])
   @@index([contentHash])
   @@index([uploadedById])
+}
+
+// ─── Entitlements ─────────────────────────────────────────────────────────────
+//
+// The commercial boundary. Public property discovery is free; creating and
+// processing immersive media is not. Nothing here knows about a payment
+// provider: Razorpay (or anything else) plugs in later behind the
+// PaymentProvider interface in src/lib/entitlements/payment-provider.ts.
+//
+// Deliberately minimal. There is no Plan table, no Invoice, no Subscription —
+// prices and packages are not defined yet, and speculative billing tables would
+// be guesses. `planKey` is an opaque string until they are.
+
+/// Only ACTIVE authorizes a premium capability. Every other value — including
+/// the default — denies. See EntitlementService.check.
+enum EntitlementStatus {
+  INACTIVE
+  ACTIVE
+  EXPIRED
+  SUSPENDED
+}
+
+/// Lifecycle of a payment attempt. No row is written until a real provider
+/// reports one: there are no seeded or example payments.
+enum PaymentStatus {
+  PENDING
+  SUCCEEDED
+  FAILED
+  REFUNDED
+  CANCELLED
+}
+
+/// How an entitlement came to exist. Recorded because a test grant must be
+/// distinguishable from a paid one for the rest of the system's life.
+enum EntitlementSource {
+  PAYMENT
+  ADMIN_TEST
+}
+
+model Entitlement {
+  id     String @id @default(cuid())
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  /// Opaque package identifier. Prices and plan definitions are deferred.
+  planKey String
+
+  /// Named capabilities this entitlement authorizes, validated server-side
+  /// against ENTITLEMENT_CAPABILITIES. A string array rather than an enum so
+  /// new capabilities do not each require a migration.
+  capabilities String[]
+
+  /// Defaults to INACTIVE: an entitlement row existing is never, by itself,
+  /// permission.
+  status EntitlementStatus @default(INACTIVE)
+
+  activatedAt DateTime?
+  /// Null means no expiry. A past value denies regardless of status.
+  expiresAt   DateTime?
+  suspendedAt DateTime?
+  revokedAt   DateTime?
+
+  source      EntitlementSource
+  /// Admin who issued a test grant. Null for payment-derived entitlements.
+  grantedById String?
+  note        String?
+
+  paymentId String?  @unique
+  payment   Payment? @relation(fields: [paymentId], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([userId, status])
+}
+
+model Payment {
+  id     String @id @default(cuid())
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  /// Provider key, e.g. "razorpay". No provider-specific column lives here;
+  /// provider payloads belong in the adapter, not the domain model.
+  provider          String
+  providerOrderId   String?
+  providerPaymentId String? @unique
+  /// Verification material. Only ever written after a server-side check of a
+  /// provider webhook — never accepted from the browser.
+  providerSignature String?
+
+  /// Minor units (paise/fils) to avoid floating point on money.
+  amountMinor Int?
+  currency    String?
+
+  status PaymentStatus @default(PENDING)
+
+  entitlement Entitlement?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([userId, status])
 }
