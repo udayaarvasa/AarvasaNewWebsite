@@ -12,7 +12,7 @@ import { Card } from "@/components/ui/card"
 import { DbPropertyCard } from "@/components/property/db-property-card"
 import type { PropertyListing } from "@/types/property"
 import toast from "react-hot-toast"
-import { formatCurrency } from "@/lib/properties"
+import { currencyForCountry, formatCurrency } from "@/lib/currency"
 
 type Tab = "overview" | "properties" | "favorites" | "account"
 
@@ -70,7 +70,18 @@ export function DashboardView({ userName, userRole }: { userName: string; userRo
     }
   }
 
-  const totalValue = myProperties.reduce((sum, p) => sum + p.price, 0)
+  /* Listings can span currencies, so a single arithmetic total was meaningless:
+     it added AED to INR and printed the result in rupees under the label
+     "Portfolio Value". Totals are kept per currency instead. */
+  const valueByCurrency = myProperties.reduce<Record<string, number>>((acc, p) => {
+    const c = currencyForCountry(p.country)
+    acc[c] = (acc[c] ?? 0) + p.price
+    return acc
+  }, {})
+  const listedValue =
+    Object.entries(valueByCurrency)
+      .map(([c, v]) => formatCurrency(v, c as "INR" | "AED"))
+      .join(" · ") || "—"
   const avgRoi = myProperties.length
     ? myProperties.reduce((sum, p) => sum + p.roi, 0) / myProperties.length
     : 0
@@ -136,7 +147,7 @@ export function DashboardView({ userName, userRole }: { userName: string; userRo
                     { label: "Total Listings", value: stats.total, icon: Building2 },
                     { label: "Active", value: stats.active, icon: TrendingUp },
                     { label: "Total Saves", value: stats.favorites, icon: Star },
-                    { label: "Portfolio Value", value: formatCurrency(totalValue), icon: BarChart3 },
+                    { label: "Listed value", value: listedValue, icon: BarChart3 },
                   ].map((s) => (
                     <Card key={s.label} className="border-[#DCCDCE]/40 bg-white p-5">
                       <div className="flex items-center gap-3">
@@ -197,7 +208,8 @@ export function DashboardView({ userName, userRole }: { userName: string; userRo
                       <Card key={p.id} className="flex flex-col gap-4 border-[#DCCDCE]/40 bg-white p-5 sm:flex-row sm:items-center">
                         <div className="relative h-20 w-28 shrink-0 overflow-hidden rounded-xl">
                           <Image
-                            src={p.images[0] || "https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?w=200&q=60"}
+                            /* A stock photo here would stand in for a real listing. */
+                            src={p.images[0] ?? "/images/placeholder-listing.svg"}
                             alt={p.title} fill className="object-cover" sizes="112px"
                           />
                         </div>
@@ -207,7 +219,7 @@ export function DashboardView({ userName, userRole }: { userName: string; userRo
                           </Link>
                           <p className="text-xs text-[#72383D]/50">{p.location} · {p.city}</p>
                           <div className="mt-1 flex items-center gap-3 text-xs">
-                            <span className="font-semibold text-[#50080E]">{formatCurrency(p.price)}</span>
+                            <span className="font-semibold text-[#50080E]">{formatCurrency(p.price, currencyForCountry(p.country))}</span>
                             {p.roi > 0 && <span className="text-emerald-600">{p.roi}% ROI</span>}
                             <span className={`rounded-full px-2 py-0.5 text-[10px] font-bold uppercase ${
                               p.status === "ACTIVE" ? "bg-emerald-100 text-emerald-700" : "bg-gray-100 text-gray-600"

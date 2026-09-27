@@ -1,103 +1,152 @@
 import Image from "next/image";
-import { BadgeCheck, Calendar, MapPin, Phone, Star } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import Link from "next/link";
+import { BadgeCheck, MapPin } from "lucide-react";
+import { prisma } from "@/lib/prisma";
+import { Wrap, SectionHead } from "@/components/av/primitives";
+import { DraftingGrid, Grain, MeasureRule, SectionIndex } from "@/components/av/graphics";
+import { TextReveal, RevealGroup, RevealItem } from "@/components/av/motion";
 
-const agents = [
-  {
-    name: "Riya Sharma",
-    city: "Mumbai",
-    speciality: "Luxury Apartments",
-    deals: "48 deals closed",
-    rating: 4.9,
-    image: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=700&q=85",
-  },
-  {
-    name: "Arjun Menon",
-    city: "Bengaluru",
-    speciality: "Commercial Properties",
-    deals: "62 deals closed",
-    rating: 4.8,
-    image: "https://images.unsplash.com/photo-1568602471122-7832951cc4c5?auto=format&fit=crop&w=700&q=85",
-  },
-  {
-    name: "Kabir Sethi",
-    city: "Goa",
-    speciality: "Luxury Villas",
-    deals: "35 deals closed",
-    rating: 4.9,
-    image: "https://images.unsplash.com/photo-1564564321837-a57b7070ac4f?auto=format&fit=crop&w=700&q=85",
-  },
-];
+/**
+ * Agents, from the actual user records.
+ *
+ * This page previously listed three invented people — stock portrait
+ * photography, fabricated deal counts ("48 deals closed") and ratings (4.9)
+ * — beneath a "Verified Agents" badge. None of them existed, none of those
+ * numbers were measured, and the page sat in the main navigation.
+ *
+ * It now reads accounts that actually hold the AGENT role, and shows only what
+ * the record supports: who they are and what they have listed. No ratings, no
+ * deal counts, no verification claim, and no email address — this is a public
+ * surface and a lister's contact details are reached through the enquiry flow.
+ */
+export const metadata = {
+  title: "Agents | Aarvasa",
+  description: "Channel partners and agents listing on Aarvasa.",
+};
 
-export default function AgentsPage() {
+export const dynamic = "force-dynamic";
+
+export default async function AgentsPage() {
+  const agents = await prisma.user
+    .findMany({
+      where: { role: "AGENT" },
+      select: {
+        id: true,
+        name: true,
+        image: true,
+        properties: {
+          where: { status: "ACTIVE" },
+          select: { city: true },
+        },
+      },
+      orderBy: { name: "asc" },
+    })
+    .catch(() => []);
+
   return (
-    <div className="min-h-screen bg-[#F2F1ED]">
-      <section className="mx-auto max-w-7xl px-4 pb-20 pt-32 sm:px-6 lg:px-8">
-        {/* Header */}
-        <div className="mb-12 max-w-3xl">
-          <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-[#DCCDCE]/60 bg-[#F5F4F1] px-4 py-1.5 text-xs font-semibold uppercase tracking-[0.14em] text-[#72383D]">
-            <BadgeCheck className="h-3.5 w-3.5 text-[#D4AF37]" />
-            Verified Agents
-          </div>
-          <h1 className="heading-serif text-4xl tracking-tight text-[#50080E] sm:text-5xl">
-            Your Personal Property Experts
-          </h1>
-          <p className="mt-4 text-lg leading-relaxed text-[#72383D]/70">
-            Work with verified local experts who understand micro-markets, price movements, site visits, and transaction readiness.
+    <div className="pb-[var(--s-24)]">
+      <section className="relative isolate overflow-hidden bg-paper-sunken pb-[var(--band-tight)] pt-[var(--s-10)]">
+        <DraftingGrid size={40} fade="radial" className="opacity-25" />
+        <Grain opacity={0.04} />
+        <Wrap className="relative z-[2]">
+          <span className="av-label text-gold-ink">Who lists here</span>
+          <TextReveal
+            as="h1"
+            text="Agents and channel partners"
+            className="av-display mt-2 text-[clamp(32px,4.4vw,52px)] leading-[1.04]"
+          />
+          <p className="mt-[var(--s-4)] max-w-[56ch] text-[17px] leading-relaxed text-ink-muted">
+            Aarvasa holds no inventory. Every listing belongs to the developer or the
+            channel partner who filed it, and this is who they are.
           </p>
-        </div>
-
-        {/* Agent grid */}
-        <div className="grid gap-7 md:grid-cols-3">
-          {agents.map((agent) => (
-            <article
-              key={agent.name}
-              className="group overflow-hidden rounded-2xl border border-[#DCCDCE]/40 bg-white shadow-luxury-sm transition hover:-translate-y-1 hover:shadow-luxury"
-            >
-              <div className="relative aspect-[4/3] overflow-hidden">
-                <Image
-                  src={agent.image}
-                  alt={agent.name}
-                  fill
-                  sizes="(max-width: 768px) 100vw, 33vw"
-                  className="object-cover transition duration-700 group-hover:scale-105"
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-[#50080E]/40 to-transparent opacity-0 transition group-hover:opacity-100" />
-                <div className="absolute left-3 top-3 flex items-center gap-1.5 rounded-full bg-white/90 px-3 py-1 backdrop-blur-xl">
-                  <BadgeCheck className="h-3.5 w-3.5 text-[#D4AF37]" />
-                  <span className="text-[10px] font-bold uppercase tracking-wider text-[#50080E]">Verified</span>
-                </div>
-              </div>
-              <div className="p-6">
-                <h2 className="text-xl font-bold text-[#50080E]">{agent.name}</h2>
-                <div className="mt-2 space-y-1.5">
-                  <p className="flex items-center gap-2 text-sm text-[#72383D]/70">
-                    <MapPin className="h-3.5 w-3.5 text-[#D4AF37]" />
-                    {agent.city}
-                  </p>
-                  <p className="flex items-center gap-2 text-sm text-[#72383D]/70">
-                    <Star className="h-3.5 w-3.5 fill-[#D4AF37] text-[#D4AF37]" />
-                    {agent.rating} · {agent.deals}
-                  </p>
-                  <p className="text-xs text-[#72383D]/50">
-                    Speciality: {agent.speciality}
-                  </p>
-                </div>
-                <div className="mt-4 grid grid-cols-2 gap-2">
-                  <Button variant="outline" size="sm" className="rounded-lg border-[#DCCDCE]/50 text-xs">
-                    <Phone className="h-3 w-3" />
-                    Call
-                  </Button>
-                  <Button variant="gold" size="sm" className="rounded-lg text-xs">
-                    <Calendar className="h-3 w-3" />
-                    Book Visit
-                  </Button>
-                </div>
-              </div>
-            </article>
-          ))}
-        </div>
+          <div className="mt-[var(--s-6)] max-w-[420px]">
+            <MeasureRule />
+          </div>
+        </Wrap>
       </section>
+
+      <Wrap className="pt-[var(--band)]">
+        <SectionIndex n={1} total={1} className="mb-[var(--s-3)]" />
+        <SectionHead
+          label="Agents"
+          title={agents.length > 0 ? "Listing on Aarvasa" : "No agents listed yet"}
+          note="Drawn from the accounts that hold the agent role. Listing counts are live."
+        />
+
+        {agents.length === 0 ? (
+          <div className="border border-rule bg-paper-raised px-6 py-[var(--s-14)]">
+            <p className="max-w-[46ch] text-[13.5px] leading-relaxed text-ink-muted">
+              No agent accounts are active at the moment. Developer inventory is listed
+              directly and can be browsed from the properties page.
+            </p>
+            <Link
+              href="/listings"
+              className="av-label mt-[var(--s-5)] inline-block rounded-xs border border-rule-firm bg-paper px-3 py-[7px] text-ink transition-colors hover:border-burgundy hover:text-burgundy"
+            >
+              Browse listings
+            </Link>
+          </div>
+        ) : (
+          <RevealGroup className="grid gap-[var(--s-8)] sm:grid-cols-2 lg:grid-cols-3">
+            {agents.map((a) => {
+              // Cities are derived from what they have actually listed.
+              const cities = [...new Set(a.properties.map((p) => p.city).filter(Boolean))];
+              return (
+                <RevealItem key={a.id}>
+                  <article className="border-b border-rule-firm pb-[var(--s-4)]">
+                    <div className="flex items-center gap-4">
+                      {a.image ? (
+                        <Image
+                          src={a.image}
+                          alt=""
+                          width={56}
+                          height={56}
+                          className="h-14 w-14 rounded-full object-cover"
+                        />
+                      ) : (
+                        /* Initial rather than a stock portrait of someone else. */
+                        <span
+                          aria-hidden="true"
+                          className="av-display flex h-14 w-14 items-center justify-center rounded-full bg-paper-sunken text-[20px] text-ink-muted"
+                        >
+                          {(a.name ?? "?").charAt(0).toUpperCase()}
+                        </span>
+                      )}
+                      <div className="min-w-0">
+                        <h3 className="av-display text-[20px] leading-tight">
+                          {a.name ?? "Agent"}
+                        </h3>
+                        <p className="av-meta mt-1 flex items-center gap-1.5 text-ink-muted">
+                          <BadgeCheck className="h-3.5 w-3.5 text-gold-ink" aria-hidden="true" />
+                          Agent account
+                        </p>
+                      </div>
+                    </div>
+
+                    <dl className="mt-[var(--s-4)] flex gap-[var(--s-5)] border-t border-rule pt-[10px]">
+                      <div>
+                        <dt className="av-label text-ink-muted">Active listings</dt>
+                        <dd className="av-num text-[13px] font-semibold">
+                          {a.properties.length}
+                        </dd>
+                      </div>
+                      {cities.length > 0 && (
+                        <div className="min-w-0">
+                          <dt className="av-label text-ink-muted">Where</dt>
+                          <dd className="flex items-center gap-1 truncate text-[13px] font-semibold">
+                            <MapPin className="h-3 w-3 shrink-0 text-ink-muted" aria-hidden="true" />
+                            {cities.join(", ")}
+                          </dd>
+                        </div>
+                      )}
+                    </dl>
+                  </article>
+                </RevealItem>
+              );
+            })}
+          </RevealGroup>
+        )}
+      </Wrap>
     </div>
   );
 }

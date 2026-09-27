@@ -12,7 +12,6 @@ import { InquiryForm } from "@/components/property/inquiry-form";
 import { getPropertyById } from "@/lib/services/property.service";
 import { auth } from "@/auth";
 import { currencyForCountry, formatCurrency } from "@/lib/currency";
-import { getProperty, properties } from "@/lib/properties";
 
 /** Stated assumptions for the indicative repayment card — disclosed in the UI,
  *  never presented as data about the property. */
@@ -50,11 +49,10 @@ export async function generateMetadata({
 }) {
   const { id } = await params;
   const property = await getPropertyById(id).catch(() => null);
-  const staticProp = property ? null : getProperty(id);
-  if (!property && !staticProp) notFound();
+  if (!property) notFound();
 
-  const name = property?.title ?? staticProp?.title ?? "Property";
-  const where = property?.location ?? staticProp?.location ?? "";
+  const name = property.title;
+  const where = property.location ?? "";
   /* Several titles already carry their location, so only append it when it is
      not there — otherwise the tab reads "X — Y — Y | Aarvasa". */
   const heading = where && !name.includes(where) ? `${name} — ${where}` : name;
@@ -72,44 +70,22 @@ export default async function PropertyDetailPage({
      notFound() cannot set a 404 once the response has begun streaming, and
      awaiting the session first was enough to start it: a missing property
      rendered the correct not-found page under HTTP 200, so crawlers indexed
-     the error page as a real one. */
+     the error page as a real one.
+
+     There is no fallback record any more. An id the database does not know is
+     a 404 — it used to resolve against a bundled mock catalogue carrying
+     invented roi, growth, risk and score values and Unsplash stock photography,
+     which meant an unknown id rendered a convincing property that does not
+     exist. */
   const exists = await getPropertyById(id).catch(() => null);
-  if (!exists && !getProperty(id)) notFound();
+  if (!exists) notFound();
 
   const session = await auth();
 
-  // Currency follows the property's own country. lib/properties' formatCurrency
-  // is hard-coded to INR, which rendered AED-priced Dubai stock as rupees here
-  // long after the rest of the site was corrected.
-  // Try database first, fall back to static data
-  let property: any = exists
-    ? await getPropertyById(id, session?.user?.id, session?.user?.role).catch(() => null)
-    : null;
-  let isDbProperty = !!property;
-
-  if (!property) {
-    // Fallback to static mock data for backward compatibility
-    const staticProp = getProperty(id);
-    if (!staticProp) notFound();
-    property = {
-      ...staticProp,
-      description: staticProp.summary,
-      city: staticProp.location.split(",").pop()?.trim() || "",
-      state: "",
-      country: "India",
-      propertyType: staticProp.type.toUpperCase(),
-      bedrooms: staticProp.beds,
-      bathrooms: staticProp.baths,
-      area: staticProp.sqft,
-      amenities: staticProp.tags,
-      featured: staticProp.tags.includes("AI Recommended"),
-      verified: true,
-      status: "ACTIVE",
-      riskLevel: staticProp.risk.toUpperCase(),
-      owner: null,
-    };
-    isDbProperty = false;
-  }
+  // Currency follows the property's own country.
+  const property: any =
+    (await getPropertyById(id, session?.user?.id, session?.user?.role).catch(() => null)) ??
+    exists;
 
   /* Currency follows the property's own country, the same rule the listings
      grid, cards and compare view already use. */
@@ -119,21 +95,31 @@ export default async function PropertyDetailPage({
   const loanAmount = Math.round(property.price * LOAN_TO_VALUE);
   const monthlyInstalment = emi(loanAmount, ANNUAL_RATE, TENURE_YEARS);
 
-  const heroImage = property.images?.[0] ||
-    "https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?w=1400&q=80";
+  /* No stock photograph standing in for a building that has not been shot.
+     A property with no imagery gets a typographic panel that says so, the same
+     rule the listing cards already follow. */
+  const heroImage: string | null = property.images?.[0] ?? null;
 
   return (
     <div className="min-h-screen bg-[#F2F1ED]">
       {/* Full-width cinematic hero */}
-      <section className="relative h-[55vh] min-h-[420px] w-full overflow-hidden">
-        <Image
-          src={heroImage}
-          alt={property.title}
-          fill
-          priority
-          sizes="100vw"
-          className="object-cover"
-        />
+      <section className="relative h-[55vh] min-h-[420px] w-full overflow-hidden bg-[#2a1216]">
+        {heroImage ? (
+          <Image
+            src={heroImage}
+            alt={property.title}
+            fill
+            priority
+            sizes="100vw"
+            className="object-cover"
+          />
+        ) : (
+          <div className="absolute inset-0 flex items-start justify-end p-6">
+            <span className="text-xs uppercase tracking-[0.14em] text-white/45">
+              Not yet photographed
+            </span>
+          </div>
+        )}
         <div className="absolute inset-0 bg-gradient-to-t from-[#50080E]/80 via-[#50080E]/20 to-transparent" />
 
         <div className="absolute inset-x-0 bottom-0 z-10 mx-auto max-w-7xl px-4 pb-10 sm:px-6 lg:px-8">

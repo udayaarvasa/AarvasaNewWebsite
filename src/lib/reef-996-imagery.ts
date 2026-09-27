@@ -272,4 +272,6 @@ export const REEF_996_BANNERS: readonly CuratedImage[] = [
   TOWER_FACADE_NIGHT,
 ];
 
-export { projectImageSrc as imageSrc } from "./project-types";
+// Explicit extension so this module also loads under plain node for tests;
+// the bundler resolves it identically.
+export { projectImageSrc as imageSrc } from "./project-types.ts";

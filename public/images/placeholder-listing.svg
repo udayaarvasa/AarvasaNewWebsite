@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" role="img" aria-label="Not yet photographed">
+  <rect width="200" height="200" fill="#eae6db"/>
+  <g fill="none" stroke="#b9b1a1" stroke-width="1">
+    <path d="M40 140h120M60 140V90l40-26 40 26v50"/>
+    <path d="M86 140v-30h28v30"/>
+  </g>
+  <text x="100" y="170" font-family="system-ui,sans-serif" font-size="11" fill="#8a8174" text-anchor="middle">Not yet photographed</text>
+</svg>

@@ -25,6 +25,7 @@ type NavLink = { href: string; label: string; match?: string[] };
 // Blockchain stays routable but is unlinked: it is roadmap, not product.
 const navLinks: NavLink[] = [
   { href: "/listings", label: "Properties", match: ["/listings", "/properties", "/property", "/projects"] },
+  { href: "/reef", label: "REEF Collection" },
   { href: "/ai-chat", label: "Advisor" },
   { href: "/agents", label: "Agents" },
   { href: "/about", label: "About" },

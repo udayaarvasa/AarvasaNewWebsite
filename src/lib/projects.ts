@@ -7,6 +7,8 @@ import {
   type ProjectSplatMedia,
 } from "./project-types";
 import { reefProjects } from "./reef-projects";
+import { REEF_997_IMAGERY } from "./reef-997-imagery";
+import { REEF_998_IMAGERY } from "./reef-998-imagery";
 import {
   REEF_996_BANNERS,
   REEF_996_CARDS,
@@ -271,6 +273,24 @@ const REEF_996_IMAGERY: ProjectImagery = {
 
 const IMAGERY_BY_SLUG: Readonly<Record<string, ProjectImagery>> = {
   "reef-996-dubai-production-city": REEF_996_IMAGERY,
+  "reef-997-dubai-islands": REEF_997_IMAGERY,
+  "reef-998-dlrc": REEF_998_IMAGERY,
+};
+
+/**
+ * Publication decided here, not in the generated inventory.
+ *
+ * reef-projects.ts is generated from the 28 June 2026 inventory sheet, which
+ * carried `published: false` for 997 and 998. Both hold complete, sourced
+ * records — location, completion, unit types and AED price ranges — and now
+ * have reviewed imagery, and the product owner confirmed this inventory is
+ * being marketed, so they are live. Whether a project is advertised is a
+ * commercial decision: it is recorded here rather than by editing the
+ * generated file, which would be overwritten on the next regeneration.
+ */
+const PUBLISH_OVERRIDE: Readonly<Record<string, boolean>> = {
+  "reef-997-dubai-islands": true,
+  "reef-998-dlrc": true,
 };
 
 /** Flat `images` stays populated so listing cards and any consumer that has not
@@ -292,6 +312,7 @@ export const projects: Project[] = [
   ...(IMAGERY_BY_SLUG[p.slug]
     ? { imagery: IMAGERY_BY_SLUG[p.slug], images: flatImages(IMAGERY_BY_SLUG[p.slug]) }
     : {}),
+  ...(p.slug in PUBLISH_OVERRIDE ? { published: PUBLISH_OVERRIDE[p.slug] } : {}),
 }));
 
 /** Live on the site. Set per project rather than inferred from imagery. */
