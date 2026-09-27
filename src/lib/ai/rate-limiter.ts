@@ -80,6 +80,16 @@ export const AI_ENDPOINT_LIMIT = {
   refillRatePerSecond: 0.5, // ~30 requests per minute
 };
 
+/**
+ * Platform-wide ceiling for the chat endpoint, applied behind the per-client
+ * bucket. Generous enough not to bite real traffic, low enough to bound the
+ * bill if many clients arrive at once.
+ */
+export const CHAT_GLOBAL_LIMIT = {
+  maxTokens: 120,
+  refillRatePerSecond: 2, // ~120 requests per minute across all callers
+};
+
 /** Rate limit for external API providers */
 export const EXTERNAL_API_LIMIT = {
   maxTokens: 10,

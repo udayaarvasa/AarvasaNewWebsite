@@ -1,63 +1,81 @@
-import { Shield, ShieldCheck } from "lucide-react";
-import AarvasaBlockchainInfrastructure from "@/components/blockchain/blockchain-infrastructure";
+import Link from "next/link";
+import { Wrap } from "@/components/av/primitives";
+import { DraftingGrid, Grain, MeasureRule } from "@/components/av/graphics";
+import { TextReveal } from "@/components/av/motion";
 
-const securityItems = [
-  "256-bit end-to-end encryption",
-  "Multi-signature transaction approval",
-  "Real-time audit trail",
-  "RERA compliance engine",
-  "Decentralized escrow",
-];
+/**
+ * Blockchain — statement of intent, not a product page.
+ *
+ * This route previously described an operating settlement stack in the present
+ * tense: "Ownership Transfer — immutable on-chain title registry updates",
+ * "Tokenization — fractional property investment instruments", "Smart Contracts
+ * — automated escrow and programmable settlements", a "RERA compliance engine",
+ * "decentralized escrow", and the assertion that "our infrastructure ensures
+ * that high-value property investments are de-risked through absolute,
+ * immutable transparency".
+ *
+ * None of that exists. Fractional investment instruments are a regulated
+ * financial product, and a de-risking claim about someone's property purchase
+ * is a financial representation. The page was unlinked from navigation but
+ * still publicly reachable and indexable, so the claims were live.
+ *
+ * It now says only what is true: this is planned work, nothing is offered, and
+ * there is nothing to sign up to.
+ */
+export const metadata = {
+  title: "Blockchain | Aarvasa",
+  description:
+    "Where Aarvasa intends to take verifiable property records. Nothing described here is available today.",
+  // Not a capability we offer; it should not be surfaced as one in search.
+  robots: { index: false, follow: true },
+};
 
 export default function BlockchainPage() {
   return (
-    <div className="relative min-h-screen overflow-x-hidden services-cinematic-bg services-vignette">
-      {/* Ambient orbs */}
-      <div
-        className="absolute -top-40 left-1/2 -translate-x-1/2 w-[800px] h-[500px] rounded-full animate-orb-drift pointer-events-none z-0"
-        style={{ background: "radial-gradient(circle, rgba(122, 0, 25, 0.4) 0%, transparent 70%)" }}
-      />
-      <div
-        className="absolute top-[60%] -right-40 w-[500px] h-[400px] rounded-full animate-orb-drift pointer-events-none z-0"
-        style={{ background: "radial-gradient(circle, rgba(91, 0, 23, 0.25) 0%, transparent 65%)", animationDelay: "8s" }}
-      />
-
-      {/* Main Content */}
-      <div className="relative z-10 mx-auto max-w-7xl px-4 pt-32 pb-20 sm:px-6 lg:px-8">
-        <AarvasaBlockchainInfrastructure />
-
-        {/* Security section */}
-        <section className="mt-16">
-          <div className="service-card-ivory rounded-[2.5rem] p-8 sm:p-12 overflow-hidden relative">
-            <div className="absolute -top-24 -right-24 w-64 h-64 bg-[#D4AF37]/5 rounded-full blur-3xl pointer-events-none" />
-
-            <div className="flex flex-col lg:flex-row items-start gap-10 relative z-10">
-              <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-[#7A0019] to-[#D4AF37] text-white shadow-[0_4px_20px_rgba(122,0,25,0.3)]">
-                <ShieldCheck className="h-8 w-8" />
-              </div>
-              <div className="flex-1">
-                <h2 className="heading-serif text-3xl sm:text-4xl text-[#4A0012] mb-6">
-                  The Standard of Institutional Trust
-                </h2>
-                <p className="max-w-4xl text-base leading-relaxed text-[#7A5C5C] mb-10">
-                  Aarvasa models each transaction as a verifiable journey: biometric consent creates the initial authorization, edge processors package the request, MPC nodes simulate distributed approval, and a smart-contract style escrow emits a transaction hash. Our infrastructure ensures that high-value property investments are de-risked through absolute, immutable transparency.
-                </p>
-
-                <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-                  {securityItems.map((item) => (
-                    <div key={item} className="flex items-center gap-4 p-5 rounded-2xl bg-white/60 border border-[#DCCDCE]/20 shadow-[0_4px_16px_rgba(0,0,0,0.04)] hover:shadow-[0_8px_24px_rgba(212,175,55,0.06)] hover:border-[#D4AF37]/20 transition-all group">
-                      <div className="h-8 w-8 rounded-full bg-gradient-to-br from-[#7A0019] to-[#D4AF37] flex items-center justify-center shadow-sm">
-                        <Shield className="h-4 w-4 shrink-0 text-white" />
-                      </div>
-                      <span className="text-sm font-bold text-[#4A0012] tracking-wide">{item}</span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </div>
+    <div className="pb-[var(--s-24)]">
+      <section className="relative isolate overflow-hidden bg-paper-sunken pb-[var(--band-tight)] pt-[var(--s-10)]">
+        <DraftingGrid size={40} fade="radial" className="opacity-25" />
+        <Grain opacity={0.04} />
+        <Wrap className="relative z-[2]">
+          <span className="av-label text-gold-ink">Roadmap</span>
+          <TextReveal
+            as="h1"
+            text="Not available today."
+            className="av-display mt-2 text-[clamp(32px,4.4vw,52px)] leading-[1.04]"
+          />
+          <p className="mt-[var(--s-4)] max-w-[56ch] text-[17px] leading-relaxed text-ink-muted">
+            Aarvasa does not offer blockchain-based ownership, tokenised property,
+            fractional investment instruments, on-chain title transfer or smart-contract
+            escrow. None of it is built, and none of it is for sale.
+          </p>
+          <div className="mt-[var(--s-6)] max-w-[420px]">
+            <MeasureRule />
           </div>
-        </section>
-      </div>
+        </Wrap>
+      </section>
+
+      <Wrap read className="pt-[var(--band-tight)]">
+        <p className="text-[19px] leading-[1.75]">
+          Property records in India are paper records. The interesting question is not
+          which ledger they sit on, but whether what a developer filed can be read,
+          checked and compared by the person buying. That is the product today, and it
+          is the part we are actually building.
+        </p>
+        <p className="mt-[var(--s-5)] text-[17px] leading-[1.75] text-ink-muted">
+          If verifiable records become something we can offer rather than something we
+          can describe, this page will say so, and it will say what was independently
+          checked. Until then it stays as it is — a note about intent, with nothing to
+          sign up to and nothing to buy.
+        </p>
+        <p className="mt-[var(--s-8)]">
+          <Link
+            href="/listings"
+            className="av-label rounded-xs border border-rule-firm bg-paper-raised px-3 py-[8px] text-ink transition-colors hover:border-burgundy hover:text-burgundy"
+          >
+            See what is listed today
+          </Link>
+        </p>
+      </Wrap>
     </div>
   );
 }

@@ -103,12 +103,15 @@ export function DashboardView({ userName, userRole }: { userName: string; userRo
         </div>
 
         {/* Tabs */}
-        <div className="mt-8 flex gap-1 rounded-xl border border-[#DCCDCE]/40 bg-white p-1">
+        {/* The four tabs need ~490px; below that they forced the whole page
+            ~112px wider than the viewport at 375. They scroll within their own
+            row now instead of stretching the document. */}
+        <div className="mt-8 flex gap-1 overflow-x-auto rounded-xl border border-[#DCCDCE]/40 bg-white p-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
           {tabs.map((t) => (
             <button
               key={t.id}
               onClick={() => setTab(t.id)}
-              className={`flex items-center gap-2 rounded-lg px-4 py-2.5 text-sm font-medium transition ${
+              className={`flex shrink-0 items-center gap-2 rounded-lg px-4 py-2.5 text-sm font-medium transition ${
                 tab === t.id
                   ? "bg-[#50080E] text-white shadow"
                   : "text-[#72383D]/60 hover:bg-[#F5F4F1] hover:text-[#50080E]"

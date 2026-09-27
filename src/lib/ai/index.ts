@@ -8,6 +8,11 @@ import { buildSystemPrompt, buildGreetingPrompt, buildGeminiPayload } from "./pr
 import { aiResponseCache, buildCacheKey } from "./cache";
 import { isRateLimited, GEMINI_LIMIT } from "./rate-limiter";
 
+/** Upstream call bounds. The provider has its own limits; these make ours
+ *  explicit so a slow or verbose response cannot dictate our cost or latency. */
+const GEMINI_TIMEOUT_MS = 30_000;
+const GEMINI_MAX_OUTPUT_TOKENS = 2_048;
+
 const EMPTY_AGGREGATION: AggregatedResult = {
   properties: [],
   marketIntelligence: [],
@@ -77,23 +82,48 @@ export async function processAdvisorQuery(
   const geminiPayload = buildGeminiPayload(systemPrompt, messages);
   const model = process.env.GEMINI_MODEL || "gemini-3.5-flash";
 
+  /* Bound the reply. Relying on the provider default leaves output size — and
+     therefore cost and response time — outside our control. */
+  const bounded = {
+    ...geminiPayload,
+    generationConfig: {
+      ...((geminiPayload as Record<string, unknown>).generationConfig as object ?? {}),
+      maxOutputTokens: GEMINI_MAX_OUTPUT_TOKENS,
+    },
+  };
+
+  /* A hung upstream connection would otherwise occupy the function until the
+     route's own maxDuration expired. */
+  const abort = new AbortController();
+  const timer = setTimeout(() => abort.abort(), GEMINI_TIMEOUT_MS);
+
   try {
     const response = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/${model}:streamGenerateContent?alt=sse&key=${apiKey}`,
+      `https://generativelanguage.googleapis.com/v1beta/models/${model}:streamGenerateContent?alt=sse`,
       {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
+          // Header rather than a ?key= query parameter: URLs get written to
+          // proxy and platform access logs, request bodies and headers do not.
+          "x-goog-api-key": apiKey,
         },
-        body: JSON.stringify(geminiPayload),
+        body: JSON.stringify(bounded),
+        signal: abort.signal,
       }
     );
 
     if (!response.ok) {
       const errorText = await response.text();
       console.error(`Gemini API error: ${response.status} ${response.statusText} - ${errorText}`);
+      /* Distinguish "the provider is throttling us" from a general fault, so
+         the user is told to wait rather than to retry immediately — retrying
+         into a 429 only deepens the backlog. */
+      const throttled = response.status === 429 || response.status === 503;
       return {
-        text: "I encountered an error communicating with the Gemini AI service. Please try again shortly.",
+        text: throttled
+          ? "The advisor is handling more requests than usual right now. Please try again in a minute."
+          : "I encountered an error communicating with the Gemini AI service. Please try again shortly.",
         mode: "gemini",
         aggregatedResult: aggregated,
         parsedParams: params,
@@ -103,13 +133,18 @@ export async function processAdvisorQuery(
     const stream = transformGeminiStream(response.body!, responseCacheKey);
     return { stream, mode: "gemini", aggregatedResult: aggregated, parsedParams: params };
   } catch (error) {
-    console.error("Gemini request failed:", error);
+    const timedOut = (error as Error)?.name === "AbortError";
+    console.error(timedOut ? "Gemini request timed out" : "Gemini request failed:", error);
     return {
-      text: "I encountered a network error while trying to reach the Gemini AI service. Please check your connection and try again.",
+      text: timedOut
+        ? "The advisor took too long to respond. Please try again."
+        : "I encountered a network error while trying to reach the Gemini AI service. Please check your connection and try again.",
       mode: "gemini",
       aggregatedResult: aggregated,
       parsedParams: params,
     };
+  } finally {
+    clearTimeout(timer);
   }
 }
 
@@ -121,7 +156,7 @@ async function handleGreeting(
 
   if (!apiKey) {
     return {
-      text: "Welcome to **Aarvasa AI** — India's multi-source real estate intelligence platform. To get started, please configure the `GEMINI_API_KEY` environment variable.",
+      text: "The Aarvasa advisor is not configured in this environment.",
       mode: "gemini",
       aggregatedResult: EMPTY_AGGREGATION,
       parsedParams: params,
@@ -134,19 +169,22 @@ async function handleGreeting(
 
   try {
     const response = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/${model}:streamGenerateContent?alt=sse&key=${apiKey}`,
+      `https://generativelanguage.googleapis.com/v1beta/models/${model}:streamGenerateContent?alt=sse`,
       {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
+          // Header rather than ?key=: URLs reach access logs, headers do not.
+          "x-goog-api-key": apiKey,
         },
         body: JSON.stringify(geminiPayload),
+        signal: AbortSignal.timeout(GEMINI_TIMEOUT_MS),
       }
     );
 
     if (!response.ok) {
       return {
-        text: "Welcome to **Aarvasa AI** — India's multi-source real estate intelligence platform. I combine our verified property database, real-time market signals, and AI-powered analysis to surface investment-grade opportunities. Ask for a city, budget, risk profile, or target ROI to get started.",
+        text: "Welcome to **Aarvasa AI**. I can search what developers have filed with us — location, configuration, area, price and completion — and put options side by side. Tell me a city, a budget or the number of bedrooms to start.",
         mode: "gemini",
         aggregatedResult: EMPTY_AGGREGATION,
         parsedParams: params,
@@ -157,7 +195,7 @@ async function handleGreeting(
     return { stream, mode: "gemini", aggregatedResult: EMPTY_AGGREGATION, parsedParams: params };
   } catch {
     return {
-      text: "Welcome to **Aarvasa AI** — India's multi-source real estate intelligence platform. I combine our verified property database, real-time market signals, and AI-powered analysis to surface investment-grade opportunities. Ask for a city, budget, risk profile, or target ROI to get started.",
+      text: "Welcome to **Aarvasa AI**. I can search what developers have filed with us — location, configuration, area, price and completion — and put options side by side. Tell me a city, a budget or the number of bedrooms to start.",
       mode: "gemini",
       aggregatedResult: EMPTY_AGGREGATION,
       parsedParams: params,

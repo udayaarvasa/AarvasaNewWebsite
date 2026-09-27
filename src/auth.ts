@@ -60,7 +60,23 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         };
       }
     }),
-    CredentialsProvider({
+    /**
+     * Wallet sign-in — DISABLED.
+     *
+     * The message this provider verifies is composed entirely on the client,
+     * including its nonce, and the server keeps no record of having issued it.
+     * A valid (message, signature, address) triple therefore authenticates for
+     * ever and can be replayed, and because the caller chooses the message
+     * text, a signature a wallet produced for some other site would be accepted
+     * here too. Making it safe needs a server-issued, single-use, expiring
+     * nonce — that is building out the blockchain layer, which is explicitly
+     * not yet in scope, so the path is taken out of service instead of left
+     * live and weak. The sign-in buttons are removed to match.
+     *
+     * To re-enable for development of that layer, set
+     * AARVASA_ENABLE_WALLET_AUTH=1 — and implement the nonce store first.
+     */
+    ...(process.env.AARVASA_ENABLE_WALLET_AUTH === "1" ? [CredentialsProvider({
       id: "wallet",
       name: "wallet",
       credentials: {
@@ -116,7 +132,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
           throw new Error("Wallet authentication failed");
         }
       }
-    })
+    })] : []),
   ],
   callbacks: {
     async jwt({ token, user, trigger, session }) {

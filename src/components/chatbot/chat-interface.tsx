@@ -352,11 +352,14 @@ export function ChatInterface({ initialPrompt }: { initialPrompt?: string }) {
           <p className="mb-2 text-xs font-semibold uppercase tracking-widest text-[#72383D]/50">
             Capabilities
           </p>
+          {/* What the advisor can actually do against real listing data. It
+              previously advertised "ROI & Yield Analysis" and "Risk Profiling",
+              neither of which it performs, and both of which are return claims. */}
           {[
-            { icon: TrendingUp, label: "ROI & Yield Analysis" },
-            { icon: Shield, label: "Risk Profiling" },
-            { icon: MapPin, label: "Micro-market Signals" },
             { icon: Building2, label: "Specification matching" },
+            { icon: MapPin, label: "Location and locality context" },
+            { icon: Shield, label: "What the developer has filed" },
+            { icon: TrendingUp, label: "Price and area comparison" },
           ].map(({ icon: Icon, label }) => (
             <div key={label} className="flex items-center gap-2.5 text-xs text-ink-muted">
               <Icon className="h-3.5 w-3.5 text-[#D4AF37]" />

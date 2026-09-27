@@ -63,52 +63,6 @@ export function SignupForm() {
     }
   }
 
-  async function handleWalletLogin() {
-    if (typeof window === "undefined" || !(window as any).ethereum) {
-      toast.error("Please install a Web3 wallet (like MetaMask)")
-      return
-    }
-
-    setIsLoading(true)
-    try {
-      const ethereum = (window as any).ethereum
-      const accounts = await ethereum.request({ method: "eth_requestAccounts" })
-      if (!accounts || accounts.length === 0) {
-        throw new Error("No accounts found")
-      }
-      const address = accounts[0]
-      
-      const nonce = Math.random().toString(36).substring(2)
-      const message = `Sign in to Aarvasa with your wallet.\nNonce: ${nonce}`
-
-      const signature = await ethereum.request({
-        method: "personal_sign",
-        params: [message, address]
-      })
-
-      const result = await signIn("wallet", {
-        message,
-        signature,
-        address,
-        redirect: false,
-      })
-
-      if (result?.error) {
-        toast.error("Wallet authentication failed")
-        return
-      }
-
-      toast.success("Successfully logged in with wallet!")
-      router.push("/dashboard")
-      router.refresh()
-    } catch (error: any) {
-      console.error(error)
-      toast.error(error.message || "Failed to sign in with wallet")
-    } finally {
-      setIsLoading(false)
-    }
-  }
-
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
@@ -255,19 +209,6 @@ export function SignupForm() {
               <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
             </svg>
             <span className="text-[#F2F1ED] text-sm font-medium">Google</span>
-          </button>
-          <button 
-            type="button"
-            onClick={handleWalletLogin}
-            disabled={isLoading}
-            className="flex justify-center items-center gap-2.5 py-2.5 border border-white/10 rounded-xl hover:bg-white/5 transition-colors cursor-pointer disabled:opacity-50"
-          >
-            <svg className="h-5 w-5 text-[#F7931A]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M21 12V7H5a2 2 0 0 1 0-4h14v4"/>
-              <path d="M3 5v14a2 2 0 0 0 2 2h16v-5"/>
-              <path d="M18 12a2 2 0 0 0 0 4h4v-4z"/>
-            </svg>
-            <span className="text-[#F2F1ED] text-sm font-medium">Web3 Wallet</span>
           </button>
         </div>
       </div>

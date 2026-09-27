@@ -19,8 +19,14 @@ import { projectViewerConfig } from "@/lib/viewer/project-media";
  *
  * The section heading is supplied by the page so it is not stated twice.
  */
-export function ProjectCards() {
-  const items = publishedProjects();
+export function ProjectCards({ city }: { city?: string } = {}) {
+  /* When the page carries a location filter, developer inventory has to obey
+     it too. Showing Dubai and Bhopal projects above a Mumbai result set was
+     the bug: the user reads them as Mumbai matches. */
+  const all = publishedProjects();
+  const items = city
+    ? all.filter((p) => p.city.toLowerCase() === city.trim().toLowerCase())
+    : all;
   if (items.length === 0) return null;
 
   return (

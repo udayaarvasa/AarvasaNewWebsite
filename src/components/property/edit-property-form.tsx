@@ -9,7 +9,7 @@ import toast from "react-hot-toast"
 import Link from "next/link"
 import { updatePropertySchema } from "@/lib/validations/property"
 import { ImageUploader } from "@/components/property/image-uploader"
-import type { PropertyListing } from "@/types/property"
+import type { OwnedPropertyListing } from "@/types/property"
 
 const PROPERTY_TYPES = [
   { value: "APARTMENT", label: "Apartment" },
@@ -73,7 +73,9 @@ export function EditPropertyForm({ propertyId }: EditPropertyFormProps) {
         const res = await fetch(`/api/properties/${propertyId}`)
         const data = await res.json()
         if (data.success && data.data) {
-          const p: PropertyListing = data.data
+          // The owner/admin projection: this form is only reachable for a listing the
+          // caller may edit, and the API returns the full record for that case.
+          const p: OwnedPropertyListing = data.data
           reset({
             title: p.title,
             description: p.description,

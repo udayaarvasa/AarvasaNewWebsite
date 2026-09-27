@@ -5,14 +5,24 @@ export type PropertyStatus = "ACTIVE" | "INACTIVE" | "SOLD" | "RENTED" | "PENDIN
 export type RiskLevel = "LOW" | "MODERATE" | "BALANCED" | "HIGH";
 export type Role = "USER" | "AGENT" | "BUILDER" | "ADMIN";
 
+/**
+ * Owner as returned by the PUBLIC catalogue endpoints.
+ *
+ * No id and no email: /api/properties is unauthenticated and paginated, so
+ * anything here is harvestable at scale. Contact happens through the
+ * authenticated inquiry flow. `role` is the coarsened listing capacity, not the
+ * internal privilege level.
+ */
 export interface PropertyOwner {
-  id: string;
   name: string | null;
-  email: string | null;
   image: string | null;
   role: Role;
 }
 
+/** A property as returned by the PUBLIC catalogue endpoints. Internal scoring
+ *  (riskLevel, aiScore), the ledger reference and ownerId are not part of this
+ *  shape — no public surface renders them, and they were being served to
+ *  anonymous callers. */
 export interface PropertyListing {
   id: string;
   title: string;
@@ -32,16 +42,25 @@ export interface PropertyListing {
   featured: boolean;
   verified: boolean;
   status: PropertyStatus;
-  riskLevel: RiskLevel;
-  aiScore: number | null;
-  blockchainTxHash: string | null;
   tokenized: boolean;
-  ownerId: string;
   owner: PropertyOwner;
   _count?: { favorites: number; inquiries: number };
   isFavorited?: boolean;
   createdAt: string;
   updatedAt: string;
+}
+
+/**
+ * The full record, returned only to the account that owns the listing or to an
+ * admin. Anything added here is privileged by definition — it must never be
+ * folded back into PropertyListing, which is what anonymous callers receive.
+ */
+export interface OwnedPropertyListing extends PropertyListing {
+  riskLevel: RiskLevel;
+  aiScore: number | null;
+  blockchainTxHash: string | null;
+  ownerId: string;
+  owner: PropertyOwner & { id: string; email: string | null };
 }
 
 export interface PropertyFilters {

@@ -9,10 +9,10 @@ export default function NotFound() {
           404
         </p>
         <h1 className="mt-4 text-4xl font-semibold text-foreground">
-          This investment room does not exist.
+          We could not find that page.
         </h1>
         <p className="mt-4 text-muted-foreground">
-          The property may have moved or the link is no longer active.
+          The property may have been withdrawn, or the link is no longer active.
         </p>
         <Button asChild className="mt-8">
           <Link href="/listings">Return to listings</Link>

@@ -3,7 +3,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import {
   ArrowLeft, Bath, BedDouble, Brain, Calculator, CalendarClock,
-  CheckCircle2, Heart, Map, MapPin, Maximize, Ruler, Share2, ShieldCheck, TrendingUp,
+  CheckCircle2, Heart, Map, MapPin, Maximize, Ruler, Share2, ShieldCheck,
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -11,7 +11,55 @@ import { Card } from "@/components/ui/card";
 import { InquiryForm } from "@/components/property/inquiry-form";
 import { getPropertyById } from "@/lib/services/property.service";
 import { auth } from "@/auth";
-import { formatCurrency, getProperty, properties } from "@/lib/properties";
+import { currencyForCountry, formatCurrency } from "@/lib/currency";
+import { getProperty, properties } from "@/lib/properties";
+
+/** Stated assumptions for the indicative repayment card — disclosed in the UI,
+ *  never presented as data about the property. */
+const ANNUAL_RATE = 0.085;
+const TENURE_YEARS = 20;
+const LOAN_TO_VALUE = 0.8;
+
+/** Standard amortising instalment: P·r·(1+r)^n / ((1+r)^n − 1). */
+function emi(principal: number, annualRate: number, years: number): number {
+  const r = annualRate / 12;
+  const n = years * 12;
+  if (r === 0) return Math.round(principal / n);
+  const g = Math.pow(1 + r, n);
+  return Math.round((principal * r * g) / (g - 1));
+}
+
+/**
+ * Resolving existence here, not in the component, is what makes a missing
+ * property return a real 404.
+ *
+ * The app has a root loading.tsx, which puts a Suspense boundary above every
+ * dynamic route. The shell therefore streams — and the 200 is committed —
+ * before the component body runs, so notFound() could only swap the markup,
+ * never the status. A missing property served the correct not-found page under
+ * HTTP 200, which crawlers treat as a real page. generateMetadata runs before
+ * the response is committed, so notFound() here sets the status properly.
+ *
+ * It also gives each property its own title; every one of them previously
+ * inherited the site-wide default.
+ */
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}) {
+  const { id } = await params;
+  const property = await getPropertyById(id).catch(() => null);
+  const staticProp = property ? null : getProperty(id);
+  if (!property && !staticProp) notFound();
+
+  const name = property?.title ?? staticProp?.title ?? "Property";
+  const where = property?.location ?? staticProp?.location ?? "";
+  /* Several titles already carry their location, so only append it when it is
+     not there — otherwise the tab reads "X — Y — Y | Aarvasa". */
+  const heading = where && !name.includes(where) ? `${name} — ${where}` : name;
+  return { title: `${heading} | Aarvasa` };
+}
 
 export default async function PropertyDetailPage({
   params,
@@ -19,10 +67,24 @@ export default async function PropertyDetailPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
+
+  /* Existence is settled before auth() runs.
+     notFound() cannot set a 404 once the response has begun streaming, and
+     awaiting the session first was enough to start it: a missing property
+     rendered the correct not-found page under HTTP 200, so crawlers indexed
+     the error page as a real one. */
+  const exists = await getPropertyById(id).catch(() => null);
+  if (!exists && !getProperty(id)) notFound();
+
   const session = await auth();
 
+  // Currency follows the property's own country. lib/properties' formatCurrency
+  // is hard-coded to INR, which rendered AED-priced Dubai stock as rupees here
+  // long after the rest of the site was corrected.
   // Try database first, fall back to static data
-  let property: any = await getPropertyById(id, session?.user?.id).catch(() => null);
+  let property: any = exists
+    ? await getPropertyById(id, session?.user?.id, session?.user?.role).catch(() => null)
+    : null;
   let isDbProperty = !!property;
 
   if (!property) {
@@ -48,6 +110,14 @@ export default async function PropertyDetailPage({
     };
     isDbProperty = false;
   }
+
+  /* Currency follows the property's own country, the same rule the listings
+     grid, cards and compare view already use. */
+  const currency = currencyForCountry(property.country);
+  const money = (n: number) => formatCurrency(n, currency);
+
+  const loanAmount = Math.round(property.price * LOAN_TO_VALUE);
+  const monthlyInstalment = emi(loanAmount, ANNUAL_RATE, TENURE_YEARS);
 
   const heroImage = property.images?.[0] ||
     "https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?w=1400&q=80";
@@ -110,14 +180,8 @@ export default async function PropertyDetailPage({
         <div className="mx-auto flex max-w-7xl flex-wrap items-center gap-8 px-4 py-5 sm:px-6 lg:px-8">
           <div className="border-r border-[#DCCDCE]/40 pr-8">
             <p className="text-xs uppercase tracking-[0.14em] text-[#72383D]/60">Price</p>
-            <p className="text-2xl font-bold text-[#50080E]">{formatCurrency(property.price)}</p>
+            <p className="text-2xl font-bold text-[#50080E]">{money(property.price)}</p>
           </div>
-          {property.roi > 0 && (
-            <div className="border-r border-[#DCCDCE]/40 pr-8">
-              <p className="text-xs uppercase tracking-[0.14em] text-[#72383D]/60">Est. ROI</p>
-              <p className="text-2xl font-bold text-[#50080E]">{property.roi}%</p>
-            </div>
-          )}
           <div className="border-r border-[#DCCDCE]/40 pr-8">
             <p className="text-xs uppercase tracking-[0.14em] text-[#72383D]/60">Area</p>
             <p className="text-2xl font-bold text-[#50080E]">
@@ -169,13 +233,6 @@ export default async function PropertyDetailPage({
                   <p className="text-lg font-bold text-[#50080E]">{property.area?.toLocaleString("en-IN")}</p>
                   <p className="text-xs text-[#72383D]/50">sq.ft</p>
                 </div>
-                {property.roi > 0 && (
-                  <div className="rounded-xl bg-[#F5F4F1] p-4 text-center">
-                    <TrendingUp className="mx-auto mb-2 h-5 w-5 text-emerald-600" />
-                    <p className="text-lg font-bold text-emerald-600">{property.roi}%</p>
-                    <p className="text-xs text-[#72383D]/50">ROI</p>
-                  </div>
-                )}
               </div>
             </Card>
 
@@ -232,18 +289,21 @@ export default async function PropertyDetailPage({
               </Card>
             )}
 
-            {/* EMI Calculator */}
+            {/* Indicative repayment. The rate and tenure are stated assumptions,
+                not an offer and not data about this property, so the card says
+                so. The previous version multiplied the loan by the monthly rate,
+                which is one month's interest rather than an instalment. */}
             <Card className="border-[#DCCDCE]/40 bg-white p-6">
               <h3 className="mb-4 flex items-center gap-2 text-lg font-bold text-[#50080E]">
                 <Calculator className="h-5 w-5 text-[#D4AF37]" />
-                EMI Calculator
+                Indicative repayment
               </h3>
               <div className="space-y-3">
                 {[
-                  ["Loan Amount", formatCurrency(Math.round(property.price * 0.8))],
-                  ["Interest Rate", "8.5%"],
-                  ["Tenure", "20 years"],
-                  ["Monthly EMI", formatCurrency(Math.round(property.price * 0.8 * 0.0085))],
+                  ["Loan amount", money(loanAmount)],
+                  ["Interest rate (assumed)", `${(ANNUAL_RATE * 100).toFixed(1)}%`],
+                  ["Tenure (assumed)", `${TENURE_YEARS} years`],
+                  ["Monthly instalment", money(monthlyInstalment)],
                 ].map(([label, value]) => (
                   <div key={label} className="flex items-center justify-between border-b border-[#DCCDCE]/20 pb-2 last:border-0">
                     <span className="text-xs text-[#72383D]/60">{label}</span>
@@ -251,6 +311,11 @@ export default async function PropertyDetailPage({
                   </div>
                 ))}
               </div>
+              <p className="mt-4 border-t border-[#DCCDCE]/20 pt-3 text-xs leading-relaxed text-[#72383D]/60">
+                An illustration on an 80% loan at the rate and tenure above. Not an offer,
+                not a quotation, and not specific to this property. Your lender decides the
+                actual rate, tenure and eligibility.
+              </p>
             </Card>
 
             {/* Inquiry Form */}

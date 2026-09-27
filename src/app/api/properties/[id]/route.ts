@@ -12,9 +12,10 @@ type Params = { params: Promise<{ id: string }> }
 // GET /api/properties/[id]
 export async function GET(req: Request, { params }: Params) {
   try {
+    // Role comes from the verified session, never from the request.
     const user = await getAuthUser(req)
     const { id } = await params
-    const property = await getPropertyById(id, user?.id)
+    const property = await getPropertyById(id, user?.id, user?.role)
 
     if (!property)
       return NextResponse.json({ success: false, error: "Not found" }, { status: 404 })

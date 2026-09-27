@@ -138,8 +138,21 @@ function normalizeRapidApiResponse(data: unknown): NormalizedProperty[] {
 }
 
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-// Mock External Intelligence (always-on fallback)
+// Mock External Intelligence — DEVELOPMENT FIXTURE, OFF BY DEFAULT
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+//
+// These figures are invented. They were written as an "always-on fallback",
+// which meant that with no provider key configured — the normal state — the
+// advisor served fabricated statistics ("15% YoY price appreciation", "6.2%
+// rental yields") to users, carrying confidence scores that made them read as
+// measured data.
+//
+// They are now opt-in. Without AARVASA_USE_MOCK_MARKET_INTEL=1 the advisor
+// returns no market intelligence rather than invented market intelligence.
+// Never enable this in a deployed environment.
+
+const USE_MOCK_MARKET_INTEL =
+  process.env.AARVASA_USE_MOCK_MARKET_INTEL === "1" && process.env.NODE_ENV !== "production";
 
 const MARKET_INTELLIGENCE_DB: Record<string, MarketInsight[]> = {
   Bengaluru: [
@@ -294,8 +307,9 @@ export function getMarketIntelligence(
     .filter((r) => r.marketIntelligence)
     .map((r) => r.marketIntelligence!);
 
-  // Supplement with built-in intelligence
-  const mock = getMockMarketIntelligence(cities);
+  /* Opt-in only. With no real provider configured the honest answer is "no
+     market intelligence", not a plausible-looking fabrication. */
+  const mock = USE_MOCK_MARKET_INTEL ? getMockMarketIntelligence(cities) : [];
 
   // Merge, deduplicate by city
   const seen = new Set<string>();

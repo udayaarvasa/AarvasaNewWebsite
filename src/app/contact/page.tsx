@@ -1,4 +1,4 @@
-import { Button } from "@/components/ui/button";
+import { ContactForm } from "./contact-form";
 import { Ledger, Note, SectionHead, Wrap } from "@/components/av/primitives";
 import { ContourField, DraftingGrid, Grain, MeasureRule, PlanMotif } from "@/components/av/graphics";
 import { Reveal, TextReveal } from "@/components/av/motion";
@@ -16,9 +16,17 @@ export const metadata = {
  * returns" to build an "investment shortlist". Aarvasa does not offer an
  * investment service, so the form asks what it can actually act on.
  *
- * Note: as before this redesign, the form is presentational — it has no
- * submit handler. Wiring it to the existing Inquiry model is backend work and
- * is deliberately out of scope for a visual redesign.
+ * The form used to have no submit handler at all while still rendering a
+ * "Send message" button inside a <form>. A button in a form submits it, so the
+ * click performed a native GET: the page reloaded, the message was lost, and
+ * the visitor's name, email and phone were written into the URL — and from
+ * there into browser history and server access logs — while nothing was
+ * actually sent to anyone.
+ *
+ * There is no anonymous inquiry endpoint (/api/inquiries requires a session),
+ * and inventing one is out of scope, so the form now composes the enquiry into
+ * the visitor's own mail client. That is a real send the visitor can see and
+ * confirm, rather than a button that appears to submit and does not.
  */
 export default function ContactPage() {
   return (
@@ -55,7 +63,7 @@ export default function ContactPage() {
               project you have already seen.
             </p>
 
-            <form className="mt-[var(--s-6)] grid gap-[var(--s-4)]">
+            <ContactForm>
               <div className="grid gap-[var(--s-4)] sm:grid-cols-2">
                 <div>
                   <label htmlFor="c-name" className="av-label mb-1 block text-ink-muted">
@@ -123,15 +131,7 @@ export default function ContactPage() {
                 />
               </div>
 
-              <Button size="lg" className="w-full sm:w-auto sm:justify-self-start">
-                Send message
-              </Button>
-
-              <p className="text-[12px] leading-relaxed text-ink-muted">
-                By sending this you agree that we may share it with the developer of any property
-                you name.
-              </p>
-            </form>
+            </ContactForm>
             </div>
           </Reveal>
 

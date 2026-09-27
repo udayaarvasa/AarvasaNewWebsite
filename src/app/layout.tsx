@@ -34,10 +34,14 @@ const plexMono = IBM_Plex_Mono({
   variable: "--font-plex-mono",
 });
 
+/* The default title and description for every route that does not set its own,
+   and what search engines and link previews show. It advertised "ROI insights"
+   and "investment dashboards" — a return claim and a product that does not
+   exist — so it describes what the site actually does instead. */
 export const metadata: Metadata = {
-  title: "Aarvasa | AI Real Estate Investment Platform",
+  title: "Aarvasa | Premium property, examined properly",
   description:
-    "A premium PropTech platform for AI-powered real estate recommendations, ROI insights, and investment dashboards.",
+    "Find premium homes, plots and offices, explore what has been captured in 3D and 360°, and compare a shortlist on the specification that decides it.",
 };
 
 export default function RootLayout({

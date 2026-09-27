@@ -1,14 +1,14 @@
 // @ts-ignore
 import { prisma } from "@/lib/prisma";
 import type { PropertyFilters, CreatePropertyInput, UpdatePropertyInput } from "@/lib/validations/property";
+import {
+  PRIVILEGED_OWNER_SELECT,
+  PUBLIC_PROPERTY_SELECT,
+  toPublicProperty,
+} from "./property-projection";
 
-const OWNER_SELECT = {
-  id: true,
-  name: true,
-  email: true,
-  image: true,
-  role: true,
-};
+/* Public vs privileged shapes live in ./property-projection, which is free of
+   Prisma so the security contract can be asserted without a database. */
 
 const PROPERTY_SELECT = {
   id: true,
@@ -36,7 +36,7 @@ const PROPERTY_SELECT = {
   ownerId: true,
   createdAt: true,
   updatedAt: true,
-  owner: { select: OWNER_SELECT },
+  owner: { select: PRIVILEGED_OWNER_SELECT },
   _count: { select: { favorites: true, inquiries: true } },
 };
 
@@ -79,7 +79,7 @@ export async function getProperties(filters: PropertyFilters, userId?: string) {
 
   const [total, rawProperties] = await Promise.all([
     prisma.property.count({ where }),
-    prisma.property.findMany({ where, select: PROPERTY_SELECT, orderBy, skip, take: Number(limit) }),
+    prisma.property.findMany({ where, select: PUBLIC_PROPERTY_SELECT, orderBy, skip, take: Number(limit) }),
   ]);
 
   // Attach isFavorited if user is logged in
@@ -92,12 +92,14 @@ export async function getProperties(filters: PropertyFilters, userId?: string) {
     favoritedIds = new Set(favs.map((f: any) => f.propertyId));
   }
 
-  const properties = rawProperties.map((p: any) => ({
-    ...p,
-    createdAt: p.createdAt.toISOString(),
-    updatedAt: p.updatedAt.toISOString(),
-    isFavorited: favoritedIds.has(p.id),
-  }));
+  const properties = rawProperties.map((p: any) =>
+    toPublicProperty({
+      ...p,
+      createdAt: p.createdAt.toISOString(),
+      updatedAt: p.updatedAt.toISOString(),
+      isFavorited: favoritedIds.has(p.id),
+    }),
+  );
 
   return {
     properties,
@@ -110,10 +112,33 @@ export async function getProperties(filters: PropertyFilters, userId?: string) {
 
 // ─── Get single property by ID ──────────────────────────────────────────────
 
-export async function getPropertyById(id: string, userId?: string) {
+/**
+ * A single property.
+ *
+ * Authorization, not concealment: the full record — owner contact, internal
+ * scoring, ledger reference — is returned only to the account that owns the
+ * listing or to an admin. Everyone else, including anonymous callers, gets the
+ * public projection. The caller's identity is established server-side from the
+ * session; it is never taken from the request body or a query parameter.
+ */
+export async function getPropertyById(
+  id: string,
+  userId?: string,
+  viewerRole?: string,
+) {
+  // Who owns it decides which projection the caller may see, so read that first.
+  const ownership = await prisma.property.findUnique({
+    where: { id },
+    select: { ownerId: true },
+  });
+  if (!ownership) return null;
+
+  const privileged =
+    viewerRole === "ADMIN" || (!!userId && ownership.ownerId === userId);
+
   const property = await prisma.property.findUnique({
     where: { id },
-    select: PROPERTY_SELECT,
+    select: privileged ? PROPERTY_SELECT : PUBLIC_PROPERTY_SELECT,
   });
 
   if (!property) return null;
@@ -126,12 +151,13 @@ export async function getPropertyById(id: string, userId?: string) {
     isFavorited = !!fav;
   }
 
-  return {
+  const shaped = {
     ...property,
     createdAt: property.createdAt.toISOString(),
     updatedAt: property.updatedAt.toISOString(),
     isFavorited,
   };
+  return privileged ? shaped : toPublicProperty(shaped);
 }
 
 // ─── Create property ────────────────────────────────────────────────────────

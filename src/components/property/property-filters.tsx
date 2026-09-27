@@ -2,7 +2,7 @@
 
 import { useRouter, useSearchParams } from "next/navigation";
 import { useCallback, useState } from "react";
-import { Search } from "lucide-react";
+import { Search, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 /**
@@ -73,6 +73,26 @@ export function PropertyFilters({ className }: { className?: string }) {
     ([k, v]) => v && !(k === "sortBy" && v === "newest"),
   ).length;
 
+  /* The rail read `city` from the URL but never rendered a control for it, so
+     arriving at /listings?city=Mumbai gave no way to see or remove the filter.
+     These chips are the visible record of what is applied, and each one can be
+     taken off. `sortBy` is excluded: it orders results, it does not select
+     them. */
+  const chips: { key: string; label: string }[] = [
+    current.search && { key: "search", label: `“${current.search}”` },
+    current.city && { key: "city", label: current.city },
+    current.propertyType && {
+      key: "propertyType",
+      label:
+        PROPERTY_TYPES.find((t) => t.value === current.propertyType)?.label ??
+        current.propertyType,
+    },
+    current.bedrooms && { key: "bedrooms", label: `${current.bedrooms}+ beds` },
+    current.minPrice && { key: "minPrice", label: `Min ${current.minPrice}` },
+    current.maxPrice && { key: "maxPrice", label: `Max ${current.maxPrice}` },
+    current.verified && { key: "verified", label: "Verified only" },
+  ].filter(Boolean) as { key: string; label: string }[];
+
   const toggleClass = (on: boolean) =>
     cn(
       "rounded-xs border px-[11px] py-[7px] text-[12.5px] font-medium transition-colors duration-200",
@@ -83,6 +103,32 @@ export function PropertyFilters({ className }: { className?: string }) {
 
   const body = (
     <>
+      {chips.length > 0 && (
+        <Group label={`Active filters (${chips.length})`}>
+          <div className="flex flex-wrap gap-1.5">
+            {chips.map((c) => (
+              <button
+                key={c.key}
+                type="button"
+                onClick={() => update(c.key, "")}
+                aria-label={`Remove filter ${c.label}`}
+                className="flex items-center gap-1.5 rounded-xs border border-burgundy bg-burgundy-wash px-[9px] py-[5px] text-[12.5px] font-medium text-burgundy transition-colors hover:bg-burgundy hover:text-white"
+              >
+                {c.label}
+                <X className="h-3 w-3" aria-hidden="true" />
+              </button>
+            ))}
+            <button
+              type="button"
+              onClick={() => router.push("/listings")}
+              className="rounded-xs border border-rule bg-paper-raised px-[9px] py-[5px] text-[12.5px] font-medium text-ink-muted transition-colors hover:border-rule-firm hover:text-ink"
+            >
+              Clear all
+            </button>
+          </div>
+        </Group>
+      )}
+
       <Group label="Search">
         <div className="flex items-center gap-2 rounded-xs border border-rule bg-paper px-3 py-2 focus-within:border-burgundy">
           <Search className="h-3.5 w-3.5 flex-shrink-0 text-ink-muted" aria-hidden="true" />

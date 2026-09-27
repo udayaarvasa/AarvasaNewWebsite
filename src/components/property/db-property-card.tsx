@@ -140,6 +140,19 @@ export function DbPropertyCard({
           )}
         </dl>
 
+        {/* Who listed it, from the record itself. Labelled by the capacity the
+            account actually holds rather than calling every lister a developer. */}
+        {property.owner?.name && (
+          <p className="mt-2 text-[12.5px] text-ink-muted">
+            {property.owner.role === "BUILDER"
+              ? "Developer"
+              : property.owner.role === "AGENT"
+                ? "Listed by agent"
+                : "Listed by"}
+            : <span className="text-ink">{property.owner.name}</span>
+          </p>
+        )}
+
         {(property.verified || property.status !== "ACTIVE") && (
           <div className="mt-3 flex flex-wrap items-center gap-2">
             {property.verified && <Status tone="ready">Verified listing</Status>}

@@ -42,9 +42,17 @@ export function ListingsGrid() {
     total: number;
     page: number;
     totalPages: number;
+    failed?: boolean;
   } | null>(null);
 
   const loading = !result || result.key !== queryKey;
+  const failed = Boolean(result && result.key === queryKey && result.failed);
+  /* The active city, so an empty result can name what was searched for rather
+     than blaming "those filters" generically. */
+  const city = searchParams.get("city")?.trim() ?? "";
+  const hasFilters = [...searchParams.keys()].some(
+    (k) => k !== "page" && k !== "sortBy" && searchParams.get(k),
+  );
   const properties = result?.properties ?? [];
   const total = result?.total ?? 0;
   const page = result?.page ?? 1;
@@ -67,11 +75,16 @@ export function ListingsGrid() {
             page: data.page,
             totalPages: data.totalPages,
           });
+        } else {
+          /* A rejected or failed query is not an empty result. Without this the
+             key never matched and the grid sat on its skeleton for ever. */
+          console.error("Property query rejected:", data.error);
+          setResult({ key: queryKey, properties: [], total: 0, page: 1, totalPages: 1, failed: true });
         }
       } catch (err) {
         console.error("Failed to fetch properties:", err);
         if (!cancelled) {
-          setResult({ key: queryKey, properties: [], total: 0, page: 1, totalPages: 1 });
+          setResult({ key: queryKey, properties: [], total: 0, page: 1, totalPages: 1, failed: true });
         }
       }
     })();
@@ -79,6 +92,15 @@ export function ListingsGrid() {
       cancelled = true;
     };
   }, [queryKey]);
+
+  /** Same query minus one filter, for the "remove this" affordances. */
+  const clearKey = (key: string) => {
+    const next = new URLSearchParams(searchParams.toString());
+    next.delete(key);
+    next.delete("page");
+    const qs = next.toString();
+    return qs ? `/listings?${qs}` : "/listings";
+  };
 
   const selected = properties.filter((p) => compare.has(p.id));
 
@@ -90,7 +112,11 @@ export function ListingsGrid() {
         {/* Result bar */}
         <div className="mb-[var(--s-5)] flex flex-wrap items-center gap-[var(--s-3)] border-b border-rule pb-[var(--s-4)]">
           <p className="av-num text-[13px] text-ink-muted">
-            {loading ? "Loading…" : `${total} ${total === 1 ? "property" : "properties"}`}
+            {loading
+              ? "Loading…"
+              : failed
+                ? "Results unavailable"
+                : `${total} ${total === 1 ? "property" : "properties"}`}
           </p>
           <div className="ml-auto hidden items-center gap-2 lg:flex">
             <span className="av-label text-ink-muted">View</span>
@@ -115,6 +141,26 @@ export function ListingsGrid() {
 
         {loading ? (
           <PropertyGridSkeleton count={6} />
+        ) : failed ? (
+          <div className="relative isolate overflow-hidden border border-rule bg-paper-raised px-6 py-[var(--s-14)]">
+            <div className="relative z-[2] max-w-[46ch]">
+              <span className="av-label text-burgundy">Something went wrong</span>
+              <h3 className="av-display mt-2 text-[26px] leading-tight">
+                We could not load listings just now
+              </h3>
+              <p className="mt-3 text-[13.5px] leading-relaxed text-ink-muted">
+                This is a problem at our end, not with your search. Nothing about your filters is
+                wrong — try again in a moment.
+              </p>
+              <button
+                type="button"
+                onClick={() => setResult(null)}
+                className="av-label mt-[var(--s-4)] inline-block rounded-xs border border-rule-firm bg-paper px-3 py-[7px] text-ink transition-colors hover:border-burgundy hover:text-burgundy"
+              >
+                Try again
+              </button>
+            </div>
+          </div>
         ) : properties.length === 0 ? (
           <div className="relative isolate overflow-hidden border border-rule bg-paper-raised px-6 py-[var(--s-14)]">
             <div aria-hidden="true" className="pointer-events-none absolute -right-6 top-1/2 h-[260px] w-[220px] -translate-y-1/2 opacity-25 max-sm:hidden">
@@ -123,12 +169,33 @@ export function ListingsGrid() {
             <div className="relative z-[2] max-w-[46ch]">
               <span className="av-label text-gold-ink">No matches</span>
               <h3 className="av-display mt-2 text-[26px] leading-tight">
-                Nothing on the platform fits those filters
+                {city
+                  ? `No properties found in ${city}`
+                  : "Nothing on the platform fits those filters"}
               </h3>
               <p className="mt-3 text-[13.5px] leading-relaxed text-ink-muted">
-                Try widening the price range or clearing a filter. Every listing here comes from the
-                developer or their appointed channel partner, so the set is deliberately small.
+                {city
+                  ? `We have nothing listed in ${city} at the moment. Aarvasa holds no inventory — every listing comes from the developer or their appointed channel partner, so the set is deliberately small.`
+                  : "Try widening the price range or clearing a filter. Every listing here comes from the developer or their appointed channel partner, so the set is deliberately small."}
               </p>
+              {hasFilters && (
+                <div className="mt-[var(--s-5)] flex flex-wrap gap-2">
+                  <Link
+                    href="/listings"
+                    className="av-label rounded-xs border border-rule-firm bg-paper px-3 py-[7px] text-ink transition-colors hover:border-burgundy hover:text-burgundy"
+                  >
+                    Clear all filters
+                  </Link>
+                  {city && (
+                    <Link
+                      href={clearKey("city")}
+                      className="av-label rounded-xs border border-rule-firm bg-paper px-3 py-[7px] text-ink transition-colors hover:border-burgundy hover:text-burgundy"
+                    >
+                      Remove {city}
+                    </Link>
+                  )}
+                </div>
+              )}
             </div>
           </div>
         ) : view === "table" ? (
