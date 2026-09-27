@@ -48,3 +48,6 @@ infra/cdk-outputs*.json
 
 # Lambda packaging staging directory (see infra/scripts/bundle-processing.sh)
 infra/dist-bundle/
+
+# Migration runner packaging output (see infra/migration-runner/README.md)
+infra/migration-runner/build/
