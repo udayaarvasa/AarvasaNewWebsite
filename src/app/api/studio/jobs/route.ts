@@ -7,6 +7,7 @@ import type { Capability } from "@/lib/entitlements/capabilities";
 import {
   assessCoverage,
   getReconstructionProcessor,
+  RECONSTRUCTION_DEFAULTS,
   type CoverageStats,
 } from "@/lib/media/reconstruction";
 
@@ -93,7 +94,7 @@ export async function POST(req: Request) {
   const asset = await prisma.mediaAsset
     .findUnique({
       where: { id: mediaAssetId },
-      select: { id: true, uploadedById: true, status: true, sourceKey: true },
+      select: { id: true, uploadedById: true, status: true, sourceKey: true, subjectType: true, projectSlug: true, propertyId: true },
     })
     .catch(() => null);
 
@@ -134,10 +135,25 @@ export async function POST(req: Request) {
     );
   }
 
+  /* The subject travels with the job so the produced asset lands on the project
+     or property the source was submitted for, and `ownerId` is the uploader, not
+     the caller: an admin starting a job on someone else's upload must not end up
+     owning the result. */
+  const subject =
+    asset.subjectType === "PROJECT"
+      ? ({ type: "PROJECT", projectSlug: asset.projectSlug ?? "" } as const)
+      : ({ type: "PROPERTY", propertyId: asset.propertyId ?? "" } as const);
+  if ((subject.type === "PROJECT" ? subject.projectSlug : subject.propertyId) === "") {
+    return NextResponse.json({ success: false, error: "Not found" }, { status: 404, headers: noStore });
+  }
+
   const handle = await processor.submit({
     mediaAssetId: asset.id,
     kind: kind === "SPLAT_RECONSTRUCTION" ? "SPLAT" : "MESH",
     sourceKey: asset.sourceKey,
+    subject,
+    ownerId: asset.uploadedById ?? "",
+    config: RECONSTRUCTION_DEFAULTS,
   });
   return NextResponse.json({ success: true, jobId: handle.jobId, stage: handle.stage }, { headers: noStore });
 }

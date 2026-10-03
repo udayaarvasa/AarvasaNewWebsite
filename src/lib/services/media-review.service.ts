@@ -85,6 +85,8 @@ export interface MediaReviewStore {
   findAsset(id: string): Promise<ReviewAssetRow | null>;
   /** PENDING_REVIEW → PUBLISHED (reviewedAt, publishedAt, reviewer, alt text). Returns rows updated. */
   approve(id: string, reviewerId: string, now: Date, altText: string, provenance: MediaProvenance): Promise<number>;
+  /** Any decided state → ARCHIVED (reviewer, timestamp, reason). Returns rows updated. */
+  archive(id: string, reviewerId: string, now: Date, from: MediaAssetStatus, reason: string): Promise<number>;
   /** PENDING_REVIEW → REJECTED (reason, reviewedAt, reviewer). Returns rows updated. */
   reject(id: string, reviewerId: string, now: Date, reason: string): Promise<number>;
 }
@@ -110,6 +112,7 @@ export type ReviewErrorCode =
   | "INVALID_REQUEST"
   | "UNSUPPORTED_MEDIA_TYPE"
   | "NOT_REVIEWABLE"
+  | "NOT_ARCHIVABLE"
   | "ALT_TEXT_REQUIRED"
   | "INCONSISTENT_ASSET"
   | "REVIEW_COPY_MISSING"
@@ -124,6 +127,7 @@ const ERRORS: Record<ReviewErrorCode, { status: number; message: string; retryab
   INVALID_REQUEST: { status: 400, message: "Invalid request", retryable: false },
   UNSUPPORTED_MEDIA_TYPE: { status: 415, message: "Content-Type must be application/json", retryable: false },
   NOT_REVIEWABLE: { status: 409, message: "This asset is not awaiting review.", retryable: false },
+  NOT_ARCHIVABLE: { status: 409, message: "This asset cannot be withdrawn.", retryable: false },
   ALT_TEXT_REQUIRED: { status: 400, message: "Alt text is required before publishing.", retryable: false },
   INCONSISTENT_ASSET: { status: 409, message: "This asset cannot be published. Please re-upload it.", retryable: false },
   REVIEW_COPY_MISSING: { status: 409, message: "The processed files are no longer available. Please re-upload the asset.", retryable: false },
@@ -149,6 +153,9 @@ export const approveBodySchema = z.strictObject({
 });
 /** Rejection body: a reason for the uploader's record. */
 export const rejectBodySchema = z.strictObject({ reason: z.string().trim().min(3).max(REVIEW_TEXT_LIMITS.rejectionReason) });
+/* Withdrawing published media is not a typo-level action, so a reason is
+   required and recorded, exactly as a rejection is. */
+export const archiveBodySchema = z.strictObject({ reason: z.string().trim().min(3).max(REVIEW_TEXT_LIMITS.rejectionReason) });
 
 /** The fresh-role ADMIN check every review endpoint starts with. */
 export async function requireReviewAdmin(request: ReviewRequest, deps: Pick<MediaReviewDependencies, "store">): Promise<{ user: ReviewUser } | { error: ReviewResult }> {
@@ -379,4 +386,54 @@ export async function rejectReviewAsset(request: BodyRequest, deps: MediaReviewD
   const current = await deps.store.findAsset(row.id);
   if (current?.status === "REJECTED") return ok({ mediaAssetId: row.id, status: "REJECTED", transitioned: false });
   return fail("NOT_REVIEWABLE");
+}
+
+/** Statuses an asset can be withdrawn from, in the order the lifecycle allows. */
+const ARCHIVABLE: readonly MediaAssetStatus[] = ["PENDING_REVIEW", "PUBLISHED", "REJECTED", "FAILED"];
+
+/**
+ * Withdraw an asset: ARCHIVED, and gone from every public surface.
+ *
+ * This is the only way back out of PUBLISHED, and until now there was none —
+ * anything approved was approved for good, which is a poor property for a system
+ * whose whole job is deciding what the public sees.
+ *
+ * It deliberately does not delete the stored objects. The published bucket is
+ * write-once by design: its policy refuses overwrites outright, and the
+ * immutable, content-addressed keys are what let a CDN cache them forever. An
+ * application that could delete from it would have to hold s3:DeleteObject, and
+ * that single grant would undo the guarantee every other part of the pipeline
+ * leans on. Removing the bytes is an operator action with admin credentials,
+ * taken deliberately; archiving is the application's job, and it is enough —
+ * nothing reads an ARCHIVED row, so nothing serves its objects.
+ */
+export async function archiveReviewAsset(request: BodyRequest, deps: MediaReviewDependencies): Promise<ReviewResult> {
+  const loaded = await loadAsset(request, deps);
+  if ("error" in loaded) return loaded.error;
+  const parsed = await readJson(request);
+  if ("error" in parsed) return parsed.error;
+  const input = archiveBodySchema.safeParse(parsed.body);
+  if (!input.success) return fail("INVALID_REQUEST");
+  const { user, row } = loaded;
+
+  // Already withdrawn: say so rather than failing a retry.
+  if (row.status === "ARCHIVED") return ok({ mediaAssetId: row.id, status: "ARCHIVED", transitioned: false });
+  if (!ARCHIVABLE.includes(row.status)) return fail("NOT_ARCHIVABLE");
+
+  assertTransition("ARCHIVAL", row.status, "ARCHIVED");
+  let updated: number;
+  try {
+    updated = await deps.store.archive(row.id, user.id, deps.now(), row.status, input.data.reason);
+  } catch (error) {
+    deps.log("media archival update failed", { mediaAssetId: row.id, error: errorName(error) });
+    return fail("SERVER_ERROR");
+  }
+  if (updated === 1) {
+    deps.log("media asset withdrawn", { mediaAssetId: row.id, reviewerId: user.id, from: row.status });
+    return ok({ mediaAssetId: row.id, status: "ARCHIVED", transitioned: true });
+  }
+  // Someone else moved it first. Only an archive by another hand is still a success.
+  const current = await deps.store.findAsset(row.id);
+  if (current?.status === "ARCHIVED") return ok({ mediaAssetId: row.id, status: "ARCHIVED", transitioned: false });
+  return fail("NOT_ARCHIVABLE");
 }

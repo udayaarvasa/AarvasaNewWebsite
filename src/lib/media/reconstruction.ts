@@ -111,10 +111,58 @@ export function assessCoverage(stats: CoverageStats): CoverageVerdict {
 
 export type ReconstructionKind = "MESH" | "SPLAT";
 
+/**
+ * Everything a worker is given. Nothing else: the worker never sees a session,
+ * a cookie or an entitlement record, because by the time a job exists those
+ * questions have already been answered by the routes that created it. What it
+ * does get is the owner's id, so the asset it produces belongs to the person who
+ * submitted the source rather than to whoever happens to review it.
+ */
 export type ReconstructionRequest = {
+  /** The MediaAsset this job belongs to. Also the {mediaId} of every key it writes. */
   readonly mediaAssetId: string;
   readonly kind: ReconstructionKind;
+  /** The private ingest key of the submitted photographs or video. */
   readonly sourceKey: string;
+  /** Subject, carried through so the output lands on the right project or property. */
+  readonly subject:
+    | { readonly type: "PROJECT"; readonly projectSlug: string }
+    | { readonly type: "PROPERTY"; readonly propertyId: string };
+  /** The uploader. The produced asset inherits this owner, never the reviewer. */
+  readonly ownerId: string;
+  readonly config: ReconstructionConfig;
+};
+
+/** Knobs a deployment may set. Absent values mean the engine's own default. */
+export type ReconstructionConfig = {
+  /** Frames per second to sample from video. Higher is slower and rarely better. */
+  readonly sampleFps?: number;
+  /** Stop and fail rather than run forever. Enforced by the worker, not the client. */
+  readonly timeoutSeconds: number;
+  /** Refuse a source larger than this before downloading it. */
+  readonly maxSourceBytes: number;
+  /** Triangle budget for a MESH result, before the existing pipeline's own budget check. */
+  readonly targetTriangles?: number;
+};
+
+/**
+ * Cost control, applied to every job whatever asked for it.
+ *
+ * These are not suggestions a client can raise. An unbounded GPU endpoint behind
+ * an authenticated route is still an unbounded GPU endpoint, and the limit that
+ * matters is the one the worker enforces on the bytes it actually downloaded.
+ */
+export const RECONSTRUCTION_DEFAULTS: ReconstructionConfig = {
+  /* Four frames a second. Denser sampling mostly adds near-duplicate viewpoints,
+     which cost matching time and contribute no new geometry. */
+  sampleFps: 4,
+  /* An hour. Long enough for a few hundred frames on one GPU, short enough that
+     a wedged job is noticed the same day rather than billed overnight. */
+  timeoutSeconds: 3600,
+  /** 2 GB of source. Beyond this the capture should be trimmed, not uploaded. */
+  maxSourceBytes: 2 * 1024 * 1024 * 1024,
+  /** Matches the viewer's mobile triangle budget; the pipeline checks it again. */
+  targetTriangles: 300_000,
 };
 
 /** Engine-reported progress. Only ever set from real worker state. */
@@ -126,9 +174,61 @@ export type ReconstructionStage =
   | "READY"
   | "FAILED";
 
+/**
+ * Every state a caller may be in, including the two that are not a job.
+ *
+ * PROCESSOR_NOT_CONFIGURED and INSUFFICIENT_COVERAGE both describe work that was
+ * never started, and for opposite reasons — one is our gap, the other is the
+ * material's. Neither may be reported as QUEUED or FAILED: a queued job that
+ * does not exist is a lie the UI will keep telling, and a failure implies
+ * something was attempted and might succeed on a retry.
+ */
+export type ReconstructionState =
+  | "PROCESSOR_NOT_CONFIGURED"
+  | "PROCESSOR_AVAILABLE"
+  | "INSUFFICIENT_COVERAGE"
+  | ReconstructionStage;
+
 export type ReconstructionHandle = {
   readonly jobId: string;
   readonly stage: ReconstructionStage;
+};
+
+/**
+ * What a finished job hands back.
+ *
+ * The worker does not publish, and does not decide what the thing is. It writes
+ * one file to the ingest bucket and reports these fields; the existing pipeline
+ * then validates, reviews and publishes it exactly as it does a hand-uploaded
+ * model, which is why no part of Media Studio, the entitlement service, the
+ * property page or the viewer has to know that reconstruction exists.
+ */
+export type ReconstructionResult = {
+  readonly jobId: string;
+  readonly kind: ReconstructionKind;
+  /** Ingest key of the produced file, which the normal pipeline then processes. */
+  readonly outputKey: string;
+  /** GLB for a mesh, SOG for a splat. Nothing else is accepted downstream. */
+  readonly format: "GLB" | "SOG";
+  /** Hex SHA-256 of the produced file, verified before anything is recorded. */
+  readonly sha256: string;
+  readonly sizeBytes: number;
+  /**
+   * Always AARVASA_RECONSTRUCTION. A machine-made model of a building is not an
+   * official developer asset, and the engine is not entitled to claim it is —
+   * the type makes the claim unexpressible rather than merely discouraged.
+   */
+  readonly provenance: "AARVASA_RECONSTRUCTION";
+  /** Recorded on the asset: engine identity, timings, and what was measured. */
+  readonly metadata: {
+    readonly engine: string;
+    readonly durationSeconds: number;
+    /** The worker's own measurement, not the client's. */
+    readonly coverage: CoverageStats;
+    readonly framesUsed: number;
+    readonly triangles?: number;
+    readonly gaussians?: number;
+  };
 };
 
 /**
@@ -144,8 +244,19 @@ export type ReconstructionHandle = {
 export interface ReconstructionProcessor {
   /** Engine identity, recorded on the asset, e.g. "colmap-3.11+openmvs-2.3". */
   readonly engine: string;
+  /**
+   * Measure the submitted material. Called by the WORKER, never by the browser.
+   *
+   * The client's own measurement is advisory: it exists so someone is told their
+   * footage is unusable before a long upload, and it is attacker-controlled, so
+   * nothing is decided by it. This runs again on the bytes that actually
+   * arrived, and its verdict is the one that counts.
+   */
+  measure(request: ReconstructionRequest): Promise<CoverageStats>;
   submit(request: ReconstructionRequest): Promise<ReconstructionHandle>;
   status(jobId: string): Promise<ReconstructionHandle>;
+  /** The finished artefact, once status reports READY. */
+  collect(jobId: string): Promise<ReconstructionResult>;
 }
 
 /**
@@ -160,6 +271,24 @@ export interface ReconstructionProcessor {
 export type ReconstructionAvailability =
   | { readonly state: "PROCESSOR_NOT_CONFIGURED"; readonly reason: string }
   | { readonly state: "PROCESSOR_AVAILABLE"; readonly engine: string };
+
+/**
+ * What a worker must do with a job, in order. Written down because the order is
+ * the safety property: measuring before submitting is what stops a deployment
+ * paying for GPU time on material that cannot produce geometry, and verifying
+ * the checksum before recording anything is what stops a truncated download
+ * becoming a published model.
+ */
+export const RECONSTRUCTION_WORKER_CONTRACT = [
+  "Claim the asset (PROCESSING) through the existing lifecycle, as the model worker does.",
+  "Refuse a source larger than config.maxSourceBytes without downloading it.",
+  "measure() the arrived bytes. The client's numbers are advisory and are not read.",
+  "assessCoverage(): if insufficient, report INSUFFICIENT_COVERAGE with its guidance and stop. No job is created and nothing is billed.",
+  "submit(), then poll status() until READY or FAILED, within config.timeoutSeconds.",
+  "collect(), verify the SHA-256 against the downloaded bytes, and reject a mismatch as a failure.",
+  "Write the output to the ingest bucket and hand it to the ordinary processing pipeline, with provenance AARVASA_RECONSTRUCTION.",
+  "The asset then follows the normal path: PENDING_REVIEW, a reviewer, and publication. Reconstruction never publishes.",
+] as const;
 
 /**
  * What a deployment must provide before getReconstructionProcessor can return

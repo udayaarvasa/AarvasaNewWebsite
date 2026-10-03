@@ -21,7 +21,16 @@ import {
   measureCoverage,
   type GreyFrame,
 } from "../src/lib/media/coverage-analysis.ts";
-import { assessCoverage } from "../src/lib/media/reconstruction.ts";
+import {
+  RECONSTRUCTION_DEFAULTS,
+  RECONSTRUCTION_WORKER_CONTRACT,
+  assessCoverage,
+  getReconstructionProcessor,
+  reconstructionAvailability,
+  type ReconstructionResult,
+  type ReconstructionState,
+} from "../src/lib/media/reconstruction.ts";
+import { isPubliclyShowable, provenanceAllowedFor } from "../src/lib/media/provenance.ts";
 
 const W = 192;
 const H = 108;
@@ -147,4 +156,61 @@ test("a photo set is not penalised for having no duration", () => {
   const stats = setOf(Array.from({ length: 60 }, (_, i) => render(i * 6, 0)), null);
   assert.equal(stats.durationSeconds, null);
   assert.equal(assessCoverage(stats).sufficient, true);
+});
+
+/* ── The processor contract ───────────────────────────────────────────────── */
+
+test("every state a caller can be in is expressible, including the two that are not jobs", () => {
+  // PROCESSOR_NOT_CONFIGURED and INSUFFICIENT_COVERAGE describe work that was
+  // never started, for opposite reasons. Reporting either as QUEUED or FAILED
+  // would describe a job that does not exist.
+  const states: ReconstructionState[] = [
+    "PROCESSOR_NOT_CONFIGURED",
+    "PROCESSOR_AVAILABLE",
+    "INSUFFICIENT_COVERAGE",
+    "QUEUED",
+    "ANALYSING",
+    "RECONSTRUCTING",
+    "OPTIMISING",
+    "READY",
+    "FAILED",
+  ];
+  assert.equal(new Set(states).size, states.length);
+});
+
+test("no engine is configured, and that is reported as a gap rather than a failure", () => {
+  assert.equal(getReconstructionProcessor(), null);
+  const availability = reconstructionAvailability();
+  assert.equal(availability.state, "PROCESSOR_NOT_CONFIGURED");
+  // The reason names what is missing, so the gap is actionable rather than mysterious.
+  assert.match(availability.state === "PROCESSOR_NOT_CONFIGURED" ? availability.reason : "", /GPU/i);
+});
+
+test("cost limits are fixed by the deployment, not asked for by the caller", () => {
+  assert.ok(RECONSTRUCTION_DEFAULTS.timeoutSeconds > 0 && RECONSTRUCTION_DEFAULTS.timeoutSeconds <= 4 * 3600);
+  assert.ok(RECONSTRUCTION_DEFAULTS.maxSourceBytes > 0);
+  assert.ok((RECONSTRUCTION_DEFAULTS.sampleFps ?? 0) > 0);
+});
+
+test("the worker contract measures before it submits, and verifies before it records", () => {
+  const steps = RECONSTRUCTION_WORKER_CONTRACT.join("\n");
+  const order = (needle: RegExp) => RECONSTRUCTION_WORKER_CONTRACT.findIndex((s) => needle.test(s));
+  // Measuring after submitting would mean paying for GPU time on material that
+  // cannot produce geometry.
+  assert.ok(order(/measure\(\)/) < order(/submit\(\)/), steps);
+  // Recording before verifying would let a truncated download become a model.
+  assert.ok(order(/verify the SHA-256/) < order(/Write the output/), steps);
+  // The client's numbers are never the basis of the decision.
+  assert.match(steps, /client's numbers are advisory/i);
+  // Reconstruction hands over to review; it never publishes.
+  assert.match(steps, /never publishes/i);
+});
+
+test("a reconstruction can only ever claim to be a reconstruction", () => {
+  // The result type admits one provenance. An engine cannot describe its output
+  // as an official developer model even by mistake.
+  const result: Pick<ReconstructionResult, "provenance"> = { provenance: "AARVASA_RECONSTRUCTION" };
+  assert.equal(result.provenance, "AARVASA_RECONSTRUCTION");
+  assert.equal(provenanceAllowedFor("MODEL", "AARVASA_RECONSTRUCTION"), true);
+  assert.equal(isPubliclyShowable("AARVASA_RECONSTRUCTION"), true);
 });

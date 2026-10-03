@@ -76,6 +76,16 @@ export function createPrismaReviewStore(prisma: PrismaClient): MediaReviewStore 
       return count;
     },
 
+    async archive(id, reviewerId, now, from, reason) {
+      // Conditional on the status the caller actually read, so two withdrawals
+      // racing cannot both count as the one that moved it.
+      const { count } = await prisma.mediaAsset.updateMany({
+        where: { id, status: from },
+        data: { status: "ARCHIVED", reviewedAt: now, reviewedById: reviewerId, rejectionReason: reason },
+      });
+      return count;
+    },
+
     async reject(id, reviewerId, now, reason) {
       const { count } = await prisma.mediaAsset.updateMany({
         where: { id, status: "PENDING_REVIEW" },

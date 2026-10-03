@@ -4,6 +4,7 @@ import { type MediaAssetStatus } from "../../../shared/media-asset";
 import { ACTOR_TRANSITIONS } from "../../../shared/media-processing";
 import {
   approveReviewAsset,
+  archiveReviewAsset,
   createReviewPreview,
   getReviewAsset,
   listReviewAssets,
@@ -113,6 +114,15 @@ function harness(row: ReviewAssetRow | null = pendingRow(), options: { access?: 
         if (!r || r.status !== "PENDING_REVIEW") return 0;
         rows.set(id, { ...r, status: "REJECTED", reviewedAt: now, rejectionReason: reason, updatedAt: now });
         decisions.push(`reject:${reviewerId}`);
+        return 1;
+      },
+      // Conditional on the status the caller read, as the real store is, so a
+      // race between two withdrawals cannot count twice.
+      archive: async (id, reviewerId, now, from, reason) => {
+        const r = rows.get(id);
+        if (!r || r.status !== from) return 0;
+        rows.set(id, { ...r, status: "ARCHIVED", reviewedAt: now, rejectionReason: reason, updatedAt: now });
+        decisions.push(`archive:${reviewerId}`);
         return 1;
       },
     },
@@ -369,5 +379,55 @@ describe("review API: provenance", () => {
     // Retrying honestly still completes an interrupted publication.
     const again = await approveReviewAsset(h.body({ altText: "Room", provenance: "PHOTO_360" }, "admin"), h.deps);
     assert.equal(again.status, 200);
+  });
+});
+
+describe("review API: withdrawal", () => {
+  it("is the only way back out of PUBLISHED, and records who and why", async () => {
+    const h = harness();
+    assert.equal((await approveReviewAsset(h.body({ altText: "Room" }, "admin"), h.deps)).status, 200);
+    const out = await archiveReviewAsset(h.body({ reason: "Published in error; it shows the wrong floor." }, "admin"), h.deps);
+    assert.equal(out.status, 200);
+    assert.deepEqual(data(out), { mediaAssetId: MEDIA, status: "ARCHIVED", transitioned: true });
+    assert.ok(h.decisions.includes("archive:admin"));
+  });
+
+  it("withdraws an asset awaiting review, a rejected one and a failed one", async () => {
+    for (const status of ["PENDING_REVIEW", "REJECTED", "FAILED"] as const) {
+      const h = harness(pendingRow({ status }));
+      const out = await archiveReviewAsset(h.body({ reason: "Engineering asset." }, "admin"), h.deps);
+      assert.equal(out.status, 200, status);
+    }
+  });
+
+  it("is idempotent, so a retry is not an error", async () => {
+    const h = harness();
+    assert.equal((await archiveReviewAsset(h.body({ reason: "Engineering asset." }, "admin"), h.deps)).status, 200);
+    const again = await archiveReviewAsset(h.body({ reason: "Engineering asset." }, "admin"), h.deps);
+    assert.equal(again.status, 200);
+    assert.deepEqual(data(again), { mediaAssetId: MEDIA, status: "ARCHIVED", transitioned: false });
+  });
+
+  it("needs a real reason: withdrawing published media is not a typo-level action", async () => {
+    const h = harness();
+    assert.equal((await archiveReviewAsset(h.body({}, "admin"), h.deps)).status, 400);
+    assert.equal((await archiveReviewAsset(h.body({ reason: "x" }, "admin"), h.deps)).status, 400);
+  });
+
+  it("only an admin may withdraw", async () => {
+    for (const caller of ["owner", "agent", "builder"]) {
+      const h = harness();
+      assert.equal((await archiveReviewAsset(h.body({ reason: "Engineering asset." }, caller), h.deps)).status, 403, caller);
+    }
+    const anon = harness();
+    assert.equal((await archiveReviewAsset(anon.body({ reason: "Engineering asset." }, ""), anon.deps)).status, 401);
+  });
+
+  it("does not delete anything from storage: the published bucket stays write-once", async () => {
+    const h = harness();
+    assert.equal((await approveReviewAsset(h.body({ altText: "Room" }, "admin"), h.deps)).status, 200);
+    const before = h.access.published.size;
+    await archiveReviewAsset(h.body({ reason: "Engineering asset." }, "admin"), h.deps);
+    assert.equal(h.access.published.size, before, "withdrawal must not touch stored objects");
   });
 });
