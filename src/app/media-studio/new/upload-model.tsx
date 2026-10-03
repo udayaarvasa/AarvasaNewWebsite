@@ -149,14 +149,25 @@ export function UploadModel({
         setPhase({ k: "error", message: "Storage rejected the upload. Please try again." });
         return;
       }
-      // Completion is what actually admits the asset to the pipeline.
-      const done = await fetch(`/api/media/${data.mediaAssetId}/complete`, { method: "POST" }).catch(
-        () => null,
-      );
+      /* Completion is what actually admits the asset to the pipeline.
+
+         The endpoint requires an application/json body — it answers 415 to
+         anything else — so the header and the empty object are both part of the
+         contract, not decoration. Sending a bare POST left the asset sitting at
+         UPLOADED with its bytes already in the ingest bucket and nothing queued. */
+      const done = await fetch(`/api/media/${data.mediaAssetId}/complete`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: "{}",
+      }).catch(() => null);
       if (!done || !done.ok) {
+        /* Say which step failed. The bytes are in storage either way, so
+           "upload failed" would send someone back to re-pick the same file. */
+        const reason = await done?.json().catch(() => null);
         setPhase({
           k: "error",
           message: "The file uploaded but could not be admitted for processing.",
+          detail: typeof reason?.error === "string" ? reason.error : undefined,
         });
         return;
       }

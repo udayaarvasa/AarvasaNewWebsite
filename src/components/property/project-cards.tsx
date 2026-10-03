@@ -5,7 +5,7 @@ import { Plate, Status } from "@/components/av/primitives";
 import { publishedProjects } from "@/lib/projects";
 import { formatCurrency, formatCompact, inrEstimate } from "@/lib/currency";
 import { projectImageSrc } from "@/lib/project-types";
-import { projectViewerConfig } from "@/lib/viewer/project-media";
+import { projectsWithModel } from "@/lib/services/project-models";
 
 /**
  * Developer projects, rendered from curated data rather than the properties
@@ -13,13 +13,14 @@ import { projectViewerConfig } from "@/lib/viewer/project-media";
  *
  * A project with no photography of its own gets a typographic panel — never a
  * stand-in image of somewhere else. Where a project has a published 3D model,
- * that is stated from real server-side gating; 360° and splat availability
- * need per-request loaders, so they are shown on the project page rather than
- * guessed at here.
+ * that is stated from real server-side gating — including models published
+ * through the studio, so a card never denies 3D that its project page offers.
+ * 360° and splat availability need per-scene loaders, so they are shown on the
+ * project page rather than guessed at here.
  *
  * The section heading is supplied by the page so it is not stated twice.
  */
-export function ProjectCards({ city }: { city?: string } = {}) {
+export async function ProjectCards({ city }: { city?: string } = {}) {
   /* When the page carries a location filter, developer inventory has to obey
      it too. Showing Dubai and Bhopal projects above a Mumbai result set was
      the bug: the user reads them as Mumbai matches. */
@@ -28,6 +29,7 @@ export function ProjectCards({ city }: { city?: string } = {}) {
     ? all.filter((p) => p.city.toLowerCase() === city.trim().toLowerCase())
     : all;
   if (items.length === 0) return null;
+  const withModel = await projectsWithModel(items);
 
   return (
     <div className="grid gap-[var(--s-8)] md:grid-cols-2 lg:grid-cols-3">
@@ -42,7 +44,7 @@ export function ProjectCards({ city }: { city?: string } = {}) {
         // artwork at all shows the panel and no label.
         const isPlanCover = !project.images[0] && !!project.planImages[0];
         const isRenderCover = coverImage?.origin === "render";
-        const hasModel = Boolean(projectViewerConfig(project));
+        const hasModel = withModel.has(project.slug);
         const price =
           project.fromPrice > 0
             ? formatCompact(project.fromPrice, project.currency)

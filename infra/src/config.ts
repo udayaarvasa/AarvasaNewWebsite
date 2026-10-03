@@ -72,6 +72,22 @@ export interface MediaEnvironmentConfig {
     readonly vpcId: string | undefined;
     /** Security group for those functions; the database admits only this group. */
     readonly lambdaSecurityGroupId: string | undefined;
+    /**
+     * An existing bucket holding the Lambda bundle. Naming one breaks the
+     * ordering problem of a stack that both creates the bucket and loads code
+     * from it; absent, the stack creates and owns the bucket as before.
+     */
+    readonly artifactBucketName: string | undefined;
+    /**
+     * Whether to reserve concurrency for the functions.
+     *
+     * Reserving caps blast radius and spend, so it is on by default. AWS will
+     * not let an account drop below 100 unreserved concurrent executions,
+     * though, so an account whose whole limit is smaller than that cannot
+     * reserve anything and must set this false. The SQS event source's
+     * maxConcurrency still bounds the worker either way.
+     */
+    readonly reserveConcurrency: boolean;
   };
   readonly tags: Readonly<Record<string, string>>;
 }
@@ -120,6 +136,8 @@ export const DEV_DEFAULTS: MediaEnvironmentConfig = {
     databaseSecretArn: undefined,
     vpcId: undefined,
     lambdaSecurityGroupId: undefined,
+    artifactBucketName: undefined,
+    reserveConcurrency: true,
   },
   tags: {
     Project: "aarvasa-media",
@@ -208,6 +226,11 @@ export function loadDevConfig(app: App): MediaEnvironmentConfig {
   if (lambdaSecurityGroupId !== undefined && !/^sg-[0-9a-f]{8,17}$/.test(lambdaSecurityGroupId)) {
     throw new Error("aarvasa:lambdaSecurityGroupId must be a security group id, e.g. sg-0123456789abcdef0");
   }
+  const reserveConcurrency = contextString(app, "aarvasa:reserveConcurrency") !== "false";
+  const artifactBucketName = contextString(app, "aarvasa:artifactBucketName");
+  if (artifactBucketName !== undefined && !/^[a-z0-9][a-z0-9.-]{1,61}[a-z0-9]$/.test(artifactBucketName)) {
+    throw new Error("aarvasa:artifactBucketName must be a valid S3 bucket name");
+  }
   if (vpcId === undefined && lambdaSecurityGroupId !== undefined) {
     throw new Error("aarvasa:lambdaSecurityGroupId needs aarvasa:vpcId as well");
   }
@@ -218,7 +241,7 @@ export function loadDevConfig(app: App): MediaEnvironmentConfig {
     allowedOrigins,
     cdn: { ...DEV_DEFAULTS.cdn, webAclArn },
     monitoring: { ...DEV_DEFAULTS.monitoring, distributionId },
-    processing: { artifactKey, artifactVersion, databaseSecretArn, vpcId, lambdaSecurityGroupId },
+    processing: { artifactKey, artifactVersion, databaseSecretArn, vpcId, lambdaSecurityGroupId, artifactBucketName, reserveConcurrency },
   };
 }
 

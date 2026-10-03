@@ -49,7 +49,22 @@ export function applyNagSuppressions(stacks: {
     });
   }
 
-  for (const bucket of [storage.ingestBucket, storage.publishedBucket, stacks.processing.artifactBucket]) {
+  /* Lambda creates the VPC network interface as the function's own role, and
+     the interface has no id at the time permission is evaluated, so these five
+     actions cannot be resource-scoped. The action list is the scope. */
+  for (const role of ["workerRole", "sweeperRole"] as const) {
+    Validations.of(resourceOf(processing[role].node.findChild("DefaultPolicy"))).acknowledge({
+      id: "AwsSolutions::AwsSolutions-IAM5[Resource::*]",
+      reason:
+        "ec2 network-interface actions for VPC attachment cannot be resource-scoped: Lambda creates the ENI under this role and it has no identifier when the policy is evaluated.",
+    });
+  }
+
+  /* An adopted artifact bucket is not a resource in this template, so it has
+     no findings to acknowledge — and resourceOf would not resolve it. */
+  const ownBuckets = [storage.ingestBucket, storage.publishedBucket];
+  if (stacks.processing.ownsArtifactBucket) ownBuckets.push(stacks.processing.artifactBucket as never);
+  for (const bucket of ownBuckets) {
     Validations.of(resourceOf(bucket)).acknowledge({
       id: "AwsSolutions::AwsSolutions-S1",
       reason: `${DEV_ONLY} S3 server access logs would need a separate log bucket; enable them (or CloudTrail S3 data events) for production.`,

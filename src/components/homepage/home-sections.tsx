@@ -23,7 +23,7 @@ import { ProjectCards } from "@/components/property/project-cards";
 import { projectImageSrc } from "@/lib/project-types";
 import { publishedProjects } from "@/lib/projects";
 import { formatCompact, inrEstimate } from "@/lib/currency";
-import { projectViewerConfig } from "@/lib/viewer/project-media";
+import { projectsWithModel } from "@/lib/services/project-models";
 
 /**
  * The homepage, composed from real project data only.
@@ -221,10 +221,10 @@ export function FeaturedProject() {
 
 /* ── 3 · Immersive ────────────────────────────────────────────────────── */
 
-export function ImmersiveHome() {
+export async function ImmersiveHome() {
   const projects = publishedProjects();
-  const withModel = projects.filter((p) => projectViewerConfig(p));
-  const feature = withModel[0] ?? null;
+  const withModel = await projectsWithModel(projects);
+  const feature = projects.find((p) => withModel.has(p.slug)) ?? null;
 
   // No published immersive media in this environment: the section is absent
   // rather than an empty shell with dead controls.

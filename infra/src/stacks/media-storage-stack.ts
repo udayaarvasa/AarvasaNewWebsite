@@ -305,7 +305,18 @@ export class MediaStorageStack extends Stack {
     });
     const processorPolicy = new ManagedPolicy(this, "ProcessorPolicy", {
       managedPolicyName: `${prefix}-processor`,
-      description: "Media processing worker: read uploads, write-once review copies under review/. Attached by the processing stack's worker role.",
+      /* Pinned to the text this policy was created with.
+      
+         AWS::IAM::ManagedPolicy treats Description as immutable: changing it
+         forces CloudFormation to replace the policy, and replacement collides
+         with the identical ManagedPolicyName, failing the whole stack update
+         with "a policy called aarvasa-media-dev-processor already exists".
+      
+         The policy document itself updates in place, so the grants can evolve
+         freely — only this string has to stay put. What it actually does now:
+         read uploads, and write-once review copies under review/, attached by
+         the processing stack's worker role. */
+      description: "FUTURE: media processing worker. Read uploads, write-once derivatives and originals. Not attached.",
       statements: processorStatements(this.ingestBucket.bucketArn, this.publishedBucket.bucketArn),
     });
 

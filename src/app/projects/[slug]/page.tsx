@@ -31,7 +31,7 @@ import {
 import { getProject, publishedProjects } from "@/lib/projects";
 import type { Project } from "@/lib/project-types";
 import { formatCurrency, inrEstimate, AED_TO_INR } from "@/lib/currency";
-import { projectViewerConfig } from "@/lib/viewer/project-media";
+import { loadProjectModel } from "@/lib/services/project-models";
 import { loadProjectTour } from "@/lib/services/project-panoramas";
 import { loadProjectSplat } from "@/lib/services/project-splats";
 import ImmersiveSection from "./immersive-section";
@@ -96,8 +96,14 @@ export default async function ProjectPage({
   const heroOriginNote =
     heroImage?.origin === "render" ? "Developer render — building not yet complete" : null;
   const isPlots = project.kind === "plots";
-  const viewer = projectViewerConfig(project);
-  const [tour, splat] = await Promise.all([loadProjectTour(project), loadProjectSplat(project)]);
+  /* All three come from the database where the project has published media, so
+     a model a creator published through the studio appears here rather than only
+     the hand-authored pilot asset. */
+  const [viewer, tour, splat] = await Promise.all([
+    loadProjectModel(project),
+    loadProjectTour(project),
+    loadProjectSplat(project),
+  ]);
   const hasImmersive = Boolean(viewer || tour || splat);
 
   /* Capability marks come from what actually passed server-side gating. A

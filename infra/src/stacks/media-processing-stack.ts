@@ -14,7 +14,7 @@ import {
 } from "aws-cdk-lib/aws-ec2";
 import { SqsEventSource } from "aws-cdk-lib/aws-lambda-event-sources";
 import { FilterPattern, LogGroup, MetricFilter, RetentionDays } from "aws-cdk-lib/aws-logs";
-import { BlockPublicAccess, Bucket, BucketEncryption, ObjectOwnership } from "aws-cdk-lib/aws-s3";
+import { BlockPublicAccess, Bucket, BucketEncryption, ObjectOwnership, type IBucket } from "aws-cdk-lib/aws-s3";
 import { Queue, QueueEncryption, RedrivePermission } from "aws-cdk-lib/aws-sqs";
 import type { Construct } from "constructs";
 import { INGEST_PREFIX } from "../../../shared/media-contract";
@@ -56,7 +56,12 @@ export class MediaProcessingStack extends Stack {
   readonly deadLetterQueue: Queue;
   readonly producerPolicy: ManagedPolicy;
   readonly consumerPolicy: ManagedPolicy;
-  readonly artifactBucket: Bucket;
+  /** IBucket, not Bucket: it may be one this stack owns or one it adopts. */
+  readonly artifactBucket: IBucket;
+  /** True when the bucket is this stack's to manage. */
+  readonly ownsArtifactBucket: boolean;
+  /** Set only when the functions join a VPC and therefore manage their own ENIs. */
+  private vpcEniStatement?: PolicyStatement;
   readonly worker: LambdaFunction;
   readonly sweeper: LambdaFunction;
   readonly workerRole: Role;
@@ -136,7 +141,21 @@ export class MediaProcessingStack extends Stack {
     });
 
     // ── Code artifacts (private; no CDK assets or bootstrap) ────────────────
-    this.artifactBucket = new Bucket(this, "ArtifactBucket", {
+    /* The Lambdas load their code from this bucket, which creates an ordering
+       problem when the stack also creates it: CloudFormation makes the bucket
+       and then immediately fails building the functions, because the object
+       they point at cannot have been uploaded yet.
+   
+       Naming an existing bucket breaks the cycle — upload the bundle first,
+       then deploy. It also means the artifacts outlive the stack, so tearing
+       the stack down does not throw away the code needed to bring it back.
+       CloudFormation's own import path is not an option here: it refuses any
+       template that carries tags for an imported resource, and this app tags
+       everything. */
+    this.ownsArtifactBucket = !cfg.processing.artifactBucketName;
+    this.artifactBucket = cfg.processing.artifactBucketName
+      ? Bucket.fromBucketName(this, "ArtifactBucket", cfg.processing.artifactBucketName)
+      : new Bucket(this, "ArtifactBucket", {
       bucketName: `${prefix}-artifacts-${this.account}-${this.region}`,
       blockPublicAccess: BlockPublicAccess.BLOCK_ALL,
       objectOwnership: ObjectOwnership.BUCKET_OWNER_ENFORCED,
@@ -228,6 +247,35 @@ export class MediaProcessingStack extends Stack {
       ? { vpc, vpcSubnets, ...(lambdaSecurityGroups ? { securityGroups: lambdaSecurityGroups } : {}) }
       : {};
 
+    /* Attaching a function to a VPC means Lambda creates an elastic network
+       interface as the function's execution role, so the role needs to be
+       allowed to. These roles are built from scratch rather than from the
+       managed VPC-access policy, so without this the functions fail to create
+       with "does not have permissions to call CreateNetworkInterface".
+
+       The actions take no resource condition — the interface does not exist
+       when permission is evaluated — so this is scoped by the narrow action
+       list instead. */
+    if (vpc) {
+      const manageEnis = new PolicyStatement({
+        sid: "ManageOwnVpcNetworkInterfaces",
+        effect: Effect.ALLOW,
+        actions: [
+          "ec2:CreateNetworkInterface",
+          "ec2:DescribeNetworkInterfaces",
+          "ec2:DeleteNetworkInterface",
+          "ec2:AssignPrivateIpAddresses",
+          "ec2:UnassignPrivateIpAddresses",
+        ],
+        resources: ["*"],
+      });
+      this.workerRole.addToPolicy(manageEnis);
+      // The sweeper's role does not exist yet; it is granted below, where it is
+      // created, so each grant sits beside its role and CloudFormation orders
+      // the policy before the function that depends on it.
+      this.vpcEniStatement = manageEnis;
+    }
+
     this.worker = new LambdaFunction(this, "WorkerFunction", {
       ...networking,
       functionName: `${prefix}-processing-worker`,
@@ -238,7 +286,7 @@ export class MediaProcessingStack extends Stack {
       handler: "index.workerHandler",
       memorySize: WORKER_MEMORY_MB,
       timeout: Duration.seconds(PROCESSING_POLICY.workerTimeoutSeconds),
-      reservedConcurrentExecutions: WORKER_CONCURRENCY,
+      ...(cfg.processing.reserveConcurrency ? { reservedConcurrentExecutions: WORKER_CONCURRENCY } : {}),
       role: this.workerRole,
       logGroup: workerLogs,
       environment,
@@ -258,6 +306,7 @@ export class MediaProcessingStack extends Stack {
       managedPolicies: [this.producerPolicy],
     });
     this.sweeperRole.addToPolicy(readSecret);
+    if (this.vpcEniStatement) this.sweeperRole.addToPolicy(this.vpcEniStatement);
     this.sweeperRole.addToPolicy(
       new PolicyStatement({
         sid: "CheckUploadExistence",
@@ -280,7 +329,7 @@ export class MediaProcessingStack extends Stack {
       handler: "index.sweeperHandler",
       memorySize: 512,
       timeout: Duration.seconds(SWEEPER_TIMEOUT_SECONDS),
-      reservedConcurrentExecutions: 1,
+      ...(cfg.processing.reserveConcurrency ? { reservedConcurrentExecutions: 1 } : {}),
       role: this.sweeperRole,
       logGroup: sweeperLogs,
       environment,
