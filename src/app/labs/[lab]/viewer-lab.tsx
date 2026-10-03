@@ -3,6 +3,8 @@
 import Link from "next/link";
 import { useState } from "react";
 import { Aarvasa3DViewer } from "@/components/viewer/aarvasa-3d-viewer";
+import { PanoramaTourViewer } from "@/components/viewer/panorama-tour";
+import { TEST_360_TOUR } from "./lab-tour";
 import { Button } from "@/components/ui/button";
 import type { ViewerSource, ViewerStatus } from "@/lib/viewer/types";
 
@@ -45,6 +47,7 @@ function Choice<T extends string>({
 }
 
 export function ViewerLab({ initialLoadOn }: { initialLoadOn: "visible" | "interaction" }) {
+  const [bench, setBench] = useState<"model" | "tour">("model");
   const [scene, setScene] = useState<SceneChoice>("procedural");
   const [loadOn, setLoadOn] = useState<"visible" | "interaction">(initialLoadOn);
   const [autoRotate, setAutoRotate] = useState<"off" | "on">("off");
@@ -59,11 +62,22 @@ export function ViewerLab({ initialLoadOn }: { initialLoadOn: "visible" | "inter
       </span>
       <h1 className="heading-serif mt-4 text-3xl text-foreground sm:text-4xl">Viewer lab</h1>
       <p className="mt-2 max-w-2xl text-sm text-muted-foreground">
-        Test bench for the PlayCanvas viewer foundation. This route returns 404 in production builds and is not
-        linked from the site.
+        Test bench for the PlayCanvas viewer foundation — the 3D model viewer, and the
+        TEST-360 tour built from generated compass grids. Nothing here depicts a real
+        property. This route returns 404 in production builds and is not linked from the
+        site.
       </p>
 
       <div className="mt-8 space-y-3 rounded-2xl border border-border bg-card p-5">
+        <Choice
+          label="Bench"
+          value={bench}
+          onChange={setBench}
+          options={[
+            { value: "model", label: "3D model" },
+            { value: "tour", label: "TEST-360 tour" },
+          ]}
+        />
         <Choice
           label="Scene"
           value={scene}
@@ -116,17 +130,28 @@ export function ViewerLab({ initialLoadOn }: { initialLoadOn: "visible" | "inter
       </div>
 
       <div className="mt-6">
-        {mounted === "mounted" && (
-          <Aarvasa3DViewer
-            // Changing the load strategy only makes sense from a fresh mount.
-            key={loadOn}
-            label="Viewer lab scene"
-            source={SOURCES[scene]}
-            loadOn={loadOn}
-            autoRotate={autoRotate === "on"}
-            onStatusChange={setStatus}
-          />
-        )}
+        {mounted === "mounted" &&
+          (bench === "tour" ? (
+            /* The 360° bench. Orientation is checkable by eye: room A opens
+               facing "0° FRONT", and its info hotspot must sit above that
+               label. Room B opens at yaw 90, so returning to it proves each
+               scene restores its own view rather than the previous room's. */
+            <PanoramaTourViewer
+              tour={TEST_360_TOUR}
+              analyticsId="viewer-lab"
+              onStatusChange={setStatus}
+            />
+          ) : (
+            <Aarvasa3DViewer
+              // Changing the load strategy only makes sense from a fresh mount.
+              key={loadOn}
+              label="Viewer lab scene"
+              source={SOURCES[scene]}
+              loadOn={loadOn}
+              autoRotate={autoRotate === "on"}
+              onStatusChange={setStatus}
+            />
+          ))}
       </div>
 
       {second === "shown" && (

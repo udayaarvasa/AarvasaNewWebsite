@@ -65,6 +65,8 @@ export async function projectsWithModel(projects: readonly Project[]): Promise<R
         kind: "MODEL",
         subjectType: "PROJECT",
         projectSlug: { in: projects.map((p) => p.slug) },
+        // A card must never advertise 3D that turns out to be a test asset.
+        provenance: { not: "INTERNAL_TEST" },
       },
       select: { projectSlug: true },
       distinct: ["projectSlug"],

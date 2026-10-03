@@ -338,6 +338,7 @@ const row = (extra: Record<string, unknown> = {}) => ({
   projectSlug: SLUG,
   storageKey: `m/${ID}/3f9a1c2b7d4e8f60`,
   entryFile: "scene.sog",
+  provenance: "AARVASA_RECONSTRUCTION",
   posterKey: `m/${ID}/3f9a1c2b7d4e8f60/poster.webp`,
   altText: "Reviewed scan of the show apartment",
   sizeBytes: 18_000_000,
@@ -349,7 +350,16 @@ const row = (extra: Record<string, unknown> = {}) => ({
 
 describe("publication gating: published splat lookup", () => {
   it("queries only a PUBLISHED SPLAT/SOG of this project", () => {
-    assert.deepEqual(publishedSplatQuery(SLUG, ID).where, { id: ID, status: "PUBLISHED", kind: "SPLAT", format: "SOG", subjectType: "PROJECT", projectSlug: SLUG });
+    assert.deepEqual(publishedSplatQuery(SLUG, ID).where, {
+      id: ID,
+      status: "PUBLISHED",
+      kind: "SPLAT",
+      format: "SOG",
+      subjectType: "PROJECT",
+      projectSlug: SLUG,
+      // Engineering scans are excluded by the query, not filtered after it.
+      provenance: { not: "INTERNAL_TEST" },
+    });
   });
 
   it("never selects private columns", () => {
@@ -466,13 +476,14 @@ describe("project page integration: experiences offered", () => {
     assert.deepEqual(immersiveModes({ model: {}, tour: null, splat: failed }), ["model"]);
   });
 
-  it("REEF 996 pilot: placeholder splat in development only, never touching the database", () => {
+  it("REEF 996 is offered no splat at all: the pilot scan is engineering material", () => {
+    // It used to be attached here and shown in development. A scan of coloured
+    // axis markers on a Dubai tower's page is a test asset wearing a product's
+    // clothes, so it was moved to /labs and the project offers nothing.
     const reef = getProject("reef-996-dubai-production-city") as Project;
-    const c = projectSplatConfig(reef, null, { nodeEnv: "development", cdnOrigin: CDN });
-    assert.equal(c?.placeholder, true);
-    assert.match(c?.alt ?? "", /Not a scan of REEF 996/);
-    assert.equal(splatMediaAssetId(reef), null);
+    assert.equal(projectSplatConfig(reef, null, { nodeEnv: "development", cdnOrigin: CDN }), null);
     assert.equal(projectSplatConfig(reef, null, { nodeEnv: "production", cdnOrigin: CDN }), null);
+    assert.equal(splatMediaAssetId(reef), null);
   });
 });
 

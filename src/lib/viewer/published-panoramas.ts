@@ -1,3 +1,4 @@
+import { isPubliclyShowable } from "../media/provenance";
 import { MEDIA_KEY_PATTERN, publishedObjectMetadata } from "../../../shared/media-contract";
 import type { PanoramaView } from "./types";
 
@@ -27,6 +28,7 @@ export const PUBLISHED_PANORAMA_SELECT = {
   entryFile: true,
   altText: true,
   viewDefaults: true,
+  provenance: true,
 } as const;
 
 /**
@@ -43,6 +45,8 @@ export function publishedPanoramaQuery(projectSlug: string, ids: readonly string
       kind: "PANORAMA" as const,
       subjectType: "PROJECT" as const,
       projectSlug,
+      // Engineering assets are excluded in the query, not filtered out later.
+      provenance: { not: "INTERNAL_TEST" as const },
     },
     select: PUBLISHED_PANORAMA_SELECT,
   };
@@ -61,6 +65,9 @@ export function toPublishedPanoramas(rows: readonly Row[], projectSlug: string):
   const out = new Map<string, PublishedPanorama>();
   for (const r of rows) {
     if (r.status !== "PUBLISHED" || r.kind !== "PANORAMA" || r.subjectType !== "PROJECT" || r.projectSlug !== projectSlug) continue;
+    // Checked again here: a test panorama must not reach a public tour even if
+    // the caller passed the wrong query.
+    if (!isPubliclyShowable(r.provenance)) continue;
     if (typeof r.id !== "string" || typeof r.storageKey !== "string" || typeof r.entryFile !== "string") continue;
     if (typeof r.altText !== "string" || !r.altText.trim()) continue;
     const entryKey = `${r.storageKey}/${r.entryFile}`;

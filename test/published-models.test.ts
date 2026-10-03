@@ -32,6 +32,7 @@ const row = (over: Record<string, unknown> = {}) => ({
   dimensions: { entry: null, poster: null },
   altText: "A grey cube test model.",
   processorVersion: "1.0.0/passthrough-v1",
+  provenance: "OFFICIAL_MODEL",
   ...over,
 });
 
@@ -121,17 +122,36 @@ test("nothing at all maps to nothing", () => {
   assert.equal(toPublishedModel(undefined, SLUG), null);
 });
 
-test("the query itself constrains status, kind and subject", () => {
+test("the query itself constrains status, kind, subject and provenance", () => {
   const q = publishedModelQuery(SLUG);
   assert.deepEqual(q.where, {
     status: "PUBLISHED",
     kind: "MODEL",
     subjectType: "PROJECT",
     projectSlug: SLUG,
+    provenance: { not: "INTERNAL_TEST" },
   });
   assert.equal(q.take, 1);
   // Private columns must never be selected into a page's props.
   for (const column of ["sourceKey", "sourceChecksumSha256", "uploadedById", "reviewedById", "processingError"]) {
     assert.ok(!(column in q.select), `${column} must not be selected`);
+  }
+});
+
+test("an internal test asset never reaches a project page", () => {
+  // The 952-byte cube that proved the pipeline is exactly this case: PUBLISHED,
+  // this project's, a valid GLB, and still not something to show a buyer.
+  assert.equal(toPublishedModel(row({ provenance: "INTERNAL_TEST" }), SLUG), null);
+});
+
+test("a row with no provenance at all is refused, not assumed real", () => {
+  assert.equal(toPublishedModel(row({ provenance: undefined }), SLUG), null);
+  assert.equal(toPublishedModel(row({ provenance: null }), SLUG), null);
+  assert.equal(toPublishedModel(row({ provenance: "SOMETHING_NEW" }), SLUG), null);
+});
+
+test("every genuine provenance is carried through for labelling", () => {
+  for (const p of ["OFFICIAL_MODEL", "DEVELOPER_RENDER", "AARVASA_RECONSTRUCTION"]) {
+    assert.equal(toPublishedModel(row({ provenance: p }), SLUG)?.provenance, p, p);
   }
 });

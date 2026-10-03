@@ -34,6 +34,8 @@ import { formatCurrency, inrEstimate, AED_TO_INR } from "@/lib/currency";
 import { loadProjectModel } from "@/lib/services/project-models";
 import { loadProjectTour } from "@/lib/services/project-panoramas";
 import { loadProjectSplat } from "@/lib/services/project-splats";
+import { ExploreArea } from "@/components/property/explore-area";
+import { exploreAreaMode } from "@/lib/maps/google-3d";
 import ImmersiveSection from "./immersive-section";
 
 // Only slugs from generateStaticParams resolve; anything else 404s at the routing
@@ -106,12 +108,23 @@ export default async function ProjectPage({
   ]);
   const hasImmersive = Boolean(viewer || tour || splat);
 
+  /* Explore Area is geographic context, not the property's own model, so it is
+     offered independently of whether any immersive media exists. It still needs
+     a key and coordinates somebody verified — a plausible latitude is a made-up
+     fact about where a home is. */
+  const area = exploreAreaMode({
+    coordinates: project.coordinates,
+    apiKey: process.env.NEXT_PUBLIC_GOOGLE_MAPS_BROWSER_KEY,
+  });
+  const hasArea = area.kind !== "unavailable";
+
   /* Capability marks come from what actually passed server-side gating. A
      format with no published asset is omitted — never a dead control. */
   const produced: string[] = [
     ...(viewer ? ["3D"] : []),
     ...(tour ? ["360°"] : []),
     ...(splat ? ["Scan"] : []),
+    ...(hasArea ? ["Area"] : []),
     ...(project.planImages.length > 0 ? ["Plan"] : []),
   ];
 
@@ -265,6 +278,33 @@ export default async function ProjectPage({
             tone="stage"
           />
         </div>
+      )}
+
+      {/* ── EXPLORE AREA ──────────────────────────────────────────────────
+          Google's surroundings, never the property's own model: its mesh of an
+          off-plan plot is a construction site, and showing that as the building
+          would be a fabrication. Nothing loads until the visitor asks.
+
+          Absent entirely without a key or verified coordinates. A section that
+          only ever apologises is worse than no section: it reads as something
+          broken rather than as something nobody has supplied yet, and the
+          address is already on the page. */}
+      {hasArea && (
+        <Wrap className="pt-[var(--band)]">
+          <SectionHead
+            label="Surroundings"
+            title="Explore area"
+            note="Where this project sits — the streets, the terrain and the buildings around it."
+          />
+          <MotionReveal>
+            <ExploreArea
+              name={project.name}
+              location={`${project.location}, ${project.city}`}
+              coordinates={area.center}
+              apiKey={process.env.NEXT_PUBLIC_GOOGLE_MAPS_BROWSER_KEY ?? null}
+            />
+          </MotionReveal>
+        </Wrap>
       )}
 
       {/* ── EVALUATE ──────────────────────────────────────────────────── */}

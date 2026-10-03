@@ -132,14 +132,60 @@ export type ReconstructionHandle = {
 };
 
 /**
- * Implemented by a real engine later (COLMAP/OpenMVS locally, or a hosted
- * reconstruction service). Until one exists, nothing implements this.
+ * Implemented by a real engine later (COLMAP/OpenMVS on a GPU worker, or a
+ * hosted reconstruction service). Until one exists, nothing implements this.
+ *
+ * Deliberately small. Everything above it — upload, entitlement, ownership, the
+ * coverage gate, review, publication, the viewer — is already built against
+ * MediaAsset and does not change when an engine appears. Plugging one in means
+ * implementing these three members and returning it from
+ * getReconstructionProcessor; no UI, route, schema or viewer edits.
  */
 export interface ReconstructionProcessor {
+  /** Engine identity, recorded on the asset, e.g. "colmap-3.11+openmvs-2.3". */
   readonly engine: string;
   submit(request: ReconstructionRequest): Promise<ReconstructionHandle>;
   status(jobId: string): Promise<ReconstructionHandle>;
 }
+
+/**
+ * The states a caller may report. Separate from ReconstructionStage, which only
+ * describes a job that actually exists.
+ *
+ * PROCESSOR_NOT_CONFIGURED is not a failure and not an error: it is the honest
+ * answer that this deployment has no engine. It must never be presented as a
+ * job that is queued, nor as one that failed, because both would describe work
+ * that was never attempted.
+ */
+export type ReconstructionAvailability =
+  | { readonly state: "PROCESSOR_NOT_CONFIGURED"; readonly reason: string }
+  | { readonly state: "PROCESSOR_AVAILABLE"; readonly engine: string };
+
+/**
+ * What a deployment must provide before getReconstructionProcessor can return
+ * anything. Stated here so the requirement is a fact in the codebase rather than
+ * a conversation, and so the gap is reviewable.
+ *
+ * The existing processing Lambda cannot host this. It is arm64 Node on a
+ * 15-minute ceiling with no GPU and no ffmpeg binary, which rules out both frame
+ * decoding at scale and dense reconstruction. The queue, the worker contract and
+ * the MediaAsset lifecycle are all reusable; the compute is not.
+ */
+export const RECONSTRUCTION_INFRASTRUCTURE = {
+  /** Dense stereo and splat training are GPU work; CPU-only runs take hours. */
+  gpu: "NVIDIA, 16 GB VRAM or more (sparse SfM is CPU-bound; dense MVS and splat training are not)",
+  /** Feature matching is memory-hungry well before the GPU is. */
+  memory: "32 GB system RAM for a few hundred frames",
+  /** A video arrives as one file and becomes thousands of frames. */
+  storage: "50 GB scratch per job, separate from the ingest bucket",
+  /** Frame decoding is a hard dependency and is not in the Node runtime. */
+  binaries: "ffmpeg (frame extraction), COLMAP (SfM), OpenMVS or equivalent (dense mesh)",
+  /** Far beyond Lambda's ceiling, so this is a container or batch job. */
+  timeout: "up to 4 hours per job; Lambda's 15-minute maximum cannot hold it",
+  runtime: "a container on GPU compute (ECS/EC2/Batch, or a hosted reconstruction API)",
+  /** What the adapter must hand back for the existing pipeline to take over. */
+  output: "a GLB (MESH) or a SOG bundle (SPLAT) written to the ingest bucket, which the existing worker then validates, reviews and publishes unchanged",
+} as const;
 
 /**
  * No engine is configured, so this returns null and callers must say so.
@@ -150,6 +196,16 @@ export interface ReconstructionProcessor {
  */
 export function getReconstructionProcessor(): ReconstructionProcessor | null {
   return null;
+}
+
+/** The state to report, with the reason when there is nothing to run on. */
+export function reconstructionAvailability(): ReconstructionAvailability {
+  const processor = getReconstructionProcessor();
+  if (processor) return { state: "PROCESSOR_AVAILABLE", engine: processor.engine };
+  return {
+    state: "PROCESSOR_NOT_CONFIGURED",
+    reason: `No reconstruction engine is configured in this deployment. It needs ${RECONSTRUCTION_INFRASTRUCTURE.runtime} with ${RECONSTRUCTION_INFRASTRUCTURE.gpu}.`,
+  };
 }
 
 export const reconstructionAvailable = (): boolean => getReconstructionProcessor() !== null;

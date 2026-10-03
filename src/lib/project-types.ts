@@ -1,3 +1,5 @@
+import type { MediaProvenance } from "./media/provenance";
+
 import type { CurrencyCode } from "./currency";
 
 /** One purchasable configuration — an apartment layout, or a plot size. */
@@ -49,6 +51,12 @@ export type ProjectImmersiveMedia = {
    * ever shown outside production builds. "approved": reviewed real media.
    */
   review: "placeholder" | "approved";
+  /**
+   * How the model was produced, for the label shown beside it. Carried from the
+   * MediaAsset row; absent on the hand-authored pilot, which `review` already
+   * marks as a placeholder.
+   */
+  provenance?: MediaProvenance;
   /**
    * Optional XR opt-in (Phase 8). A model is shown in 3D whether or not it is
    * offered in AR or VR: each mode must be listed here, and the project must

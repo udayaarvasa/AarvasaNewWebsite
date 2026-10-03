@@ -393,6 +393,9 @@ describe("upload intent: MediaAsset row and response", () => {
         uploadedById: "owner",
         title: "Tower",
         altText: "Massing model",
+        // Nothing declared it, so it is engineering material until someone says
+        // otherwise. The default must never be a public-facing value.
+        provenance: "INTERNAL_TEST",
       },
     ]);
     const row = h.created[0] as unknown as Record<string, unknown>;
@@ -543,5 +546,35 @@ describe("ingest upload signer (AWS SDK presigned PUT, offline)", () => {
     assert.ok(rule.AllowedMethods.includes("PUT"));
     const signed = await createIngestUploadSigner(config, { credentials }).sign({ key, contentType: "model/gltf-binary", contentLength: 1, sha256: SHA256, expiresInSeconds: 60 });
     for (const header of Object.keys(signed.headers)) assert.ok(rule.AllowedHeaders.map((h) => h.toLowerCase()).includes(header.toLowerCase()), header);
+  });
+});
+
+describe("upload intent: provenance", () => {
+  it("defaults to INTERNAL_TEST when the uploader states nothing", async () => {
+    const h = harness();
+    assert.equal((await send(h, propertyBody({}), "owner")).status, 201);
+    assert.equal((h.created[0] as unknown as Record<string, unknown>).provenance, "INTERNAL_TEST");
+  });
+
+  it("stores what the uploader declared", async () => {
+    const h = harness();
+    const result = await send(h, propertyBody({ provenance: "OFFICIAL_MODEL" }), "owner");
+    assert.equal(result.status, 201);
+    assert.equal((h.created[0] as unknown as Record<string, unknown>).provenance, "OFFICIAL_MODEL");
+  });
+
+  it("refuses a provenance the kind cannot have, and writes no row", async () => {
+    // A GLB is not a 360 photograph. Storing the claim would put a wrong label
+    // under a published asset.
+    const h = harness();
+    const result = await send(h, propertyBody({ provenance: "PHOTO_360" }), "owner");
+    assert.equal(result.status, 400);
+    assert.deepEqual(h.created, []);
+  });
+
+  it("refuses a provenance that is not a known value at all", async () => {
+    const h = harness();
+    assert.equal((await send(h, propertyBody({ provenance: "REAL" }), "owner")).status, 400);
+    assert.deepEqual(h.created, []);
   });
 });

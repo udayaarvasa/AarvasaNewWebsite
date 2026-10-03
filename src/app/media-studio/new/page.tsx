@@ -8,10 +8,10 @@ import { TextReveal, Reveal } from "@/components/av/motion";
 import { activeCapabilities } from "@/lib/entitlements/service";
 import { publishedProjects } from "@/lib/projects";
 import { getIngestUploadSigner } from "@/lib/media/ingest-storage";
-import { UploadModel } from "./upload-model";
+import { UploadImmersive } from "./upload-immersive";
 
 /**
- * New immersive experience — Mode A, uploading a model you already have.
+ * New immersive experience — Mode A, uploading a model or panorama you already have.
  *
  * The entitlement is read server-side to decide whether to render the uploader
  * at all, but that is presentation: /api/media/upload-intent checks again, so
@@ -62,9 +62,9 @@ export default async function NewExperiencePage() {
             className="av-display mt-3 max-w-[18ch] text-[clamp(30px,4.6vw,52px)] leading-[1.03] text-stage-ink"
           />
           <p className="mt-[var(--s-4)] max-w-[56ch] text-[16px] leading-relaxed text-stage-muted">
-            Upload a model you already have. It is validated by its actual contents, kept
-            private to your account, and only becomes visible on a project page once you
-            publish it.
+            Upload a 3D model or a 360° panorama you already have. It is validated by
+            its actual contents, kept private to your account, and only becomes visible on
+            a project page once a reviewer has confirmed what it is and published it.
           </p>
         </Wrap>
       </section>
@@ -72,9 +72,9 @@ export default async function NewExperiencePage() {
       <Wrap className="pt-[var(--band-tight)]">
         <SectionIndex n={1} total={1} className="mb-[var(--s-3)]" />
         <SectionHead
-          label="Upload a 3D model"
-          title="GLB or glTF"
-          note="Checked by magic bytes, not by file extension, in the browser and again on the server."
+          label="Upload immersive media"
+          title="3D model or 360° panorama"
+          note="Checked by its actual bytes — magic numbers for a model, container dimensions for a panorama — in the browser and again on the server."
         />
 
         {!canUpload ? (
@@ -118,12 +118,12 @@ export default async function NewExperiencePage() {
         ) : projects.length === 0 ? (
           <Reveal>
             <p className="max-w-[56ch] text-[14px] leading-relaxed text-ink-muted">
-              There are no published projects to attach a model to yet.
+              There are no published projects to attach media to yet.
             </p>
           </Reveal>
         ) : (
           <Reveal>
-            <UploadModel projects={projects} />
+            <UploadImmersive projects={projects} />
           </Reveal>
         )}
 

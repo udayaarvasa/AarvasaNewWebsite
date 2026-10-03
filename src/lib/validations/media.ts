@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { MEDIA_PROVENANCE } from "../media/provenance";
 import {
   MEDIA_ASSET_FORMATS,
   MEDIA_ASSET_KINDS,
@@ -34,6 +35,14 @@ const sourceFields = {
   sha256: z.string().regex(SHA256_BASE64_PATTERN, "sha256 must be a base64 SHA-256 digest"),
   title: z.string().trim().min(1).max(UPLOAD_TEXT_LIMITS.title).optional(),
   altText: z.string().trim().min(1).max(UPLOAD_TEXT_LIMITS.altText).optional(),
+  /**
+   * How this was produced, declared by the uploader. Nothing in the bytes
+   * distinguishes a render from a photograph, so it cannot be derived — but it
+   * decides what the public is told, so it is not optional either. The
+   * combination is checked against `kind` in the service; omitting it leaves the
+   * row at the schema default, INTERNAL_TEST, which is never shown publicly.
+   */
+  provenance: z.enum(MEDIA_PROVENANCE).optional(),
 };
 
 // POST /api/media/upload-intent

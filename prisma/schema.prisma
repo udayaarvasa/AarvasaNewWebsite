@@ -66,6 +66,32 @@ enum MediaAssetFormat {
   SOG
 }
 
+/// How an asset was produced. Declared at upload, correctable at review, and
+/// never inferred from the file: a render and a photograph are the same pixels
+/// to a validator, and only a person knows which one they uploaded.
+///
+/// This also decides whether an asset may be shown to the public at all.
+/// INTERNAL_TEST is the default precisely because it is the safe answer: an
+/// asset whose provenance nobody stated is engineering material until someone
+/// says otherwise, so a forgotten code path hides a test asset rather than
+/// publishing it as a property's architecture.
+enum MediaProvenance {
+  /// Supplied by the developer as an official model of the building.
+  OFFICIAL_MODEL
+  /// Developer-produced render. Never described as a photograph.
+  DEVELOPER_RENDER
+  /// Photograph of a furnished demonstration unit, not a delivered residence.
+  SHOW_APARTMENT_PHOTO
+  /// Genuine equirectangular photograph.
+  PHOTO_360
+  /// Equirectangular frame rendered from a 3D model. Not a photograph.
+  RENDERED_360
+  /// Produced by Aarvasa's reconstruction pipeline from photos or video.
+  AARVASA_RECONSTRUCTION
+  /// Engineering and QA only. Never public, in any environment.
+  INTERNAL_TEST
+}
+
 /// One lifecycle: UPLOADED → PROCESSING → PENDING_REVIEW → PUBLISHED → ARCHIVED,
 /// with FAILED (processing) and REJECTED (review) as terminal outcomes.
 enum MediaAssetStatus {
@@ -259,6 +285,9 @@ model MediaAsset {
   altText   String?
   sortOrder Int     @default(0)
 
+  /// Fail closed: an asset is engineering material until it says otherwise.
+  provenance MediaProvenance @default(INTERNAL_TEST)
+
   // Uploaded original: an ingest key (uploads/…) or a private original (originals/…).
   sourceKey            String
   sourceSizeBytes      Int
@@ -293,6 +322,8 @@ model MediaAsset {
 
   @@index([propertyId, status, sortOrder])
   @@index([projectSlug, status, sortOrder])
+  // Public lookups filter on provenance as well as status, so it is part of the key.
+  @@index([projectSlug, status, provenance, sortOrder])
   @@index([status, createdAt])
   @@index([contentHash])
   @@index([uploadedById])

@@ -1,3 +1,4 @@
+import { PROVENANCE_LABEL, PROVENANCE_NOTE, type MediaProvenance } from "../media/provenance";
 import { MEDIA_KEY_PATTERN, publishedObjectMetadata } from "../../../shared/media-contract";
 import type { Project } from "../project-types";
 import { MEDIA_CDN_ORIGIN } from "./media-origin";
@@ -19,6 +20,10 @@ export type ProjectViewerConfig = {
   readonly downloadBytes: number;
   /** True when the asset does not depict the project; the page must say so. */
   readonly placeholder: boolean;
+  /** How the model was produced, and the longer note where one is needed. Shown
+   *  beside the viewer so a render is never read as a photograph and a
+   *  reconstruction is never read as an official developer model. */
+  readonly provenance: { readonly label: string; readonly note: string | null } | null;
   /** AR/VR offered for this model, or null. Subject to what the visitor's device supports. */
   readonly xr: XrExperience | null;
 };
@@ -56,6 +61,12 @@ export function projectViewerConfig(
         : null,
     downloadBytes: media.sizeBytes,
     placeholder: media.review === "placeholder",
+    provenance: media.provenance
+      ? {
+          label: PROVENANCE_LABEL[media.provenance as MediaProvenance],
+          note: PROVENANCE_NOTE[media.provenance as MediaProvenance] ?? null,
+        }
+      : null,
     // The same published URL the 3D viewer loads, re-checked against the media policy.
     xr: xrExperienceFor({
       source,

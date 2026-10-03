@@ -2,6 +2,7 @@
    runner loads this module directly under node's ESM resolver, which does not
    guess extensions. infra/tsconfig.json emits JavaScript and so must keep bare
    specifiers — it lists the viewer files it compiles, and this is not one. */
+import { isPubliclyShowable, type MediaProvenance } from "../media/provenance.ts";
 import { MEDIA_KEY_PATTERN, publishedObjectMetadata } from "../../../shared/media-contract.ts";
 import type { ProjectImmersiveMedia } from "../project-types.ts";
 
@@ -38,6 +39,7 @@ export const PUBLISHED_MODEL_SELECT = {
   dimensions: true,
   altText: true,
   processorVersion: true,
+  provenance: true,
 } as const;
 
 /**
@@ -58,6 +60,9 @@ export function publishedModelQuery(projectSlug: string) {
       kind: "MODEL" as const,
       subjectType: "PROJECT" as const,
       projectSlug,
+      // Engineering assets are excluded in the query, not filtered out later: a
+      // test cube is not this project's architecture and never reaches a page.
+      provenance: { not: "INTERNAL_TEST" as const },
     },
     orderBy: [{ sortOrder: "asc" as const }, { publishedAt: "desc" as const }],
     take: 1,
@@ -97,6 +102,8 @@ export function toPublishedModel(row: Row | null | undefined, projectSlug: strin
   if (!row) return null;
   if (row.status !== "PUBLISHED" || row.kind !== "MODEL" || row.format !== "GLB") return null;
   if (row.subjectType !== "PROJECT" || row.projectSlug !== projectSlug) return null;
+  // Checked again here, because everything below becomes a public CDN URL.
+  if (!isPubliclyShowable(row.provenance)) return null;
   if (typeof row.id !== "string" || typeof row.storageKey !== "string" || typeof row.entryFile !== "string") return null;
   if (typeof row.contentHash !== "string" || !positiveInt(row.sizeBytes)) return null;
   // Alt text is required before approval, so its absence means a broken row, not
@@ -130,5 +137,6 @@ export function toPublishedModel(row: Row | null | undefined, projectSlug: strin
     processingVersion: typeof row.processorVersion === "string" ? row.processorVersion : "unknown",
     altText: row.altText.trim(),
     review: "approved",
+    provenance: row.provenance as MediaProvenance,
   };
 }

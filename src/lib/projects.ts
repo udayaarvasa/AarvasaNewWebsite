@@ -300,15 +300,35 @@ const flatImages = (imagery: ProjectImagery): string[] => [
   ...imagery.gallery.map((i) => projectImageSrc(i, "3x2")),
 ];
 
+/**
+ * Pilot media is engineering material, and a project page is not where it goes.
+ *
+ * The three pilots above — a placeholder massing model, a tour of generated test
+ * grids, a splat of coloured axis markers — exist to exercise the pipeline and
+ * the viewer. None of them depicts the building whose page they were attached
+ * to, and a visitor reading "Explore in 3D" on REEF 996 has no reason to expect
+ * a test asset behind it, however the control is captioned. Labelling was not
+ * enough: the control itself is the claim.
+ *
+ * They are still reachable, at /labs/viewer, which generates no params in
+ * production and is linked from nowhere. A project page shows immersive media
+ * only once a real asset has been published for it and a reviewer has stated
+ * what it is.
+ */
+const attachIfApproved = <T extends { review: "placeholder" | "approved" }>(
+  map: Readonly<Record<string, T>>,
+  slug: string,
+): T | null => (map[slug]?.review === "approved" ? map[slug] : null);
+
 export const projects: Project[] = [
   ...reefProjects,
   aaradhyamPearl,
   aaradhyamPrime,
 ].map((p) => ({
   ...p,
-  ...(IMMERSIVE_BY_SLUG[p.slug] ? { immersive: IMMERSIVE_BY_SLUG[p.slug] } : {}),
-  ...(TOUR_BY_SLUG[p.slug] ? { tour: TOUR_BY_SLUG[p.slug] } : {}),
-  ...(SPLAT_BY_SLUG[p.slug] ? { splat: SPLAT_BY_SLUG[p.slug] } : {}),
+  ...(attachIfApproved(IMMERSIVE_BY_SLUG, p.slug) ? { immersive: IMMERSIVE_BY_SLUG[p.slug] } : {}),
+  ...(attachIfApproved(TOUR_BY_SLUG, p.slug) ? { tour: TOUR_BY_SLUG[p.slug] } : {}),
+  ...(attachIfApproved(SPLAT_BY_SLUG, p.slug) ? { splat: SPLAT_BY_SLUG[p.slug] } : {}),
   ...(IMAGERY_BY_SLUG[p.slug]
     ? { imagery: IMAGERY_BY_SLUG[p.slug], images: flatImages(IMAGERY_BY_SLUG[p.slug]) }
     : {}),

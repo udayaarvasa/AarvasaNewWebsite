@@ -238,23 +238,48 @@ describe("XR session lifecycle", () => {
 // ── Project page ─────────────────────────────────────────────────────────────
 
 describe("project page: XR entry points", () => {
+  /* No project carries immersive media any more — the pilots moved to /labs —
+     so XR is asserted against a project record holding a model, which is what a
+     reviewer publishing a real one produces. */
   const reef = getProject("reef-996-dubai-production-city") as Project;
+  const withModel: Project = {
+    ...reef,
+    immersive: {
+      mediaId: "8ba87bf969112016e7905b6f",
+      kind: "MODEL",
+      format: "GLB",
+      storageKey: "m/8ba87bf969112016e7905b6f/de1d54d4e9da0d02",
+      entryFile: "scene.glb",
+      contentHash: "370418ddb037b189a64f4c1f761398b8fcf9974ca9028b9ab188bb3a37ba7ef2",
+      sizeBytes: 1840,
+      poster: null,
+      processingVersion: "1.0.0/passthrough-v1",
+      altText: "Massing model of the tower.",
+      review: "approved",
+      xr: { modes: ["ar", "vr"], scale: { metersPerUnit: 1, previewScale: 1 } },
+    },
+  };
 
-  it("the pilot model offers AR and VR in development, with a stated scale", () => {
-    const config = projectViewerConfig(reef, "development");
+  it("a model that opted in offers AR and VR, with a stated scale", () => {
+    const config = projectViewerConfig(withModel, "development");
     assert.deepEqual(config?.xr?.modes, ["ar", "vr"]);
     assert.deepEqual(config?.xr?.scale, { metersPerUnit: 1, previewScale: 1 });
-    assert.equal(config?.xr?.placeholder, true);
+    // Reviewed media is not a placeholder, so XR does not mark it as one.
+    assert.equal(config?.xr?.placeholder, false);
     assert.equal(config?.xr?.source.url, config?.source.url, "XR uses the same published model as the 3D viewer");
   });
 
-  it("offers no XR in production, because the model itself is not shown", () => {
-    assert.equal(projectViewerConfig(reef, "production"), null);
+  it("offers no XR in production, because there is no media origin there", () => {
+    assert.equal(projectViewerConfig(withModel, "production"), null);
   });
 
   it("offers no XR for a project that did not opt in", () => {
-    const optedOut: Project = { ...reef, immersive: { ...reef.immersive!, xr: undefined } };
+    const optedOut: Project = { ...withModel, immersive: { ...withModel.immersive!, xr: undefined } };
     assert.equal(projectViewerConfig(optedOut, "development")?.xr, null);
+  });
+
+  it("offers no XR for a project with no model at all", () => {
+    assert.equal(projectViewerConfig(reef, "development"), null);
   });
 
   it("does not add a mode to the page's experiences: XR belongs to the 3D model", () => {

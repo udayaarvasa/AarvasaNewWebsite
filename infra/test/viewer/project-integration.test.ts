@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 import type { Project, ProjectPanoramaTour } from "../../../src/lib/project-types";
-import { getProject } from "../../../src/lib/projects";
+import { projects, getProject } from "../../../src/lib/projects";
 import { sanitizeViewerEvent, trackViewerEvent, VIEWER_EVENT_TYPE, type ViewerEvent } from "../../../src/lib/viewer/analytics";
 import { projectViewerConfig } from "../../../src/lib/viewer/project-media";
 import { projectTourConfig, tourMediaAssetIds } from "../../../src/lib/viewer/project-tour";
@@ -20,6 +20,7 @@ const row = (id: string, extra: Record<string, unknown> = {}) => ({
   projectSlug: SLUG,
   storageKey: `m/${id}/3f9a1c2b7d4e8f60`,
   entryFile: "panorama.jpg",
+  provenance: "PHOTO_360",
   altText: `Reviewed panorama ${id}`,
   viewDefaults: { yawDeg: 30, pitchDeg: 0, fovDeg: 70 },
   ...extra,
@@ -43,7 +44,15 @@ const tourOf = (review: ProjectPanoramaTour["review"], images: ProjectPanoramaTo
 describe("publication gating: published panorama lookup", () => {
   it("queries only PUBLISHED panoramas of this project, by the ids the tour names", () => {
     const q = publishedPanoramaQuery(SLUG, [ID_A, ID_B]);
-    assert.deepEqual(q.where, { id: { in: [ID_A, ID_B] }, status: "PUBLISHED", kind: "PANORAMA", subjectType: "PROJECT", projectSlug: SLUG });
+    assert.deepEqual(q.where, {
+      id: { in: [ID_A, ID_B] },
+      status: "PUBLISHED",
+      kind: "PANORAMA",
+      subjectType: "PROJECT",
+      projectSlug: SLUG,
+      // Engineering panoramas are excluded by the query, not filtered after it.
+      provenance: { not: "INTERNAL_TEST" },
+    });
   });
 
   it("never selects private columns", () => {
@@ -68,6 +77,9 @@ describe("publication gating: published panorama lookup", () => {
       row(ID_A, { entryFile: "../../review/x.jpg" }),
       row(ID_A, { entryFile: "panorama.svg" }),
       row(ID_A, { altText: " " }),
+      // A test grid is not a room in this building, whatever its status says.
+      row(ID_A, { provenance: "INTERNAL_TEST" }),
+      row(ID_A, { provenance: undefined }),
     ];
     assert.equal(toPublishedPanoramas(bad, SLUG).size, 0);
   });
@@ -133,28 +145,34 @@ describe("publication gating: project tour mapping", () => {
   });
 });
 
-describe("project page integration: REEF 996 pilot", () => {
-  const reef = getProject("reef-996-dubai-production-city") as Project;
+describe("project page integration: no project carries test media", () => {
+  /* The pilot assets — a placeholder massing model, a tour of generated test
+     grids, a splat of coloured axis markers — were attached to REEF 996 so the
+     viewer could be exercised on a real page. That made "Explore in 3D" appear
+     on a Dubai tower with a test asset behind it, and a visitor clicking it has
+     no reason to expect one however the control is captioned. They now live at
+     /labs/viewer, which generates no params in production and is linked from
+     nowhere. A project page shows immersive media only once a real asset has
+     been published for it. */
+  const every = projects;
 
-  it("has both a placeholder model and a placeholder fixture tour in development", () => {
-    const model = projectViewerConfig(reef, "development");
-    const { tour } = projectTourConfig(reef, new Map(), { nodeEnv: "development", cdnOrigin: CDN });
-    assert.equal(model?.placeholder, true);
-    assert.equal(tour?.placeholder, true);
-    assert.deepEqual(tour?.scenes.map((s) => s.id), ["room-a", "room-b", "room-c"]);
-    assert.ok(tour?.scenes.every((s) => s.imageUrl.startsWith("/labs/panoramas/") && /not a photo of REEF 996/i.test(s.alt)));
-    assert.equal(tourMediaAssetIds(reef).length, 0, "the pilot never touches the database");
+  it("attaches no placeholder media to any project, in any environment", () => {
+    for (const project of every) {
+      for (const nodeEnv of ["development", "production"]) {
+        const model = projectViewerConfig(project, nodeEnv);
+        assert.equal(model?.placeholder ?? false, false, `${project.slug} (${nodeEnv}) must not show a placeholder model`);
+        const { tour } = projectTourConfig(project, new Map(), { nodeEnv, cdnOrigin: CDN });
+        assert.equal(tour?.placeholder ?? false, false, `${project.slug} (${nodeEnv}) must not show a placeholder tour`);
+      }
+    }
   });
 
-  it("shows neither in production", () => {
+  it("gives REEF 996 no immersive experience at all, because nothing real is published for it", () => {
+    const reef = getProject("reef-996-dubai-production-city") as Project;
+    assert.equal(projectViewerConfig(reef, "development"), null);
+    assert.equal(projectTourConfig(reef, new Map(), { nodeEnv: "development", cdnOrigin: CDN }).tour, null);
     assert.equal(projectViewerConfig(reef, "production"), null);
-    assert.equal(projectTourConfig(reef, new Map(), { nodeEnv: "production", cdnOrigin: CDN }).tour, null);
-  });
-
-  it("keeps every pilot hotspot (all targets exist)", () => {
-    const { tour, problems } = projectTourConfig(reef, new Map(), { nodeEnv: "development", cdnOrigin: CDN });
-    assert.deepEqual(problems, []);
-    assert.equal(tour?.scenes.reduce((n, s) => n + s.hotspots.length, 0), 6);
+    assert.equal(tourMediaAssetIds(reef).length, 0);
   });
 
   it("gives projects without immersive media neither experience", () => {

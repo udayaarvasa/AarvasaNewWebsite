@@ -45,6 +45,7 @@ const pendingRow = (overrides: Partial<ReviewAssetRow> = {}): ReviewAssetRow => 
   metrics: { "validation.warnings": "panorama.progressive" },
   title: "Terrace",
   altText: null,
+  provenance: "PHOTO_360",
   sourceKey: `uploads/${MEDIA}/0f1e2d3c4b5a69788796a5b4c3d2e1f0/source.jpg`,
   sourceSizeBytes: 1_200_000,
   sourceMimeType: "image/jpeg",
@@ -100,10 +101,10 @@ function harness(row: ReviewAssetRow | null = pendingRow(), options: { access?: 
       findUser: async (id) => USERS[id] ?? null,
       listAssets: async ({ status, limit }) => [...rows.values()].filter((r) => !status || r.status === status).slice(0, limit),
       findAsset: async (id) => rows.get(id) ?? null,
-      approve: async (id, reviewerId, now, altText) => {
+      approve: async (id, reviewerId, now, altText, provenance) => {
         const r = rows.get(id);
         if (!r || r.status !== "PENDING_REVIEW") return 0;
-        rows.set(id, { ...r, status: "PUBLISHED", reviewedAt: now, publishedAt: now, altText, updatedAt: now });
+        rows.set(id, { ...r, status: "PUBLISHED", reviewedAt: now, publishedAt: now, altText, provenance, updatedAt: now });
         decisions.push(`approve:${reviewerId}`);
         return 1;
       },
@@ -208,7 +209,7 @@ describe("review API: approve and publish", () => {
     const h = harness();
     const r = await approveReviewAsset(h.body({ altText: "Terrace at sunset" }), h.deps);
     assert.equal(r.status, 200);
-    assert.deepEqual(data(r), { mediaAssetId: MEDIA, status: "PUBLISHED", transitioned: true });
+    assert.deepEqual(data(r), { mediaAssetId: MEDIA, status: "PUBLISHED", provenance: "PHOTO_360", transitioned: true });
     const row = h.row();
     assert.equal(row.status, "PUBLISHED");
     assert.equal(row.altText, "Terrace at sunset");
@@ -234,7 +235,7 @@ describe("review API: approve and publish", () => {
     const h = harness();
     await approveReviewAsset(h.body({ altText: "A" }), h.deps);
     const again = await approveReviewAsset(h.body({ altText: "B" }), h.deps);
-    assert.deepEqual(data(again), { mediaAssetId: MEDIA, status: "PUBLISHED", transitioned: false });
+    assert.deepEqual(data(again), { mediaAssetId: MEDIA, status: "PUBLISHED", provenance: "PHOTO_360", transitioned: false });
     assert.equal(h.row().altText, "A", "a repeat approval changes nothing");
     assert.deepEqual(h.decisions, ["approve:admin"]);
   });
@@ -343,5 +344,30 @@ describe("review API: concurrency", () => {
     for (const actor of ["PROCESSING_WORKER", "SWEEPER", "UPLOAD_COMPLETION", "UPLOAD_INTENT"] as const) {
       assert.ok(!pairs(actor).some((p) => p.endsWith("→PUBLISHED") || p.endsWith("→REJECTED")), actor);
     }
+  });
+});
+
+describe("review API: provenance", () => {
+  it("refuses a provenance the asset's kind cannot have", async () => {
+    const h = harness();
+    // The fixture is a PANORAMA; an official building model is not something it
+    // can be, however confident the reviewer is.
+    const bad = await approveReviewAsset(h.body({ altText: "Room", provenance: "OFFICIAL_MODEL" }, "admin"), h.deps);
+    assert.equal(bad.status, 400);
+    const good = await approveReviewAsset(h.body({ altText: "Room", provenance: "RENDERED_360" }, "admin"), h.deps);
+    assert.equal(good.status, 200);
+    assert.equal((good.body.data as Record<string, unknown>).provenance, "RENDERED_360");
+  });
+
+  it("an already-published asset is not relabelled by retrying the publication", async () => {
+    const h = harness();
+    assert.equal((await approveReviewAsset(h.body({ altText: "Room", provenance: "PHOTO_360" }, "admin"), h.deps)).status, 200);
+    // Retrying with a different claim must not quietly rewrite what the public
+    // is told about something already live.
+    const relabel = await approveReviewAsset(h.body({ altText: "Room", provenance: "RENDERED_360" }, "admin"), h.deps);
+    assert.equal(relabel.status, 409);
+    // Retrying honestly still completes an interrupted publication.
+    const again = await approveReviewAsset(h.body({ altText: "Room", provenance: "PHOTO_360" }, "admin"), h.deps);
+    assert.equal(again.status, 200);
   });
 });

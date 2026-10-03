@@ -9,6 +9,7 @@ import {
   type MediaSubjectType,
 } from "../../../shared/media-asset";
 import { assertTransition } from "../../../shared/media-processing";
+import { provenanceAllowedFor, type MediaProvenance } from "../media/provenance";
 import type { SignedUpload, UploadSigner } from "../media/ingest-storage";
 import { uploadIntentSchema } from "../validations/media";
 
@@ -60,6 +61,8 @@ export interface UploadedMediaAssetData {
   readonly uploadedById: string;
   readonly title: string | null;
   readonly altText: string | null;
+  /** Declared at upload; a reviewer may correct it before publication. */
+  readonly provenance: MediaProvenance;
 }
 
 export interface UploadIntentStore {
@@ -150,6 +153,13 @@ export async function handleUploadIntent(request: UploadIntentRequest, deps: Upl
     if (!canCreateMediaFor(user, { type: "PROJECT" })) return fail(403, "Forbidden");
   }
 
+  /* A model cannot be a 360 photograph and a panorama cannot be an official
+     building model. Storing a claim that contradicts itself would put a wrong
+     label under a published asset, so it is refused at the boundary. */
+  if (input.provenance !== undefined && !provenanceAllowedFor(input.kind, input.provenance)) {
+    return fail(400, `${input.provenance} is not a provenance a ${input.kind} can have`);
+  }
+
   // 5. Intent quota (database-backed, per uploader, every status counts).
   const now = deps.now();
   const since = new Date(now.getTime() - UPLOAD_INTENT_QUOTA.windowSeconds * 1000);
@@ -195,6 +205,10 @@ export async function handleUploadIntent(request: UploadIntentRequest, deps: Upl
     uploadedById: user.id,
     title: input.title ?? null,
     altText: input.altText ?? null,
+    /* Unstated provenance is engineering material. Defaulting the other way
+       would mean a caller that simply omits the field gets its upload treated as
+       a real model of the building. */
+    provenance: input.provenance ?? "INTERNAL_TEST",
   };
   const problems = validateMediaAssetRecord({
     ...data,

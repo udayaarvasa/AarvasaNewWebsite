@@ -28,6 +28,7 @@ const SELECT = {
   metrics: true,
   title: true,
   altText: true,
+  provenance: true,
   sourceKey: true,
   sourceSizeBytes: true,
   sourceMimeType: true,
@@ -67,10 +68,10 @@ export function createPrismaReviewStore(prisma: PrismaClient): MediaReviewStore 
       return row ? toRow(row as unknown as Selected) : null;
     },
 
-    async approve(id, reviewerId, now, altText) {
+    async approve(id, reviewerId, now, altText, provenance) {
       const { count } = await prisma.mediaAsset.updateMany({
         where: { id, status: "PENDING_REVIEW" },
-        data: { status: "PUBLISHED", reviewedAt: now, publishedAt: now, reviewedById: reviewerId, altText },
+        data: { status: "PUBLISHED", reviewedAt: now, publishedAt: now, reviewedById: reviewerId, altText, provenance },
       });
       return count;
     },

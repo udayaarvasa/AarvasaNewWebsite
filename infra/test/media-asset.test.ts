@@ -149,6 +149,9 @@ describe("MediaAsset Prisma schema", () => {
     assert.deepEqual(mediaIndexes, [
       "@@index([propertyId, status, sortOrder])", // a property's (published) media, in order
       "@@index([projectSlug, status, sortOrder])", // a project's (published) media, in order
+      // Public project lookups filter on provenance too, so engineering assets
+      // are excluded in the query rather than after it.
+      "@@index([projectSlug, status, provenance, sortOrder])",
       "@@index([status, createdAt])", // processing and review queues, oldest first
       "@@index([contentHash])", // duplicate detection
       "@@index([uploadedById])",
@@ -171,6 +174,10 @@ describe("MediaAsset migrations", () => {
       // Entitlements: the commercial boundary for premium creation. Listed here
       // so an unreviewed migration appearing in this directory still fails.
       "20260927102729_add_entitlements",
+      // Provenance: what an asset actually is, and therefore whether it may be
+      // shown publicly at all. Defaults to INTERNAL_TEST, so nothing becomes
+      // public by migration.
+      "20261003073926_media_provenance",
     ]);
     const init = sql("0_init");
     assert.match(init, /NEVER execute this against an existing database/);
