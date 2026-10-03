@@ -71,3 +71,54 @@ project that does have coordinates today will probably show the flat map.
 `GOOGLE_ATTRIBUTION` is rendered under every map and the 3D element draws
 Google's own logo. Neither may be removed or obscured — it is a condition of the
 Maps terms of service.
+
+## Nearby places
+
+The nearby-places panel sits under the map in the same column and shares its
+gate exactly: the same browser key, the same verified coordinates. Measuring how
+far a school is from a home starts from the home's position, so a coordinate
+nobody checked would produce a distance nobody can stand behind.
+
+Six categories — transit, schools, hospitals, shopping, dining, parks — one open
+at a time, five closest results each, 2 km radius. The limits live in
+`NEARBY_LIMITS` and travel inside `nearbyRequest()`, so a call site cannot
+forget them.
+
+It uses the **Places library (new)**, `Place.searchNearby`, with a field mask of
+`id`, `displayName` and `location`. Places bills by field group; asking for
+ratings, photos or opening hours we never render would be paying for data to
+throw away. **The Places API (New) must be enabled on the key** — this is a
+separate switch in the Cloud console from Maps JavaScript, and a key with only
+Maps enabled returns an error for every category.
+
+Every row comes from a Places result carrying its own id, name and position.
+Anything missing one of the three is dropped rather than pinned at the property,
+an empty category stays empty rather than borrowing from another, and the list
+is labelled a sample rather than a survey (`NEARBY_DISCLAIMER`). `PLACES_ATTRIBUTION`
+is rendered with the results and is a condition of the terms, like the map credit.
+
+## Future enhancement: the model overlay
+
+Placing the Aarvasa GLB into the Google 3D scene — the building standing on its
+own plot, in its real surroundings — is **deliberately not implemented**, and
+Explore Property and Explore Area remain two separate experiences.
+
+It is blocked on facts, not on code. All three are required:
+
+1. **Plot-accurate coordinates.** Today's are `locality` precision: the right
+   community, not a surveyed position. A tower dropped on a locality-accurate
+   point lands on whatever is actually there — a neighbouring building, a road,
+   open sand — which turns an approximation into a false statement about which
+   plot somebody is buying.
+2. **A validated model scale.** The reconstruction is dimensionally plausible,
+   not surveyed. At a distance in its own viewer that is honest; sitting beside
+   Google's mesh of real neighbours it becomes a direct size comparison against
+   buildings whose dimensions are real.
+3. **A validated orientation.** Which way the facade faces decides the view from
+   a balcony and the sun on it. Nothing in the source material establishes it,
+   and a guessed heading is a claim about afternoon light in somebody's home.
+
+Until all three exist, the overlay would present invented placement with the
+authority of real surroundings, which is the one thing the surrounding
+architecture exists to refuse. Revisit when the developer files a surveyed
+position and either an official model or a measured reconstruction.

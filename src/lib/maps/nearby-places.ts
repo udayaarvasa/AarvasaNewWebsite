@@ -79,6 +79,10 @@ export const findCategory = (id: string): NearbyCategory | undefined =>
  */
 export function nearbyRequest(category: NearbyCategory, center: VerifiedCoordinates) {
   return {
+    /* Exactly what the page shows, and nothing else. Places bills by the field
+       groups requested, so asking for ratings, hours or photos we never render
+       would be paying for data to throw away. */
+    fields: ["id", "displayName", "location"],
     includedTypes: [...category.includedTypes],
     maxResultCount: NEARBY_LIMITS.perCategory,
     locationRestriction: {
@@ -161,4 +165,49 @@ export function toNearbyPlaces(
 /** Cap the pins across every selected category, keeping the closest overall. */
 export function capMarkers(places: readonly NearbyPlace[]): NearbyPlace[] {
   return [...places].sort((a, b) => a.metres - b.metres).slice(0, NEARBY_LIMITS.maxMarkers);
+}
+
+/**
+ * Why a nearby-places lookup failed.
+ *
+ * Separate cases for the same reason Explore Area has them: they are not the
+ * same problem and not the same person's to fix. A rejected key is ours and
+ * will not come right on a retry; a network failure is the visitor's and
+ * probably will.
+ */
+export type NearbyFailure = "CONFIG" | "REQUEST_REJECTED" | "LOAD_FAILED";
+
+export const NEARBY_FAILURE_MESSAGES: Readonly<Record<NearbyFailure, string>> = {
+  CONFIG: "Nearby places are unavailable — map configuration needs attention.",
+  REQUEST_REJECTED: "Nearby places could not be loaded.",
+  LOAD_FAILED: "Nearby places could not be loaded. This is usually a network problem.",
+};
+
+/**
+ * Classify a rejection from `Place.searchNearby`.
+ *
+ * The decisive fact is whether Google answered at all. The SDK rejects with a
+ * `MapsRequestError` carrying an `endpoint` and a `code` when the request
+ * reached Places and Places refused it — which is itself proof the network is
+ * fine, so calling that "usually a network problem" would send whoever reads it
+ * looking in the wrong place. This is the same witness logic the map uses, with
+ * Google's own error standing in for the flat-map fallback.
+ *
+ * `gm_authFailure` is no help here: it does not fire on this path any more than
+ * it does on the alpha 3D one.
+ *
+ * Note the message check. A rejected key arrives as `INVALID_ARGUMENT`, which is
+ * also what a malformed request gives, so the code alone cannot separate them
+ * and the text is the only thing that does. It is matched narrowly and it is
+ * Google's wording, not ours — if they change it this degrades to
+ * REQUEST_REJECTED, which claims no cause and is still true.
+ */
+export function nearbyFailureReason(error: unknown): NearbyFailure {
+  if (!error || typeof error !== "object") return "LOAD_FAILED";
+  const { code, endpoint, message } = error as Record<string, unknown>;
+  // No endpoint means the request never reached Places.
+  if (typeof endpoint !== "string") return "LOAD_FAILED";
+  if (code === "PERMISSION_DENIED" || code === "UNAUTHENTICATED") return "CONFIG";
+  if (typeof message === "string" && /api key/i.test(message)) return "CONFIG";
+  return "REQUEST_REJECTED";
 }

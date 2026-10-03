@@ -9,11 +9,11 @@ import {
   EXPLORE_AREA_NOTE,
   GOOGLE_ATTRIBUTION,
   exploreAreaMode,
-  mapsScriptUrl,
   type ExploreAreaBlocker,
   type ExploreAreaMode,
   type VerifiedCoordinates,
 } from "@/lib/maps/google-3d";
+import { importMapsLibrary, keyWasRejected, loadMaps } from "@/lib/maps/loader";
 
 /**
  * Explore Area — the property's surroundings on Google's photorealistic 3D map.
@@ -40,45 +40,6 @@ type Phase =
      who can fix it: a rejected key is ours, absent coverage is Google's and will
      not change on a retry. */
   | { k: "failed"; blocker: ExploreAreaBlocker };
-
-declare global {
-  interface Window {
-    google?: { maps?: { importLibrary?: (name: string) => Promise<unknown> } };
-    /** Google calls this when the API key is rejected. */
-    gm_authFailure?: () => void;
-  }
-}
-
-/* Set when Google rejects the key. It is a document-wide callback with no
-   context, so the flag is module scope and every mounted map reads it. Without
-   this the component reported a working 3D map while Google's own "didn't load
-   correctly" panel was rendered inside the frame. */
-let authFailed = false;
-
-/** Load the Maps JS API once per document, whatever calls it. */
-let scriptPromise: Promise<void> | null = null;
-function loadMaps(apiKey: string): Promise<void> {
-  if (scriptPromise) return scriptPromise;
-  scriptPromise = new Promise<void>((resolve, reject) => {
-    const existing = document.querySelector<HTMLScriptElement>("script[data-aarvasa-maps]");
-    if (existing) {
-      existing.addEventListener("load", () => resolve());
-      existing.addEventListener("error", () => reject(new Error("maps script failed")));
-      return;
-    }
-    window.gm_authFailure = () => {
-      authFailed = true;
-    };
-    const script = document.createElement("script");
-    script.src = mapsScriptUrl(apiKey);
-    script.async = true;
-    script.dataset.aarvasaMaps = "true";
-    script.addEventListener("load", () => resolve());
-    script.addEventListener("error", () => reject(new Error("maps script failed")));
-    document.head.appendChild(script);
-  });
-  return scriptPromise;
-}
 
 export function ExploreArea({
   name,
@@ -111,15 +72,13 @@ export function ExploreArea({
     }
     try {
       await loadMaps(resolved.apiKey);
-      const importLibrary = window.google?.maps?.importLibrary;
-      if (!importLibrary) throw new Error("maps api did not initialise");
 
       /* The 3D map is a custom element. Importing the library is what defines
          it; if that throws, this deployment's key has no access to it and the
          flat map is the honest answer. */
       let is3d = true;
       try {
-        await importLibrary("maps3d");
+        await importMapsLibrary("maps3d");
       } catch {
         is3d = false;
       }
@@ -158,7 +117,7 @@ export function ExploreArea({
           map.addEventListener("gmp-error", onError);
         });
 
-        if (authFailed) {
+        if (keyWasRejected()) {
           host.replaceChildren();
           setPhase({ k: "failed", blocker: "INVALID_API_KEY" });
           return;
@@ -184,7 +143,7 @@ export function ExploreArea({
                or the network. Saying "not available at this location" here would
                blame Google for our own configuration and send whoever reads it
                looking in the wrong place. */
-            setPhase({ k: "failed", blocker: authFailed ? "INVALID_API_KEY" : "LOAD_FAILED" });
+            setPhase({ k: "failed", blocker: keyWasRejected() ? "INVALID_API_KEY" : "LOAD_FAILED" });
           }
           return;
         }
@@ -196,7 +155,7 @@ export function ExploreArea({
       setPhase({ k: "ready", mode: "2d" });
     } catch {
       // A rejected key is reported as such even when it surfaced as a throw.
-      setPhase({ k: "failed", blocker: authFailed ? "INVALID_API_KEY" : "LOAD_FAILED" });
+      setPhase({ k: "failed", blocker: keyWasRejected() ? "INVALID_API_KEY" : "LOAD_FAILED" });
     }
   }, [resolved, name, location]);
 
@@ -283,15 +242,13 @@ async function mountFlatMap(
   name: string,
   location: string,
 ): Promise<void> {
-  if (authFailed) throw new Error("maps key rejected");
-  const importLibrary = window.google?.maps?.importLibrary;
-  if (!importLibrary) throw new Error("maps api did not initialise");
-  const maps = (await importLibrary("maps")) as {
+  if (keyWasRejected()) throw new Error("maps key rejected");
+  const maps = await importMapsLibrary<{
     Map: new (el: HTMLElement, options: Record<string, unknown>) => unknown;
-  };
-  const marker = (await importLibrary("marker")) as {
+  }>("maps");
+  const marker = await importMapsLibrary<{
     AdvancedMarkerElement: new (options: Record<string, unknown>) => unknown;
-  };
+  }>("marker");
   const map = new maps.Map(host, {
     center,
     zoom: 16,

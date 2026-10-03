@@ -14,10 +14,12 @@ import {
   NEARBY_DISCLAIMER,
   NEARBY_LIMITS,
   PLACES_ATTRIBUTION,
+  NEARBY_FAILURE_MESSAGES,
   capMarkers,
   findCategory,
   formatDistance,
   metresBetween,
+  nearbyFailureReason,
   nearbyRequest,
   toNearbyPlaces,
 } from "../src/lib/maps/nearby-places.ts";
@@ -46,6 +48,9 @@ test("the categories are the ones a buyer asks about, and stay few", () => {
 
 test("the request carries the limits, so a call site cannot forget them", () => {
   const req = nearbyRequest(NEARBY_CATEGORIES[0], CENTER);
+  // Places bills by field group, so asking for anything the page does not show
+  // is paying for data to throw away.
+  assert.deepEqual(req.fields, ["id", "displayName", "location"]);
   assert.equal(req.maxResultCount, NEARBY_LIMITS.perCategory);
   assert.equal(req.locationRestriction.radius, NEARBY_LIMITS.radiusMetres);
   assert.deepEqual(req.locationRestriction.center, CENTER);
@@ -115,4 +120,41 @@ test("the list is credited to Google and never called complete", () => {
   assert.match(PLACES_ATTRIBUTION, /Google/);
   assert.match(NEARBY_DISCLAIMER, /not a complete survey/i);
   assert.match(NEARBY_DISCLAIMER, /straight-line/i);
+});
+
+test("an error Google answered with is never reported as a network problem", () => {
+  // Captured verbatim from the SDK by sending a deliberately invalid key.
+  const rejectedKey = {
+    name: "MapsRequestError",
+    code: "INVALID_ARGUMENT",
+    endpoint: "PLACES_NEARBY_SEARCH",
+    message: "PLACES_NEARBY_SEARCH: INVALID_ARGUMENT: Error in searchNearby: API key not valid. Please pass a valid API key.",
+  };
+  assert.equal(nearbyFailureReason(rejectedKey), "CONFIG");
+
+  // A key that is valid but has no Places access.
+  assert.equal(
+    nearbyFailureReason({ code: "PERMISSION_DENIED", endpoint: "PLACES_NEARBY_SEARCH", message: "denied" }),
+    "CONFIG",
+  );
+
+  // Places answered and refused for some other reason. No cause is claimed,
+  // because none has been established.
+  assert.equal(
+    nearbyFailureReason({ code: "INVALID_ARGUMENT", endpoint: "PLACES_NEARBY_SEARCH", message: "bad radius" }),
+    "REQUEST_REJECTED",
+  );
+
+  // Never reached Google: no endpoint, so the network is the honest answer.
+  assert.equal(nearbyFailureReason(new Error("script failed")), "LOAD_FAILED");
+  assert.equal(nearbyFailureReason(undefined), "LOAD_FAILED");
+  assert.equal(nearbyFailureReason("string"), "LOAD_FAILED");
+});
+
+test("only the case that established a network problem mentions one", () => {
+  const messages = Object.values(NEARBY_FAILURE_MESSAGES);
+  assert.equal(new Set(messages).size, messages.length, "no two failures share a message");
+  assert.match(NEARBY_FAILURE_MESSAGES.LOAD_FAILED, /network/i);
+  assert.doesNotMatch(NEARBY_FAILURE_MESSAGES.CONFIG, /network/i);
+  assert.doesNotMatch(NEARBY_FAILURE_MESSAGES.REQUEST_REJECTED, /network/i);
 });

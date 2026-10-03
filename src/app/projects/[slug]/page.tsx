@@ -34,6 +34,7 @@ import { loadProjectModel } from "@/lib/services/project-models";
 import { loadProjectTour } from "@/lib/services/project-panoramas";
 import { loadProjectSplat } from "@/lib/services/project-splats";
 import { ExploreArea } from "@/components/property/explore-area";
+import { NearbyPlaces } from "@/components/property/nearby-places";
 import {
   EXPLORE_AREA_HINTS,
   NO_PROPERTY_MODEL_HINT,
@@ -313,6 +314,13 @@ export default async function ProjectPage({
                       location={`${project.location}, ${project.city}`}
                       coordinates={area.center}
                       apiKey={process.env.NEXT_PUBLIC_GOOGLE_MAPS_BROWSER_KEY ?? null}
+                    />
+                    {/* Shares the map's gate exactly: same key, same verified
+                        coordinates. Measuring distances from a position nobody
+                        checked would make up how far a school is from a home. */}
+                    <NearbyPlaces
+                      center={area.center}
+                      apiKey={process.env.NEXT_PUBLIC_GOOGLE_MAPS_BROWSER_KEY ?? ""}
                     />
                   </MotionReveal>
                 ) : (
