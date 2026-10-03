@@ -73,20 +73,55 @@ GROUND_H = 5.0              # assumed; a taller entrance level
 LENGTH = 82.0               # assumed, from the observed slab proportion
 DEPTH = 22.0
 
-CORE_INSET = 2.6            # glazing line, inboard of the slab edge
-WAVE_BAYS_LONG = 11         # measured rhythm along the long face
-WAVE_BAYS_SHORT = 3
-WAVE_AMP = 0.95             # how far the parapet bows in and out
-PARAPET_H = 1.15
-PARAPET_T = 0.34
-SLAB_T = 0.30
-PIER_W = 1.5
-PIER_PROUD = 0.45
-CROWN_H = 4.2
-SEG_LEN = 1.1               # parapet sampling, metres
+# The balcony ribbon. Read off the facade-detail render rather than assumed: the
+# parapet does NOT follow a sine. It holds a deep projecting run for roughly half
+# a bay, ramps across on a hard diagonal, holds a shallow run, and ramps back.
+# That stepped profile with its diagonal transitions is the single most
+# recognisable thing about the building, and a smooth sine loses it entirely.
+BALCONY_DEEP = 3.6          # projecting run, out from the glazing line
+BALCONY_SHALLOW = 1.3       # recessed run
+BAY_DEEP = 0.44             # fraction of a bay held at the deep offset
+BAY_RAMP = 0.10             # fraction spent on each diagonal transition
+BAYS_LONG = 11              # measured rhythm along the long face
+BAYS_SHORT = 3
+
+PARAPET_H = 1.62
+PARAPET_T = 0.32
+TRIM_H = 0.14               # the brass pinstripe along each balcony edge
+SLAB_T = 0.34
+PIER_W = 1.7                # piers read as a frame, not as mullions
+PIER_PROUD = 0.55           # how far they stand forward of the deep balcony run
+CROWN_BAND_H = 3.4
+CROWN_HUMP_H = 3.2          # extra height at the raised sections
+CROWN_FRAME_T = 0.55
 
 TOWER_BASE = GROUND_H + PODIUM_LEVELS * PODIUM_H     # top of the podium
 TOWER_TOP = TOWER_BASE + FLOORS * FLOOR_H
+CROWN_H = CROWN_BAND_H + CROWN_HUMP_H
+
+# Everything below is authored in metres, and export() bakes the scale into the
+# vertex positions on the way out.
+#
+# The viewer's camera has a fixed 200 m far clip (NEAR_CLIP/FAR_CLIP in
+# playcanvas/create-engine.ts) and opens at 2.8x the content radius. A tower
+# 88 m tall has a bounding radius near 70 m, which puts the opening camera at
+# ~196 m and the far half of the building past the clip plane — the model loads,
+# reports ready, and draws nothing. Authoring at a tenth of life size keeps the
+# whole thing inside the frustum without touching the viewer, which is also what
+# the Phase 3 pilot asset does. Real-world scale is recorded, not lost: a project
+# that later offers this in AR states metersPerUnit, and for this model it is 10.
+#
+# It is baked into the vertices rather than set as a node scale, which matters.
+# With a node scale the loader frames the camera on the mesh's own bounds while
+# drawing the scaled node, so the camera sits ten times too far out and the
+# model loads, reports ready and is nowhere on screen. Baking keeps the geometry
+# and the bounds in the same units, which is the only way the two agree.
+SCALE = 0.1
+METERS_PER_UNIT = 1.0 / SCALE
+# The glazing line sits inboard of the slab edge by the deepest balcony run.
+CORE_HX = LENGTH / 2 - BALCONY_DEEP
+CORE_HZ = DEPTH / 2 - BALCONY_DEEP
+PODIUM_Z = DEPTH * 0.22                              # the podium sits slightly to one side
 
 # ── Mesh building ────────────────────────────────────────────────────────────
 
@@ -130,83 +165,91 @@ class Mesh:
         return sum(len(g["pos"]) // 9 for g in self.groups.values())
 
 
-# ── The wave ─────────────────────────────────────────────────────────────────
+# ── The stepped balcony ribbon ───────────────────────────────────────────────
 
-def perimeter_path(samples_long, samples_short):
+def bay_offsets(bays):
     """
-    The balcony parapet's centre line for one floor.
+    Offsets along one face, as (t, offset) pairs, where t runs 0..1 along the
+    face and offset is how far the parapet stands out from the glazing line.
 
-    A rounded rectangle whose offset from the slab edge breathes in and out along
-    each side. The wave is continuous around the corners because the phase is
-    driven by distance travelled along each face, and each face carries a whole
-    number of bays — which is what makes the crests stack cleanly from floor to
-    floor, the way they do in the renders.
+    Each bay is: a deep run, a diagonal in, a shallow run, a diagonal back out.
+    Emitting only the corner points keeps the geometry clean and the triangle
+    count down — a uniform sample would round off exactly the hard diagonals
+    that make the facade recognisable.
     """
-    hx, hz = LENGTH / 2, DEPTH / 2
     pts = []
-
-    def wave(t, bays):
-        # t runs 0..1 along the face. cos gives a crest at each end, so adjacent
-        # faces meet at a crest and the corner reads as a continuous bulge.
-        return WAVE_AMP * math.cos(2 * math.pi * bays * t)
-
-    for i in range(samples_long):                   # +z face, running +x
-        t = i / samples_long
-        pts.append((-hx + LENGTH * t, hz + wave(t, WAVE_BAYS_LONG)))
-    for i in range(samples_short):                  # +x face, running -z
-        t = i / samples_short
-        pts.append((hx + wave(t, WAVE_BAYS_SHORT), hz - DEPTH * t))
-    for i in range(samples_long):                   # -z face, running -x
-        t = i / samples_long
-        pts.append((hx - LENGTH * t, -hz - wave(t, WAVE_BAYS_LONG)))
-    for i in range(samples_short):                  # -x face, running +z
-        t = i / samples_short
-        pts.append((-hx - wave(t, WAVE_BAYS_SHORT), -hz + DEPTH * t))
+    hold_shallow = 1.0 - BAY_DEEP - 2 * BAY_RAMP
+    for b in range(bays):
+        base = b / bays
+        step = 1.0 / bays
+        pts.append((base, BALCONY_DEEP))
+        pts.append((base + step * BAY_DEEP, BALCONY_DEEP))
+        pts.append((base + step * (BAY_DEEP + BAY_RAMP), BALCONY_SHALLOW))
+        pts.append((base + step * (BAY_DEEP + BAY_RAMP + hold_shallow), BALCONY_SHALLOW))
     return pts
 
 
-def sweep_parapet(mesh, mat_top, mat_side, path, y):
-    """
-    Sweep the parapet along a closed path: outer face, chamfered top, inner face.
+def perimeter_path():
+    """The parapet centre line for one floor, as a closed plan polygon."""
+    pts = []
+    for t, off in bay_offsets(BAYS_LONG):              # +z face, running +x
+        pts.append((-CORE_HX + 2 * CORE_HX * t, CORE_HZ + off))
+    for t, off in bay_offsets(BAYS_SHORT):             # +x face, running -z
+        pts.append((CORE_HX + off, CORE_HZ - 2 * CORE_HZ * t))
+    for t, off in bay_offsets(BAYS_LONG):              # -z face, running -x
+        pts.append((CORE_HX - 2 * CORE_HX * t, -CORE_HZ - off))
+    for t, off in bay_offsets(BAYS_SHORT):             # -x face, running +z
+        pts.append((-CORE_HX - off, -CORE_HZ + 2 * CORE_HZ * t))
+    return pts
 
-    The chamfer stands in for the fully radiused section in the renders. At the
-    scale this model is viewed, two bevels read as a rounded edge and cost a
-    fraction of the triangles a real fillet would.
-    """
+
+def pier_stations():
+    """Where the vertical piers land: on every bay boundary of the long faces."""
+    out = []
+    for b in range(BAYS_LONG + 1):
+        x = -CORE_HX + 2 * CORE_HX * b / BAYS_LONG
+        out.append((x, CORE_HZ + BALCONY_DEEP + PIER_PROUD - PIER_W / 2))
+        out.append((x, -CORE_HZ - BALCONY_DEEP - PIER_PROUD + PIER_W / 2))
+    for b in range(1, BAYS_SHORT):
+        z = CORE_HZ - 2 * CORE_HZ * b / BAYS_SHORT
+        out.append((CORE_HX + BALCONY_DEEP + PIER_PROUD - PIER_W / 2, z))
+        out.append((-CORE_HX - BALCONY_DEEP - PIER_PROUD + PIER_W / 2, z))
+    return out
+
+
+def sweep_band(mesh, mat, path, y, height, thickness, closed=True):
+    """Sweep a rectangular section along a closed plan polyline."""
     n = len(path)
-    half = PARAPET_T / 2
-    chamfer = PARAPET_T * 0.30
-    for i in range(n):
+    half = thickness / 2
+    for i in range(n if closed else n - 1):
         x0, z0 = path[i]
         x1, z1 = path[(i + 1) % n]
-        # Outward normal of this segment, in plan.
         dx, dz = x1 - x0, z1 - z0
-        length = math.hypot(dx, dz) or 1.0
+        length = math.hypot(dx, dz)
+        if length < 1e-6:
+            continue
         ox, oz = dz / length, -dx / length
-        # Keep the outward side pointing away from the centre.
         if (x0 * ox + z0 * oz) < 0:
             ox, oz = -ox, -oz
 
         def pt(x, z, off, h):
             return (x + ox * off, y + h, z + oz * off)
 
-        yb, yt = 0.0, PARAPET_H - chamfer
-        a_o, b_o = pt(x0, z0, half, yb), pt(x1, z1, half, yb)
-        a_ot, b_ot = pt(x0, z0, half, yt), pt(x1, z1, half, yt)
-        a_i, b_i = pt(x0, z0, -half, yb), pt(x1, z1, -half, yb)
-        a_it, b_it = pt(x0, z0, -half, yt), pt(x1, z1, -half, yt)
-        a_c, b_c = pt(x0, z0, half - chamfer, PARAPET_H), pt(x1, z1, half - chamfer, PARAPET_H)
-        a_d, b_d = pt(x0, z0, -half + chamfer, PARAPET_H), pt(x1, z1, -half + chamfer, PARAPET_H)
-
-        mesh.quad(mat_side, a_o, b_o, b_ot, a_ot)   # outer face
-        mesh.quad(mat_side, b_i, a_i, a_it, b_it)   # inner face
-        mesh.quad(mat_top, a_ot, b_ot, b_c, a_c)    # outer chamfer
-        mesh.quad(mat_top, a_c, b_c, b_d, a_d)      # cap
-        mesh.quad(mat_top, a_d, b_d, b_it, a_it)    # inner chamfer
+        a_o, b_o = pt(x0, z0, half, 0.0), pt(x1, z1, half, 0.0)
+        a_ot, b_ot = pt(x0, z0, half, height), pt(x1, z1, half, height)
+        a_i, b_i = pt(x0, z0, -half, 0.0), pt(x1, z1, -half, 0.0)
+        a_it, b_it = pt(x0, z0, -half, height), pt(x1, z1, -half, height)
+        mesh.quad(mat, a_o, b_o, b_ot, a_ot)           # outer
+        mesh.quad(mat, b_i, a_i, a_it, b_it)           # inner
+        mesh.quad(mat, a_ot, b_ot, b_it, a_it)         # cap
+        mesh.quad(mat, a_i, b_i, b_o, a_o)             # underside
 
 
-def slab(mesh, mat, path, y, thickness):
-    """The floor plate: a fan from the centre out to the parapet line."""
+def slab(mesh, mat, path, y, thickness, trim_mat=None):
+    """
+    The balcony plate: a fan from the centre out to the parapet line, with the
+    brass pinstripe the renders show running along its outer edge.
+    """
     n = len(path)
     top, bot = y + thickness, y
     for i in range(n):
@@ -214,82 +257,129 @@ def slab(mesh, mat, path, y, thickness):
         x1, z1 = path[(i + 1) % n]
         mesh.tri(mat, (0, top, 0), (x0, top, z0), (x1, top, z1))
         mesh.tri(mat, (0, bot, 0), (x1, bot, z1), (x0, bot, z0))
-        # Edge band, so the slab reads as a solid plate from below.
-        mesh.quad(mat, (x0, bot, z0), (x1, bot, z1), (x1, top, z1), (x0, top, z0))
+        mesh.quad(mat, (x0, bot + TRIM_H, z0), (x1, bot + TRIM_H, z1),
+                  (x1, top, z1), (x0, top, z0))
+        if trim_mat:                                    # the bright edge line
+            mesh.quad(trim_mat, (x0, bot, z0), (x1, bot, z1),
+                      (x1, bot + TRIM_H, z1), (x0, bot + TRIM_H, z0))
+
+
+def crown_top(t, bays, humps):
+    """
+    Height of the crown band at position t along a face.
+
+    The renders show a flat band interrupted by raised sections with large
+    rounded corners, each carrying signage. A raised cosine gives that shoulder
+    without the stepped-box look an approximated curve would have.
+    """
+    for centre, width in humps:
+        d = abs(t - centre)
+        if d < width / 2:
+            return CROWN_BAND_H + CROWN_HUMP_H * (0.5 + 0.5 * math.cos(math.pi * d / (width / 2) * 0.82))
+    return CROWN_BAND_H
+
+
+def sweep_crown(mesh, frame_mat, panel_mat, trim_mat, path_fn, y, samples, humps):
+    """Sweep the crown: a white frame with a dark louvred panel set inside it."""
+    pts = [path_fn(i / samples) for i in range(samples + 1)]
+    for i in range(samples):
+        (x0, z0, ox0, oz0), (x1, z1, ox1, oz1) = pts[i], pts[i + 1]
+        h0, h1 = crown_top(i / samples, 0, humps), crown_top((i + 1) / samples, 0, humps)
+
+        def q(off, ha, hb):
+            return ((x0 + ox0 * off, y + ha, z0 + oz0 * off),
+                    (x1 + ox1 * off, y + hb, z1 + oz1 * off))
+
+        o_lo = q(CROWN_FRAME_T / 2, 0.0, 0.0)
+        o_hi = q(CROWN_FRAME_T / 2, h0, h1)
+        i_lo = q(-CROWN_FRAME_T / 2, 0.0, 0.0)
+        i_hi = q(-CROWN_FRAME_T / 2, h0, h1)
+        mesh.quad(frame_mat, o_lo[0], o_lo[1], o_hi[1], o_hi[0])     # outer face
+        mesh.quad(frame_mat, o_hi[0], o_hi[1], i_hi[1], i_hi[0])     # cap
+        mesh.quad(frame_mat, i_lo[1], i_lo[0], o_lo[0], o_lo[1])     # soffit
+        # The dark panel, set back behind the frame and stopping short of its top.
+        p_lo = q(-CROWN_FRAME_T / 2 - 0.05, 0.45, 0.45)
+        p_hi = q(-CROWN_FRAME_T / 2 - 0.05, h0 - 0.75, h1 - 0.75)
+        mesh.quad(panel_mat, p_lo[0], p_lo[1], p_hi[1], p_hi[0])
+        # Brass pinstripe following the frame's outer edge.
+        t_lo = q(CROWN_FRAME_T / 2 + 0.02, h0 - 0.42, h1 - 0.42)
+        t_hi = q(CROWN_FRAME_T / 2 + 0.02, h0 - 0.26, h1 - 0.26)
+        mesh.quad(trim_mat, t_lo[0], t_lo[1], t_hi[1], t_hi[0])
 
 
 def build():
     mesh = Mesh()
-    CONCRETE, GLASS, CROWN, DECK, STONE, WATER, PLANT = (
-        "concrete", "glass", "crown", "deck", "stone", "water", "planting")
+    CONCRETE, GLASS, CROWN, DECK, STONE, WATER, PLANT, BRASS = (
+        "concrete", "glass", "crown", "deck", "stone", "water", "planting", "brass")
 
-    samples_long = max(8, int(LENGTH / SEG_LEN))
-    samples_short = max(4, int(DEPTH / SEG_LEN))
-    path = perimeter_path(samples_long, samples_short)
+    path = perimeter_path()
 
-    # ── Podium: ground plus three levels, set wider than the tower ───────────
-    pod_l, pod_d = LENGTH * 1.18, DEPTH * 2.25
-    mesh.box(STONE, 0, 0, DEPTH * 0.42, pod_l, GROUND_H, pod_d)
+    # ── Podium: ground plus three levels, each stepping back ────────────────
+    # The renders show three distinct terraced levels, not one plinth. Each one
+    # is inset from the one below, and the setback it leaves is a planted
+    # terrace, which is what makes the stepping read from a distance.
+    # Sized from the aerial: a little wider than the tower and about twice its
+    # depth, not the vast apron the first pass drew.
+    pod_l, pod_d = LENGTH * 1.10, DEPTH * 1.70
+    levels = [(0.0, GROUND_H, 0.0)]
     for i in range(PODIUM_LEVELS):
-        y = GROUND_H + i * PODIUM_H
-        inset = 1.0 + i * 0.8
-        mesh.box(STONE, 0, y, DEPTH * 0.42, pod_l - inset * 2, PODIUM_H, pod_d - inset * 2)
+        levels.append((GROUND_H + i * PODIUM_H, PODIUM_H, 3.2 + i * 3.0))
+    for y, h, inset in levels:
+        L, D = pod_l - inset * 2, pod_d - inset * 2
+        mesh.box(STONE, 0, y, PODIUM_Z, L, h, D)
+        # Glazed strip under each slab edge, so the levels do not read as blocks.
+        mesh.box(GLASS, 0, y + 0.5, PODIUM_Z, L - 1.2, h - 1.4, D - 1.2)
+        if inset > 0:                                   # planted terrace on the setback
+            mesh.box(PLANT, 0, y - 0.1, PODIUM_Z + D / 2 + 1.3, L * 0.92, 0.7, 2.4)
 
-    # Pool deck on top of the podium, off the tower's long face.
     deck_y = TOWER_BASE
-    deck_z = DEPTH * 1.15
-    mesh.box(DECK, 0, deck_y, deck_z, pod_l - 8, 0.25, DEPTH * 0.95)
-    mesh.box(WATER, -LENGTH * 0.18, deck_y + 0.26, deck_z, 26.0, 0.12, 9.0)
-    for sx in (-1, 1):                               # planters flanking the pool
-        mesh.box(PLANT, sx * LENGTH * 0.33, deck_y + 0.26, deck_z, 12.0, 0.9, 7.0)
+    deck_z = PODIUM_Z + DEPTH * 0.52
+    mesh.box(DECK, 0, deck_y, deck_z, pod_l - 18, 0.25, DEPTH * 0.62)
+    mesh.box(WATER, -LENGTH * 0.14, deck_y + 0.26, deck_z, 22.0, 0.12, 6.5)
+    for sx in (-1, 1):
+        mesh.box(PLANT, sx * LENGTH * 0.30, deck_y + 0.26, deck_z, 9.0, 0.9, 5.0)
 
     # ── Tower ───────────────────────────────────────────────────────────────
-    core_hx, core_hz = LENGTH / 2 - CORE_INSET, DEPTH / 2 - CORE_INSET
     for f in range(FLOORS):
         y = TOWER_BASE + f * FLOOR_H
-        slab(mesh, CONCRETE, path, y, SLAB_T)
-        # Glazed volume behind the balconies: the floor's enclosed envelope.
-        mesh.box(GLASS, 0, y + SLAB_T, 0, core_hx * 2, FLOOR_H - SLAB_T, core_hz * 2)
-        # Balcony deck, between the glazing and the parapet.
-        sweep_parapet(mesh, CONCRETE, CONCRETE, path, y + SLAB_T)
+        slab(mesh, CONCRETE, path, y, SLAB_T, trim_mat=BRASS)
+        # The glazed envelope, set well back so the balcony reads as a shadow.
+        mesh.box(GLASS, 0, y + SLAB_T, 0, CORE_HX * 2, FLOOR_H - SLAB_T, CORE_HZ * 2)
+        sweep_band(mesh, CONCRETE, path, y + SLAB_T, PARAPET_H, PARAPET_T)
 
-    # Vertical piers, standing proud of the balcony line.
-    pier_positions = [(-LENGTH / 2, z) for z in (-DEPTH / 2, DEPTH / 2)] + \
-                     [(LENGTH / 2, z) for z in (-DEPTH / 2, DEPTH / 2)]
-    for i in range(1, WAVE_BAYS_LONG):               # intermediate piers, both long faces
-        x = -LENGTH / 2 + LENGTH * i / WAVE_BAYS_LONG
-        pier_positions += [(x, DEPTH / 2 + WAVE_AMP), (x, -DEPTH / 2 - WAVE_AMP)]
-    for px, pz in pier_positions:
-        mesh.box(CONCRETE, px, TOWER_BASE, pz + (PIER_PROUD if pz > 0 else -PIER_PROUD),
-                 PIER_W, FLOORS * FLOOR_H + CROWN_H, PIER_W)
+    # Piers: full height, standing forward of the deepest balcony run, so the
+    # facade reads as a frame with the ribbon threading through it.
+    pier_h = FLOORS * FLOOR_H + CROWN_BAND_H
+    for px, pz in pier_stations():
+        mesh.box(CONCRETE, px, TOWER_BASE, pz, PIER_W, pier_h, PIER_W)
 
     # ── Crown ───────────────────────────────────────────────────────────────
-    # A darker band standing above the top floor, inset slightly, with the
-    # scalloped lower edge the renders show: a shallow arch over each bay.
-    crown_path = perimeter_path(samples_long, samples_short)
-    slab(mesh, CONCRETE, crown_path, TOWER_TOP, SLAB_T)
-    mesh.box(CROWN, 0, TOWER_TOP + SLAB_T, 0, LENGTH - 1.0, CROWN_H, DEPTH - 1.0)
-    # Scallops: a row of shallow recesses along both long faces.
-    for sign in (1, -1):
-        for i in range(WAVE_BAYS_LONG):
-            x = -LENGTH / 2 + LENGTH * (i + 0.5) / WAVE_BAYS_LONG
-            mesh.box(CONCRETE, x, TOWER_TOP + SLAB_T + CROWN_H * 0.62,
-                     sign * (DEPTH / 2 - 0.45), LENGTH / WAVE_BAYS_LONG * 0.72, 0.5, 0.5)
+    slab(mesh, CONCRETE, path, TOWER_TOP, SLAB_T, trim_mat=BRASS)
+    hx, hz = CORE_HX + BALCONY_DEEP * 0.72, CORE_HZ + BALCONY_DEEP * 0.72
+
+    def face(sign_z):
+        def fn(t):
+            return (-hx + 2 * hx * t, sign_z * hz, 0.0, float(sign_z))
+        return fn
+
+    def end(sign_x):
+        def fn(t):
+            return (sign_x * hx, hz - 2 * hz * t, float(sign_x), 0.0)
+        return fn
+
+    long_humps = [(0.17, 0.26), (0.62, 0.34)]           # as placed in the renders
+    short_humps = [(0.5, 0.6)]
+    y_crown = TOWER_TOP + SLAB_T
+    for fn, humps, n in ((face(1), long_humps, 72), (face(-1), long_humps, 72),
+                         (end(1), short_humps, 24), (end(-1), short_humps, 24)):
+        sweep_crown(mesh, CONCRETE, CROWN, BRASS, fn, y_crown, n, humps)
 
     # ── Roof ────────────────────────────────────────────────────────────────
-    roof_y = TOWER_TOP + SLAB_T + CROWN_H
-    mesh.box(STONE, 0, roof_y, 0, LENGTH - 1.0, 0.3, DEPTH - 1.0)
-    # Plant and lift enclosures.
-    for x, sx, sz in ((-LENGTH * 0.22, 14.0, 9.0), (LENGTH * 0.10, 10.0, 7.0),
-                      (LENGTH * 0.33, 7.0, 6.0)):
-        mesh.box(STONE, x, roof_y + 0.3, 0, sx, 3.4, sz)
-    # The two curved parapet features at the roof edge, one near each end.
-    for x in (-LENGTH * 0.34, LENGTH * 0.30):
-        for k in range(7):                           # stepped blocks approximate the curve
-            t = k / 6
-            h = 2.6 * math.sin(math.pi * max(t, 1e-3))
-            mesh.box(STONE, x + (t - 0.5) * 13.0, roof_y + 0.3, DEPTH * 0.30,
-                     13.0 / 7, max(h, 0.4), 4.0)
+    roof_y = y_crown + 0.4
+    mesh.box(STONE, 0, roof_y, 0, hx * 2 - 1.0, 0.3, hz * 2 - 1.0)
+    for x, sx, sz in ((-LENGTH * 0.20, 13.0, 8.0), (LENGTH * 0.08, 9.0, 6.5),
+                      (LENGTH * 0.30, 6.5, 5.5)):
+        mesh.box(STONE, x, roof_y + 0.3, 0, sx, 3.2, sz)
 
     return mesh
 
@@ -299,16 +389,32 @@ def build():
 MATERIALS = {
     # name:        (base colour rgba,              metallic, roughness)
     "concrete":    ((0.900, 0.894, 0.878, 1.0),    0.00, 0.62),
-    "glass":       ((0.090, 0.105, 0.125, 1.0),    0.25, 0.14),
-    "crown":       ((0.185, 0.195, 0.205, 1.0),    0.10, 0.45),
+    # Bronze-tinted rather than black: the renders show glazing that catches
+    # light, and a near-black value made the facade read as a dark tower.
+    "glass":       ((0.232, 0.231, 0.219, 1.0),    0.30, 0.18),
+    "crown":       ((0.128, 0.156, 0.145, 1.0),    0.15, 0.40),
     "deck":        ((0.556, 0.431, 0.302, 1.0),    0.00, 0.70),
     "stone":       ((0.839, 0.827, 0.800, 1.0),    0.00, 0.72),
     "water":       ((0.180, 0.580, 0.650, 1.0),    0.10, 0.10),
     "planting":    ((0.247, 0.380, 0.231, 1.0),    0.00, 0.85),
+    # The bright line along every balcony edge and around the crown frame.
+    "brass":       ((0.776, 0.631, 0.345, 1.0),    0.85, 0.28),
 }
 
 
 def export(mesh, out_path):
+    # Centre the model on its own bounds and scale it, in the vertex data itself
+    # so the mesh bounds the viewer frames on are the bounds it actually draws.
+    xs = [v for g in mesh.groups.values() for v in g["pos"][0::3]]
+    ys = [v for g in mesh.groups.values() for v in g["pos"][1::3]]
+    zs = [v for g in mesh.groups.values() for v in g["pos"][2::3]]
+    cx, cy, cz = (min(xs) + max(xs)) / 2, (min(ys) + max(ys)) / 2, (min(zs) + max(zs)) / 2
+    for g in mesh.groups.values():
+        p = g["pos"]
+        for i in range(0, len(p), 3):
+            p[i] = (p[i] - cx) * SCALE
+            p[i + 1] = (p[i + 1] - cy) * SCALE
+            p[i + 2] = (p[i + 2] - cz) * SCALE
     buffers, views, accessors, prims, materials = bytearray(), [], [], [], []
     mat_index = {}
 
@@ -327,8 +433,36 @@ def export(mesh, out_path):
 
     for name in sorted(mesh.groups):
         g = mesh.groups[name]
-        pos, nrm = g["pos"], g["nrm"]
+        # Index the geometry and merge identical vertices. Every face is written
+        # with its own flat normal, so corners shared between differently-facing
+        # faces stay separate and the hard edges survive — only genuine
+        # duplicates collapse. Indices are also what the viewer's glTF loader
+        # expects: a non-indexed primitive parsed without complaint and drew
+        # nothing at all.
+        raw_pos, raw_nrm = g["pos"], g["nrm"]
+        lookup, pos, nrm, indices = {}, [], [], []
+        for v in range(len(raw_pos) // 3):
+            key = (round(raw_pos[v*3], 4), round(raw_pos[v*3+1], 4), round(raw_pos[v*3+2], 4),
+                   round(raw_nrm[v*3], 3), round(raw_nrm[v*3+1], 3), round(raw_nrm[v*3+2], 3))
+            idx = lookup.get(key)
+            if idx is None:
+                idx = lookup[key] = len(pos) // 3
+                pos.extend(raw_pos[v*3:v*3+3])
+                nrm.extend(raw_nrm[v*3:v*3+3])
+            indices.append(idx)
         count = len(pos) // 3
+
+        while len(buffers) % 4:
+            buffers.append(0)
+        wide = count > 65535
+        fmt, comp, width = ("<%dI", 5125, 4) if wide else ("<%dH", 5123, 2)
+        offset = len(buffers)
+        buffers.extend(struct.pack(fmt % len(indices), *indices))
+        views.append({"buffer": 0, "byteOffset": offset,
+                      "byteLength": len(indices) * width, "target": 34963})
+        accessors.append({"bufferView": len(views) - 1, "componentType": comp,
+                          "count": len(indices), "type": "SCALAR"})
+        index_accessor = len(accessors) - 1
 
         for data, kind in ((pos, "POSITION"), (nrm, "NORMAL")):
             while len(buffers) % 4:
@@ -341,12 +475,13 @@ def export(mesh, out_path):
                    "count": count, "type": "VEC3"}
             if kind == "POSITION":
                 xs, ys, zs = data[0::3], data[1::3], data[2::3]
-                acc["min"] = [min(xs), min(ys), min(zs)]
-                acc["max"] = [max(xs), max(ys), max(zs)]
+                acc["min"] = [float(min(xs)), float(min(ys)), float(min(zs))]
+                acc["max"] = [float(max(xs)), float(max(ys)), float(max(zs))]
             accessors.append(acc)
 
         prims.append({
             "attributes": {"POSITION": len(accessors) - 2, "NORMAL": len(accessors) - 1},
+            "indices": index_accessor,
             "material": mat_index[name],
             "mode": 4,
         })
@@ -358,14 +493,17 @@ def export(mesh, out_path):
         "asset": {
             "version": "2.0",
             "generator": "aarvasa-reef-996-massing",
-            "copyright": "Aarvasa visual reconstruction from REEF developer renders. Not an official developer model.",
+            "copyright": ("Aarvasa visual reconstruction from REEF developer renders. "
+                          "Not an official developer model. "
+                          "Authored at 1:10; metresPerUnit 10."),
         },
         "scene": 0,
         "scenes": [{"nodes": [0], "name": "REEF 996"}],
         # Centre the tower on the origin and sit it on the ground plane, so the
         # viewer's own framing has nothing to correct for.
-        "nodes": [{"mesh": 0, "name": "REEF996_massing",
-                   "translation": [0.0, -TOWER_TOP / 2, 0.0]}],
+        # No node transform: the geometry is already centred and scaled, so the
+        # bounds the viewer frames on and the bounds it draws are the same.
+        "nodes": [{"mesh": 0, "name": "REEF996_massing"}],
         "meshes": [{"name": "REEF996", "primitives": prims}],
         "materials": materials,
         "accessors": accessors,
@@ -395,3 +533,4 @@ if __name__ == "__main__":
     print(f"  {size:,} bytes")
     print(f"  {FLOORS} residential floors over ground + {PODIUM_LEVELS} podium levels")
     print(f"  {LENGTH:.0f} x {DEPTH:.0f} m plan, {TOWER_TOP + CROWN_H:.1f} m to the top of the crown")
+    print(f"  exported at 1:{METERS_PER_UNIT:.0f} to fit the viewer's {200} m far clip")
