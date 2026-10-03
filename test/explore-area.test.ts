@@ -35,8 +35,9 @@ test("a missing key is reported as configuration, not as a missing location", ()
   assert.equal(mode.kind === "unavailable" && mode.reason, "NO_API_KEY");
 });
 
-test("every REEF record today produces no map, because none has coordinates", () => {
-  // This is the live state of the data, not a hypothetical.
+test("a record with no coordinates produces no map", () => {
+  // Still the live state for several records; REEF 996, 997 and 998 now carry
+  // reconciled locality positions and are covered by projects.test.ts.
   for (const coordinates of [null, undefined]) {
     const mode = exploreAreaMode({ coordinates, apiKey: KEY });
     assert.equal(mode.kind, "unavailable");

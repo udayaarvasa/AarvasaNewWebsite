@@ -32,21 +32,26 @@ secrecy. **Never put a server-side key here**, and never reuse a key that has
 other APIs enabled on it: a key with, say, Geocoding or Places enabled becomes a
 free quota for anyone who copies it out of the page source.
 
-## 2. No verified coordinates
+## 2. Coordinates, where they exist
 
-Every REEF record carries `coordinates: null`:
+| Project | Coordinates | Precision |
+| --- | --- | --- |
+| REEF 996 — Dubai Production City (IMPZ) | 25.03785, 55.20126 | locality |
+| REEF 997 — Dubai Islands | 25.28990, 55.30238 | locality |
+| REEF 998 — Dubai Land Residence Complex | 25.10029, 55.37471 | locality |
+| Aaradhyam Pearl — Badwai, Bhopal | none | — |
+| Aaradhyam Prime — Jatkhedi, Bhopal | 23.17633, 77.4694 | locality |
 
-| Project | Coordinates |
-| --- | --- |
-| REEF 996 — Dubai Production City (IMPZ) | none |
-| REEF 997 — Dubai Islands | none |
-| REEF 998 — Dubai Land Residence Complex | none |
-| Aaradhyam Pearl — Badwai, Bhopal | none |
-| Aaradhyam Prime — Jatkhedi, Bhopal | 23.17633, 77.4694 |
+The three REEF positions were reconciled against an independent reverse geocode
+before being recorded (`docs/reef-immersive-status.md`). They are **locality**
+precision — the right community, not a surveyed plot — which is enough to show
+somebody their surroundings and not enough to stand a building on. That is why
+the model overlay stays off.
 
-A latitude that looks plausible for "Dubai Islands" is a made-up fact about
-where somebody's home is, and a wrong pin is worse than no pin, so the section
-refuses rather than guesses. Supply coordinates by editing the project's record
+Where a record has no coordinates, a latitude that looks plausible for its
+locality would be a made-up fact about where somebody's home is, and a wrong pin
+is worse than no pin, so the section refuses rather than guesses. Supply
+coordinates by editing the project's record
 (`src/lib/projects.ts` for the hand-maintained entries; `reef-projects.ts` is
 generated, so attach coordinates in `projects.ts` as the imagery and media are).
 Take them from the developer's own filing or a surveyed address — not from a

@@ -15,10 +15,11 @@
  *
  *   1. A browser API key for this deployment. Without one there is no map, only
  *      a dead viewport.
- *   2. Coordinates that someone verified. Every REEF record currently carries
- *      `coordinates: null`, and a plausible latitude for "Dubai Islands" is a
- *      made-up fact about where someone's home is. A wrong pin is worse than no
- *      pin, so none is shown.
+ *   2. Coordinates that someone verified. REEF 996, 997 and 998 carry
+ *      locality-precision positions, each reconciled against an independent
+ *      geocode; the rest carry none, and for those no pin is shown. A plausible
+ *      latitude for "Dubai Islands" is a made-up fact about where somebody's
+ *      home is, and a wrong pin is worse than no pin.
  *   3. Photorealistic 3D coverage at that point. Google's 3D mesh is city-scale
  *      and far from universal; much of the world is 2D only. Coverage is not
  *      something a static table can know, so the component asks for the tiles
