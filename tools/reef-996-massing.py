@@ -58,8 +58,12 @@ Opening camera. A tower is not an object seen whole: at the viewer's generic
 framing of 2.8x the bounding radius the balcony rhythm is below the threshold of
 the display, and the model says nothing until someone zooms. The value validated
 for this asset is yaw 26, pitch 16, distanceFactor 2.15: the whole building with
-headroom above the crown, and the stepped bands legible. Set it on the asset's
-viewDefaults when it is uploaded; the viewer reads it from there.
+headroom above the crown, and the stepped bands legible. A narrow viewer gets
+its own: yaw 18, pitch 10, distanceFactor 2.0, which turns the long face more
+towards the camera and lowers the eye, because a phone panel has a fraction of
+the pixels and needs the facade presented more frontally to read at all. Set both
+on the asset's viewDefaults when it is uploaded — the mobile one nested under
+`mobile` — and the viewer reads them from there.
 
 Output: a self-contained glTF 2.0 binary, geometry only, no textures."""
 

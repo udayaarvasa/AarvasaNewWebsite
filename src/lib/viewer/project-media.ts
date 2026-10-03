@@ -55,6 +55,7 @@ export function projectViewerConfig(
     kind: "model",
     url: `${origin}/${entryKey}`,
     ...(media.view ? { initialView: media.view } : {}),
+    ...(media.mobileView ? { mobileInitialView: media.mobileView } : {}),
   };
   return {
     label: media.review === "placeholder" ? `Pilot 3D model for ${project.name} (placeholder)` : `${project.name} 3D model`,

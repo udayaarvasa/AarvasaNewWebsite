@@ -1,4 +1,4 @@
-import type { PanoramaView, SplatView, ViewerSource } from "./types";
+import type { ModelView, PanoramaView, SplatView, ViewerSource } from "./types";
 
 /**
  * Published media keys, m/{mediaId}/{hash}/{file}: the same expression as
@@ -149,15 +149,33 @@ const PROCEDURAL_KEY = "procedural";
  * Stable string identity for a source. Callers usually pass a fresh object on
  * every render, so effects key on this instead of object identity.
  */
+/** A model view stripped to its three fields, or undefined. Keeps key order fixed. */
+function view(v: ModelView | undefined): ModelView | undefined {
+  return v ? { yawDeg: v.yawDeg, pitchDeg: v.pitchDeg, distanceFactor: v.distanceFactor } : undefined;
+}
+
+/** A model view read back from a key, or undefined when it is not a complete triple. */
+function modelView(value: unknown): ModelView | undefined {
+  if (!value || typeof value !== "object") return undefined;
+  const { yawDeg, pitchDeg, distanceFactor } = value as Record<string, unknown>;
+  const finite = (n: unknown): n is number => typeof n === "number" && Number.isFinite(n);
+  if (!finite(yawDeg) || !finite(pitchDeg) || !finite(distanceFactor)) return undefined;
+  return { yawDeg, pitchDeg, distanceFactor };
+}
+
 export function sourceKey(source: ViewerSource | undefined): string {
   if (!source) return PROCEDURAL_KEY;
   switch (source.kind) {
     case "model": {
-      // The opening camera is part of the identity: two descriptors for the
-      // same file that open differently are not the same source, and the
-      // component keys its reload on this string.
-      const v = source.initialView;
-      return v ? `model:${v.yawDeg}|${v.pitchDeg}|${v.distanceFactor}|${source.url}` : `model:${source.url}`;
+      /* The opening cameras are part of the identity: two descriptors for the
+         same file that open differently are not the same source, and the
+         component keys its reload on this string. A model with no stated
+         framing keeps the short form, so nothing that existed before changes
+         key — and a URL never begins with "{", so the two cannot collide. */
+      const { url, initialView, mobileInitialView } = source;
+      if (!initialView && !mobileInitialView) return `model:${url}`;
+      // Fixed field order, so equal descriptors always give equal keys.
+      return `model:${JSON.stringify({ url, initialView: view(initialView), mobileInitialView: view(mobileInitialView) })}`;
     }
     case "panorama": {
       const { yawDeg, pitchDeg, fovDeg } = source.initialView;
@@ -174,17 +192,22 @@ export function sourceKey(source: ViewerSource | undefined): string {
 export function sourceFromKey(key: string): ViewerSource | undefined {
   if (key.startsWith("model:")) {
     const rest = key.slice("model:".length);
-    // A model key is either the bare URL or three numbers and the URL. A URL
-    // cannot begin with a number followed by "|", so the two never collide.
-    const parts = rest.split("|");
-    if (parts.length >= 4) {
-      const [yaw, pitch, distance] = parts;
-      const view = { yawDeg: Number(yaw), pitchDeg: Number(pitch), distanceFactor: Number(distance) };
-      const finite = Object.values(view).every((n) => Number.isFinite(n));
-      const url = parts.slice(3).join("|");
-      if (finite && url) return { kind: "model", url, initialView: view };
+    if (!rest.startsWith("{")) return { kind: "model", url: rest };
+    try {
+      const parsed = JSON.parse(rest) as Record<string, unknown>;
+      const url = typeof parsed.url === "string" ? parsed.url : "";
+      if (!url) return undefined;
+      const initialView = modelView(parsed.initialView);
+      const mobileInitialView = modelView(parsed.mobileInitialView);
+      return {
+        kind: "model",
+        url,
+        ...(initialView ? { initialView } : {}),
+        ...(mobileInitialView ? { mobileInitialView } : {}),
+      };
+    } catch {
+      return undefined;
     }
-    return { kind: "model", url: rest };
   }
   if (key.startsWith("panorama:")) {
     const [yaw, pitch, fov, ...rest] = key.slice("panorama:".length).split("|");

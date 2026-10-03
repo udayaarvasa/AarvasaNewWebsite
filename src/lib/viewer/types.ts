@@ -55,6 +55,13 @@ export type ViewerSource =
       url: string;
       /** Opening camera for this model. Absent uses the generic object framing. */
       initialView?: ModelView;
+      /**
+       * Opening camera when the viewer itself is narrow. A framing that reads
+       * on a wide panel can leave a tall subject unreadably small on a phone,
+       * where the same camera has a fraction of the pixels to work with.
+       * Absent falls back to `initialView`.
+       */
+      mobileInitialView?: ModelView;
     }
   | {
       kind: "panorama";

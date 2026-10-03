@@ -64,6 +64,8 @@ export type ProjectImmersiveMedia = {
    * its facade is too small to read before the visitor zooms.
    */
   view?: ModelView;
+  /** Where it opens on a narrow viewer, where the same camera has far fewer pixels. */
+  mobileView?: ModelView;
   /**
    * Optional XR opt-in (Phase 8). A model is shown in 3D whether or not it is
    * offered in AR or VR: each mode must be listed here, and the project must

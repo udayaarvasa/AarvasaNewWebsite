@@ -96,6 +96,17 @@ function modelView(viewDefaults: unknown): ModelView | undefined {
   return { yawDeg, pitchDeg, distanceFactor };
 }
 
+/**
+ * The narrow-viewer opening camera, from viewDefaults.mobile.
+ *
+ * Nested rather than a parallel set of keys, so an asset that states only the
+ * one camera is unambiguous and the same validation applies to both.
+ */
+function mobileModelView(viewDefaults: unknown): ModelView | undefined {
+  if (!viewDefaults || typeof viewDefaults !== "object") return undefined;
+  return modelView((viewDefaults as Record<string, unknown>).mobile);
+}
+
 /** Poster dimensions as the worker records them: metrics.dimensions.poster. */
 function posterSize(dimensions: unknown): { width: number; height: number } | null {
   if (!dimensions || typeof dimensions !== "object") return null;
@@ -160,5 +171,6 @@ export function toPublishedModel(row: Row | null | undefined, projectSlug: strin
     review: "approved",
     provenance: row.provenance as MediaProvenance,
     ...(modelView(row.viewDefaults) ? { view: modelView(row.viewDefaults) } : {}),
+    ...(mobileModelView(row.viewDefaults) ? { mobileView: mobileModelView(row.viewDefaults) } : {}),
   };
 }
