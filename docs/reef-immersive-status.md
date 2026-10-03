@@ -11,43 +11,36 @@ stated building configuration, and most of the others have none of those.
 
 ## Coordinates
 
-**No REEF project has verified coordinates.** Searched: `reef-projects.ts`,
-`prisma/reef-projects.json`, `projects.ts`, every `.ts`/`.tsx`/`.json` in the
-repository for latitude-shaped fields, and the supplied source archives
-(`OneDrive_2026-09-20*.zip`, 85 mp4 and 6 mov files) for container location tags.
+Candidate coordinates were supplied for the first three projects. Each was
+checked rather than taken on trust: reverse-geocoded against OpenStreetMap, then
+reconciled with the locality the project record already states.
 
-| Project | Record | Coordinates | Source |
-| --- | --- | --- | --- |
-| REEF 996 | yes | **none** | — |
-| REEF 997 | yes | **none** | — |
-| REEF 998 | yes | **none** | — |
-| REEF 999 | **no record** | **none** | — |
-| REEF 1000 | **no record** | **none** | — |
+| Project | Coordinate | Geocoder returned | Record says | Verdict |
+| --- | --- | --- | --- | --- |
+| REEF 996 | 25.03785, 55.20126 | مدينة دبي للإنتاج (Dubai Production City), Me'aisem 1 | Dubai Production City (IMPZ) | **match** — IMPZ is this zone's former name |
+| REEF 997 | 25.28990, 55.30238 | جزر دبي (Dubai Islands), Palm Deira | Dubai Islands | **match** — Deira Islands was renamed Dubai Islands |
+| REEF 998 | 25.10029, 55.37471 | وادي الصفا 5 (Wadi Al Safa 5) | Dubai Land Residence Complex (DLRC) | **consistent** — DLRC sits inside Wadi Al Safa 5, so the geocoder named the containing community |
+| REEF 999 | — | — | no project record | none |
+| REEF 1000 | — | — | no project record | none |
 
-The only verified pair anywhere in the product is Aaradhyam Prime
-(23.17633, 77.4694), in Bhopal.
+All three are recorded as **`locality` precision**, with their source, in
+`REEF_COORDINATES` in `src/lib/projects.ts`.
 
-None was inferred from a city or locality name. "Dubai Islands" narrows a
-building to several square kilometres, and a pin dropped in the middle of that is
-a statement about where somebody's home is that nobody has checked. Explore Area
-therefore stays unavailable for all five, and the page says the location has not
-been verified rather than showing a map.
+That distinction decides what they may be used for. Landing in the right
+community is enough to show somebody the surroundings, which is all Explore Area
+claims. It is **not** enough to place a building model on the ground: a tower
+dropped on a locality-accurate point lands on whatever is actually there, and
+that would turn an approximation into a false statement about a plot. The
+geographic model overlay therefore stays off until a surveyed position exists.
 
-**To enable it:** add `coordinates: { lat, lng }` to the project's record in
-`src/lib/projects.ts` — `reef-projects.ts` is generated, so attach there as the
-imagery and media already are — taken from the developer's filing or a surveyed
-address, not from a search box.
+Replace these with the developer's filed position when it arrives, and set
+`precision: "plot"` at the same time.
 
 ## Google 3D coverage
 
-**Unknown for every project, and not knowable from here.** Coverage is
-established by asking for the tiles: the component requests the 3D map and
-watches for a settled render, falling back to the flat map when none arrives.
-That check needs a key and a coordinate, and we have neither, so no coverage
-result exists for any REEF project.
-
-Dubai is well covered in general. That is not evidence about a specific plot, and
-it is not recorded here as one.
+**Still unknown for every project.** Coverage is established by asking for the
+tiles and watching for a settled render; that needs a browser API key, and none
+is configured. Having coordinates removes one of the two blockers, not both.
 
 ## Source material per project
 
@@ -70,19 +63,40 @@ it is not recorded here as one.
 - **Explore area:** blocked on coordinates and a key.
 - **360:** the capability is proven; no genuine REEF panorama exists.
 
-### REEF 997
+### REEF 997 — reconstruction not attempted
 
-- **Explore property:** not attempted. Its imagery is amenity and interior
-  frames — a pool deck, a terrace, a bedroom, a facade detail. There is no
-  elevation, no aerial and no massing view, so there is no silhouette to measure
-  and no stated floor count to corroborate it against. The 996 method needs both.
-- **Explore area:** blocked on coordinates and a key.
+The imagery shows the **facade language** clearly and the **massing** not at all.
 
-### REEF 998
+What the one architectural frame gives: heavily radiused corners, continuous
+smooth balcony bands with a rounded white nosing, clear glass balustrades with a
+white top rail, narrow full-height slot windows on the solid face, and a crown
+of dark veined marble carrying the signage. A different building from 996 in
+every one of those respects, which is itself worth knowing.
 
-- **Explore property:** not attempted, for the same reason as 997 and more so —
-  ten files across two categories, a pool facade and amenity shots.
-- **Explore area:** blocked on coordinates and a key.
+What is missing, and what each one would have been needed for:
+
+| Missing | Needed for |
+| --- | --- |
+| An elevation or full-height view | The silhouette, and a countable floor rhythm |
+| An aerial | Plan form, footprint proportion, podium relationship |
+| A stated building configuration | Floor count to corroborate the render against (`buildingConfig` is null for 997) |
+
+For 996 all three existed, and the 21 balcony ridges counted down the aerial
+agreed with the developer's own `1B + G + 3P + 20`. That agreement is what made
+the model defensible. Without any of the three, a 997 model would have an
+invented height, an invented floor count and an invented footprint — a generic
+rounded tower wearing 997's facade details, which is exactly what the recognition
+gate exists to refuse.
+
+### REEF 998 — reconstruction not attempted
+
+Same shape of problem, from a single oblique sunset render. It shows an angular
+stepped balcony profile with LED strips along the nosings, glass balustrades with
+metal rails, bronze and champagne tones, dark glazing, and a pool terrace at the
+base. No silhouette, no crown, no plan, and `buildingConfig` is null, so floor
+count, height and footprint would all be invented.
+
+Ten curated files across two categories is the thinnest set of the three.
 
 ### REEF 999 and REEF 1000
 

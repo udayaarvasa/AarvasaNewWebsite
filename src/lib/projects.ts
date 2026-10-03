@@ -288,6 +288,56 @@ const IMAGERY_BY_SLUG: Readonly<Record<string, ProjectImagery>> = {
  * commercial decision: it is recorded here rather than by editing the
  * generated file, which would be overwritten on the next regeneration.
  */
+/**
+ * Coordinates for the REEF towers, reconciled rather than taken on trust.
+ *
+ * These arrived as third-party candidates, so each was reverse-geocoded against
+ * OpenStreetMap and checked against the locality the project record already
+ * states. All three land in the right community:
+ *
+ *   996  25.03785, 55.20126  ->  "مدينة دبي للإنتاج" (Dubai Production City),
+ *                                Me'aisem 1. Record says Dubai Production City
+ *                                (IMPZ). IMPZ is this zone's former name. Match.
+ *   997  25.28990, 55.30238  ->  "جزر دبي" (Dubai Islands), Palm Deira. Record
+ *                                says Dubai Islands, which is what Deira
+ *                                Islands was renamed to. Match.
+ *   998  25.10029, 55.37471  ->  "وادي الصفا 5" (Wadi Al Safa 5). Record says
+ *                                Dubai Land Residence Complex, which sits inside
+ *                                Wadi Al Safa 5. Consistent, one level coarser:
+ *                                the geocoder named the community, not DLRC.
+ *
+ * So each is `locality` precision, not `plot`. That is enough to show a buyer
+ * the neighbourhood — which is all Explore Area claims to do — and deliberately
+ * not enough to place a building model on the ground, because a tower dropped on
+ * a locality-accurate point lands on whatever is actually there. Overlaying the
+ * reconstructed model on the map stays off until a surveyed position exists.
+ *
+ * Replace these with the developer's own filed position when it is available,
+ * and set the precision to "plot" at the same time.
+ */
+const REEF_COORDINATES: Readonly<
+  Record<string, { lat: number; lng: number; precision: "locality"; source: string }>
+> = {
+  "reef-996-dubai-production-city": {
+    lat: 25.03785,
+    lng: 55.20126,
+    precision: "locality",
+    source: "Third-party candidate, reconciled to Dubai Production City (IMPZ) by OpenStreetMap reverse geocode, 4 October 2026",
+  },
+  "reef-997-dubai-islands": {
+    lat: 25.2899,
+    lng: 55.30238,
+    precision: "locality",
+    source: "Third-party candidate, reconciled to Dubai Islands (Palm Deira) by OpenStreetMap reverse geocode, 4 October 2026",
+  },
+  "reef-998-dlrc": {
+    lat: 25.10029,
+    lng: 55.37471,
+    precision: "locality",
+    source: "Third-party candidate, reconciled to Wadi Al Safa 5, which contains DLRC, by OpenStreetMap reverse geocode, 4 October 2026",
+  },
+};
+
 const PUBLISH_OVERRIDE: Readonly<Record<string, boolean>> = {
   "reef-997-dubai-islands": true,
   "reef-998-dlrc": true,
@@ -333,6 +383,13 @@ export const projects: Project[] = [
     ? { imagery: IMAGERY_BY_SLUG[p.slug], images: flatImages(IMAGERY_BY_SLUG[p.slug]) }
     : {}),
   ...(p.slug in PUBLISH_OVERRIDE ? { published: PUBLISH_OVERRIDE[p.slug] } : {}),
+  ...(REEF_COORDINATES[p.slug]
+    ? {
+        coordinates: { lat: REEF_COORDINATES[p.slug].lat, lng: REEF_COORDINATES[p.slug].lng },
+        coordinatesPrecision: REEF_COORDINATES[p.slug].precision,
+        coordinatesSource: REEF_COORDINATES[p.slug].source,
+      }
+    : {}),
 }));
 
 /** Live on the site. Set per project rather than inferred from imagery. */

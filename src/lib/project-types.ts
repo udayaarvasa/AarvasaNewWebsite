@@ -180,6 +180,18 @@ export type Project = {
   approvals: string[];
   contact: string[];
   coordinates: { lat: number; lng: number } | null;
+  /**
+   * How precisely `coordinates` is known, and where it came from.
+   *
+   * The distinction decides what the coordinate may be used for. "locality"
+   * means it lands in the right community and is good enough to show someone
+   * the surroundings; it is NOT good enough to place a building model on a plot,
+   * which would put a tower on whatever happens to be at that point. "plot"
+   * means the position was established for the building itself.
+   */
+  coordinatesPrecision?: "plot" | "locality";
+  /** Where the coordinate came from, for anyone re-checking it later. */
+  coordinatesSource?: string;
   /** Optional interactive 3D media. Absent for most projects. */
   immersive?: ProjectImmersiveMedia;
   /** Optional 360° panoramic tour. Absent for most projects. */
