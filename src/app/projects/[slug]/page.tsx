@@ -34,7 +34,12 @@ import { loadProjectModel } from "@/lib/services/project-models";
 import { loadProjectTour } from "@/lib/services/project-panoramas";
 import { loadProjectSplat } from "@/lib/services/project-splats";
 import { ExploreArea } from "@/components/property/explore-area";
-import { EXPLORE_AREA_HINTS, exploreAreaMode } from "@/lib/maps/google-3d";
+import {
+  EXPLORE_AREA_HINTS,
+  NO_PROPERTY_MODEL_HINT,
+  NO_PROPERTY_MODEL_MESSAGE,
+  exploreAreaMode,
+} from "@/lib/maps/google-3d";
 import ImmersiveSection from "./immersive-section";
 
 // Only slugs from generateStaticParams resolve; anything else 404s at the routing
@@ -288,10 +293,10 @@ export default async function ProjectPage({
                     projectSlug={project.slug}
                   />
                 ) : (
-                  <p className="max-w-[46ch] border border-rule-firm/40 p-[var(--s-5)] text-[14px] leading-relaxed text-stage-muted">
-                    No 3D model has been published for this project yet. When one is,
-                    it appears here and its provenance is stated beside it.
-                  </p>
+                  <div className="max-w-[46ch] border border-rule-firm/40 p-[var(--s-5)] text-[14px] leading-relaxed text-stage-muted">
+                    <p>{NO_PROPERTY_MODEL_MESSAGE}</p>
+                    <p className="mt-2 opacity-80">{NO_PROPERTY_MODEL_HINT}</p>
+                  </div>
                 )}
               </div>
             </div>

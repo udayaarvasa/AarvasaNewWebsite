@@ -83,6 +83,19 @@ export const EXPLORE_AREA_MESSAGES: Readonly<Record<ExploreAreaBlocker, string>>
 };
 
 /**
+ * Shown where a property has no model to open.
+ *
+ * Lives here beside the Explore Area messages because the two sit side by side
+ * in the Explore section and have to read as one voice: each names what is
+ * absent, neither apologises, and neither implies something is broken.
+ */
+export const NO_PROPERTY_MODEL_MESSAGE =
+  "Interactive 3D model is not yet available for this property.";
+
+export const NO_PROPERTY_MODEL_HINT =
+  "When one is produced it appears here, with its provenance stated beside it.";
+
+/**
  * What a visitor can usefully do about each one. Absent where there is nothing
  * to do: telling someone to retry a place Google has not captured is a lie.
  */

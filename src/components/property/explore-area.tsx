@@ -164,15 +164,27 @@ export function ExploreArea({
           return;
         }
         if (!rendered) {
-          /* No settled frame means Google has nothing in three dimensions here.
-             The flat map at the same point is an honest substitute and says so;
-             if even that fails, the absence is reported rather than papered over. */
+          /* No settled 3D frame. That alone does not establish absent coverage —
+             a rejected key looks identical — so the flat map is tried at the same
+             point. If it renders, the 3D data genuinely is not there and the page
+             says so while still showing the visitor their surroundings. */
           host.replaceChildren();
           try {
             await mountFlatMap(host, resolved.center, name, location);
             setPhase({ k: "ready", mode: "2d" });
           } catch {
-            setPhase({ k: "failed", blocker: "NO_3D_COVERAGE" });
+            /* The flat map is what separates the two cases, and it is a better
+               witness than Google's auth callback — which does not fire on the
+               alpha 3D path, so it cannot be relied on to tell us a key was
+               rejected.
+
+               Reaching here means BOTH maps failed. Somewhere with no
+               photorealistic 3D still serves the flat map perfectly well, so a
+               flat map that also fails is not a coverage problem: it is the key
+               or the network. Saying "not available at this location" here would
+               blame Google for our own configuration and send whoever reads it
+               looking in the wrong place. */
+            setPhase({ k: "failed", blocker: authFailed ? "INVALID_API_KEY" : "LOAD_FAILED" });
           }
           return;
         }
