@@ -3,6 +3,7 @@
    guess extensions. infra/tsconfig.json emits JavaScript and so must keep bare
    specifiers — it lists the viewer files it compiles, and this is not one. */
 import { isPubliclyShowable, type MediaProvenance } from "../media/provenance.ts";
+import type { ModelView } from "./types.ts";
 import { MEDIA_KEY_PATTERN, publishedObjectMetadata } from "../../../shared/media-contract.ts";
 import type { ProjectImmersiveMedia } from "../project-types.ts";
 
@@ -40,6 +41,7 @@ export const PUBLISHED_MODEL_SELECT = {
   altText: true,
   processorVersion: true,
   provenance: true,
+  viewDefaults: true,
 } as const;
 
 /**
@@ -74,6 +76,25 @@ type Row = { [K in keyof typeof PUBLISHED_MODEL_SELECT]?: unknown };
 
 const positiveInt = (v: unknown): v is number =>
   typeof v === "number" && Number.isInteger(v) && v > 0;
+
+/**
+ * The opening camera an asset states for itself, from viewDefaults.
+ *
+ * Only a complete, sane triple is used. A partial or out-of-range one is
+ * dropped rather than half-applied, because a camera placed inside the building
+ * is worse than the generic framing it would have replaced.
+ */
+function modelView(viewDefaults: unknown): ModelView | undefined {
+  if (!viewDefaults || typeof viewDefaults !== "object") return undefined;
+  const { yawDeg, pitchDeg, distanceFactor } = viewDefaults as Record<string, unknown>;
+  const finite = (v: unknown): v is number => typeof v === "number" && Number.isFinite(v);
+  if (!finite(yawDeg) || !finite(pitchDeg) || !finite(distanceFactor)) return undefined;
+  // The orbit controls clamp pitch to 5–80 degrees and distance to 0.6–8 radii;
+  // anything outside that would be silently clamped, so it is refused here instead.
+  if (pitchDeg < 5 || pitchDeg > 80) return undefined;
+  if (distanceFactor < 0.6 || distanceFactor > 8) return undefined;
+  return { yawDeg, pitchDeg, distanceFactor };
+}
 
 /** Poster dimensions as the worker records them: metrics.dimensions.poster. */
 function posterSize(dimensions: unknown): { width: number; height: number } | null {
@@ -138,5 +159,6 @@ export function toPublishedModel(row: Row | null | undefined, projectSlug: strin
     altText: row.altText.trim(),
     review: "approved",
     provenance: row.provenance as MediaProvenance,
+    ...(modelView(row.viewDefaults) ? { view: modelView(row.viewDefaults) } : {}),
   };
 }

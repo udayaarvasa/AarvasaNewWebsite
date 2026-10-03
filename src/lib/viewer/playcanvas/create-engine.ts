@@ -211,7 +211,7 @@ export function createViewerEngine(host: HTMLElement, options: ViewerEngineOptio
           case "model": {
             const url = resolveModelUrl(source.url, window.location.origin, cdnOrigins);
             if (!url) throw new Error("Model URL is not allowed: use a same-origin .glb path or the media CDN");
-            next = await loadModel(app, url);
+            next = await loadModel(app, url, source.initialView);
             break;
           }
           case "panorama": {

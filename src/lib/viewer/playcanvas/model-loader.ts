@@ -1,6 +1,7 @@
 import { BoundingBox, type AppBase, type ContainerResource, type RenderComponent } from "playcanvas";
 import { OrbitControls } from "./orbit-controls";
 import type { SceneContent } from "./scene-content";
+import type { ModelView } from "../types";
 
 // Asset.resource is typed as `object`, and the GLB parser's resource class does
 // not extend ContainerResource, so check the shape rather than use instanceof.
@@ -13,8 +14,13 @@ function isContainerResource(value: object | null): value is ContainerResource {
  *
  * `url` must already have passed `resolveModelUrl`; this function does no URL
  * policy of its own.
+ *
+ * `view` is the asset's own opening camera, for models the generic object
+ * framing does not suit. Only the pose and distance are taken from it; the orbit
+ * limits, clipping and every control stay exactly as they are, so an asset can
+ * choose where the camera starts but not how the viewer behaves.
  */
-export function loadModel(app: AppBase, url: string): Promise<SceneContent> {
+export function loadModel(app: AppBase, url: string, view?: ModelView): Promise<SceneContent> {
   return new Promise((resolve, reject) => {
     app.assets.loadFromUrl(url, "container", (err, asset) => {
       if (err || !asset) {
@@ -43,7 +49,9 @@ export function loadModel(app: AppBase, url: string): Promise<SceneContent> {
         createControls(camera, element, onChange) {
           const controls = new OrbitControls(camera, element, onChange);
           const { center, radius } = content.bounds();
-          controls.frame(center, radius);
+          controls.frame(center, radius, view
+            ? { yawDeg: view.yawDeg, pitchDeg: view.pitchDeg, distanceFactor: view.distanceFactor }
+            : {});
           return controls;
         },
         bounds() {

@@ -22,6 +22,23 @@ export type SplatView = {
   distanceFactor: number;
 };
 
+/**
+ * Where a model opens: an orbit around its centre, in degrees.
+ *
+ * The default framing suits a standalone object seen whole. A building is not
+ * that: at 2.8x its bounding radius a tower is small enough that facade
+ * articulation — the thing that distinguishes one from another — is below the
+ * threshold of the display, and the visitor has to zoom before the model says
+ * anything. An asset that is tall and detailed can state its own opening
+ * distance instead.
+ */
+export type ModelView = {
+  yawDeg: number;
+  pitchDeg: number;
+  /** Camera distance as a multiple of the model's bounding radius. */
+  distanceFactor: number;
+};
+
 /** A sphere around the scene, in scene units. */
 export type SplatBounds = { center: readonly [number, number, number]; radius: number };
 
@@ -36,6 +53,8 @@ export type ViewerSource =
       kind: "model";
       /** Same-origin, root-relative `.glb` path, or a `.glb` URL on the media CDN. See `resolveModelUrl`. */
       url: string;
+      /** Opening camera for this model. Absent uses the generic object framing. */
+      initialView?: ModelView;
     }
   | {
       kind: "panorama";

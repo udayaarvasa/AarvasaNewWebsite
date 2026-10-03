@@ -51,7 +51,11 @@ export function projectViewerConfig(
   const posterValid =
     media.poster !== null && posterMeta !== null && media.poster.key.startsWith(`${media.storageKey}/`) && posterMeta.contentType.startsWith("image/");
 
-  const source: ViewerSource = { kind: "model", url: `${origin}/${entryKey}` };
+  const source: ViewerSource = {
+    kind: "model",
+    url: `${origin}/${entryKey}`,
+    ...(media.view ? { initialView: media.view } : {}),
+  };
   return {
     label: media.review === "placeholder" ? `Pilot 3D model for ${project.name} (placeholder)` : `${project.name} 3D model`,
     source,

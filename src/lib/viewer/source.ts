@@ -152,8 +152,13 @@ const PROCEDURAL_KEY = "procedural";
 export function sourceKey(source: ViewerSource | undefined): string {
   if (!source) return PROCEDURAL_KEY;
   switch (source.kind) {
-    case "model":
-      return `model:${source.url}`;
+    case "model": {
+      // The opening camera is part of the identity: two descriptors for the
+      // same file that open differently are not the same source, and the
+      // component keys its reload on this string.
+      const v = source.initialView;
+      return v ? `model:${v.yawDeg}|${v.pitchDeg}|${v.distanceFactor}|${source.url}` : `model:${source.url}`;
+    }
     case "panorama": {
       const { yawDeg, pitchDeg, fovDeg } = source.initialView;
       return `panorama:${yawDeg}|${pitchDeg}|${fovDeg}|${source.url}`;
@@ -167,7 +172,20 @@ export function sourceKey(source: ViewerSource | undefined): string {
 }
 
 export function sourceFromKey(key: string): ViewerSource | undefined {
-  if (key.startsWith("model:")) return { kind: "model", url: key.slice("model:".length) };
+  if (key.startsWith("model:")) {
+    const rest = key.slice("model:".length);
+    // A model key is either the bare URL or three numbers and the URL. A URL
+    // cannot begin with a number followed by "|", so the two never collide.
+    const parts = rest.split("|");
+    if (parts.length >= 4) {
+      const [yaw, pitch, distance] = parts;
+      const view = { yawDeg: Number(yaw), pitchDeg: Number(pitch), distanceFactor: Number(distance) };
+      const finite = Object.values(view).every((n) => Number.isFinite(n));
+      const url = parts.slice(3).join("|");
+      if (finite && url) return { kind: "model", url, initialView: view };
+    }
+    return { kind: "model", url: rest };
+  }
   if (key.startsWith("panorama:")) {
     const [yaw, pitch, fov, ...rest] = key.slice("panorama:".length).split("|");
     const initialView = { yawDeg: Number(yaw), pitchDeg: Number(pitch), fovDeg: Number(fov) };

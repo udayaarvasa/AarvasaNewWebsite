@@ -54,8 +54,14 @@ So: the silhouette, the floor count, the balcony rhythm and the podium
 relationship are derived from REEF's own material. The absolute dimensions are
 plausible, not surveyed. It must never be labelled an official model.
 
-Output: a self-contained glTF 2.0 binary, geometry only, no textures.
-"""
+Opening camera. A tower is not an object seen whole: at the viewer's generic
+framing of 2.8x the bounding radius the balcony rhythm is below the threshold of
+the display, and the model says nothing until someone zooms. The value validated
+for this asset is yaw 26, pitch 16, distanceFactor 2.15: the whole building with
+headroom above the crown, and the stepped bands legible. Set it on the asset's
+viewDefaults when it is uploaded; the viewer reads it from there.
+
+Output: a self-contained glTF 2.0 binary, geometry only, no textures."""
 
 import json
 import math

@@ -1,4 +1,5 @@
 import type { MediaProvenance } from "./media/provenance";
+import type { ModelView } from "./viewer/types";
 
 import type { CurrencyCode } from "./currency";
 
@@ -57,6 +58,12 @@ export type ProjectImmersiveMedia = {
    * marks as a placeholder.
    */
   provenance?: MediaProvenance;
+  /**
+   * Where the camera opens on this model. Absent uses the generic object
+   * framing, which suits something seen whole; a tower needs to open closer or
+   * its facade is too small to read before the visitor zooms.
+   */
+  view?: ModelView;
   /**
    * Optional XR opt-in (Phase 8). A model is shown in 3D whether or not it is
    * offered in AR or VR: each mode must be listed here, and the project must
