@@ -1,4 +1,4 @@
-import type { PrismaClient } from "@prisma/client";
+import type { Prisma, PrismaClient } from "@prisma/client";
 import type { MediaReviewStore, ReviewAssetRow } from "./media-review.service";
 
 /**
@@ -29,6 +29,7 @@ const SELECT = {
   title: true,
   altText: true,
   provenance: true,
+  visibility: true,
   sourceKey: true,
   sourceSizeBytes: true,
   sourceMimeType: true,
@@ -68,10 +69,23 @@ export function createPrismaReviewStore(prisma: PrismaClient): MediaReviewStore 
       return row ? toRow(row as unknown as Selected) : null;
     },
 
-    async approve(id, reviewerId, now, altText, provenance) {
+    async approve(id, reviewerId, now, decision) {
       const { count } = await prisma.mediaAsset.updateMany({
         where: { id, status: "PENDING_REVIEW" },
-        data: { status: "PUBLISHED", reviewedAt: now, publishedAt: now, reviewedById: reviewerId, altText, provenance },
+        data: {
+          status: "PUBLISHED",
+          reviewedAt: now,
+          publishedAt: now,
+          reviewedById: reviewerId,
+          altText: decision.altText,
+          provenance: decision.provenance,
+          visibility: decision.visibility,
+          // Omitted rather than nulled when the reviewer said nothing, so an
+          // approval that is only correcting alt text does not wipe the cameras.
+          ...(decision.viewDefaults
+            ? { viewDefaults: decision.viewDefaults as Prisma.InputJsonValue }
+            : {}),
+        },
       });
       return count;
     },

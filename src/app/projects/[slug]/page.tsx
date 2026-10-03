@@ -13,7 +13,6 @@ import {
   SectionIndex,
 } from "@/components/av/graphics";
 import { Parallax, Reveal, TextReveal } from "@/components/av/motion";
-import { TextureBanner } from "@/components/av/banner";
 import { Gallery, type GalleryItem } from "@/components/property/gallery";
 import { projectImageSrc } from "@/lib/project-types";
 import {
@@ -253,59 +252,76 @@ export default async function ProjectPage({
       </Wrap>
 
       {/* ── EXPLORE ───────────────────────────────────────────────────────
-          Placed directly beneath the hero, before any specification: the
-          immersive layer is the differentiator and is met first. The section
-          is absent entirely when no published media exists. */}
-      {hasImmersive && (
-        <StageBand className="mt-[var(--s-14)] py-[var(--band)]">
-          <ImmersiveSection
-            viewer={viewer}
-            tour={tour}
-            splat={splat}
-            projectName={project.name}
-            projectSlug={project.slug}
-          />
-        </StageBand>
-      )}
+          Two experiences, kept apart because they answer different questions.
+          "Explore property" is the building itself, in the PlayCanvas viewer.
+          "Explore area" is where it stands, on Google's photorealistic map —
+          Google's mesh is never used as the property, because its capture of an
+          off-plan plot is a construction site.
 
-      {!hasImmersive && (
-        <div className="mt-[var(--s-14)]">
-          <TextureBanner
-            eyebrow="Explore"
-            title="This project has not been captured yet."
-            body="When a 3D model, a 360° tour or a scan is produced for this project, it appears here and on the listing. Until then the specification below is the record."
-            motif="contour"
-            tone="stage"
-          />
-        </div>
-      )}
-
-      {/* ── EXPLORE AREA ──────────────────────────────────────────────────
-          Google's surroundings, never the property's own model: its mesh of an
-          off-plan plot is a construction site, and showing that as the building
-          would be a fabrication. Nothing loads until the visitor asks.
-
-          Absent entirely without a key or verified coordinates. A section that
-          only ever apologises is worse than no section: it reads as something
-          broken rather than as something nobody has supplied yet, and the
-          address is already on the page. */}
-      {hasArea && (
-        <Wrap className="pt-[var(--band)]">
+          Each entry is either live or honestly absent. An entry that is missing
+          says which input it is waiting for rather than pretending to be broken,
+          and neither is ever simulated. */}
+      <StageBand className="mt-[var(--s-14)] py-[var(--band)]">
+        <Wrap>
           <SectionHead
-            label="Surroundings"
-            title="Explore area"
-            note="Where this project sits — the streets, the terrain and the buildings around it."
+            label="Explore"
+            title={hasImmersive || hasArea ? "See it for yourself" : "Not captured yet"}
+            note={
+              hasImmersive || hasArea
+                ? "Nothing downloads until you open it."
+                : "When this project has been captured, the experiences appear here."
+            }
           />
-          <MotionReveal>
-            <ExploreArea
-              name={project.name}
-              location={`${project.location}, ${project.city}`}
-              coordinates={area.center}
-              apiKey={process.env.NEXT_PUBLIC_GOOGLE_MAPS_BROWSER_KEY ?? null}
-            />
-          </MotionReveal>
+
+          <div className="mt-[var(--s-8)] grid gap-[var(--s-8)] lg:grid-cols-2">
+            {/* Explore property — the building */}
+            <div>
+              <h3 className="av-label text-stage-ink">Explore property</h3>
+              <p className="mt-1 text-[14px] text-stage-muted">Interactive 3D model</p>
+              <div className="mt-[var(--s-5)]">
+                {hasImmersive ? (
+                  <ImmersiveSection
+                    viewer={viewer}
+                    tour={tour}
+                    splat={splat}
+                    projectName={project.name}
+                    projectSlug={project.slug}
+                  />
+                ) : (
+                  <p className="max-w-[46ch] border border-rule-firm/40 p-[var(--s-5)] text-[14px] leading-relaxed text-stage-muted">
+                    No 3D model has been published for this project yet. When one is,
+                    it appears here and its provenance is stated beside it.
+                  </p>
+                )}
+              </div>
+            </div>
+
+            {/* Explore area — the surroundings */}
+            <div>
+              <h3 className="av-label text-stage-ink">Explore area</h3>
+              <p className="mt-1 text-[14px] text-stage-muted">3D surroundings</p>
+              <div className="mt-[var(--s-5)]">
+                {hasArea ? (
+                  <MotionReveal>
+                    <ExploreArea
+                      name={project.name}
+                      location={`${project.location}, ${project.city}`}
+                      coordinates={area.center}
+                      apiKey={process.env.NEXT_PUBLIC_GOOGLE_MAPS_BROWSER_KEY ?? null}
+                    />
+                  </MotionReveal>
+                ) : (
+                  <p className="max-w-[46ch] border border-rule-firm/40 p-[var(--s-5)] text-[14px] leading-relaxed text-stage-muted">
+                    {area.kind === "unavailable" ? area.message : null} The address and
+                    locality are listed below; no map is shown rather than one placed
+                    at a guessed position.
+                  </p>
+                )}
+              </div>
+            </div>
+          </div>
         </Wrap>
-      )}
+      </StageBand>
 
       {/* ── EVALUATE ──────────────────────────────────────────────────── */}
       <Wrap className="pt-[var(--band)]">

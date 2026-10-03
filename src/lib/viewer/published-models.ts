@@ -2,7 +2,7 @@
    runner loads this module directly under node's ESM resolver, which does not
    guess extensions. infra/tsconfig.json emits JavaScript and so must keep bare
    specifiers — it lists the viewer files it compiles, and this is not one. */
-import { isPubliclyShowable, type MediaProvenance } from "../media/provenance.ts";
+import { isPubliclyResolvable, isPubliclyShowable, type MediaProvenance } from "../media/provenance.ts";
 import type { ModelView } from "./types.ts";
 import { MEDIA_KEY_PATTERN, publishedObjectMetadata } from "../../../shared/media-contract.ts";
 import type { ProjectImmersiveMedia } from "../project-types.ts";
@@ -41,6 +41,7 @@ export const PUBLISHED_MODEL_SELECT = {
   altText: true,
   processorVersion: true,
   provenance: true,
+  visibility: true,
   viewDefaults: true,
 } as const;
 
@@ -55,15 +56,19 @@ export const PUBLISHED_MODEL_SELECT = {
  * recently published, so re-publishing a corrected export supersedes the old one
  * without anyone having to clear the previous row.
  */
-export function publishedModelQuery(projectSlug: string) {
+export function publishedModelQuery(projectSlug: string, options: { includeInternal?: boolean } = {}) {
   return {
     where: {
       status: "PUBLISHED" as const,
       kind: "MODEL" as const,
       subjectType: "PROJECT" as const,
       projectSlug,
-      // Engineering assets are excluded in the query, not filtered out later: a
-      // test cube is not this project's architecture and never reaches a page.
+      /* Withheld assets are excluded in the query, not filtered out later.
+         `includeInternal` is for authorised internal preview only — it is never
+         reachable from public browsing, because the only caller that passes it
+         is behind an admin check. The provenance floor holds either way: an
+         engineering test asset is not a project's architecture even in preview. */
+      ...(options.includeInternal ? {} : { visibility: "PUBLIC" as const }),
       provenance: { not: "INTERNAL_TEST" as const },
     },
     orderBy: [{ sortOrder: "asc" as const }, { publishedAt: "desc" as const }],
@@ -130,12 +135,18 @@ function posterSize(dimensions: unknown): { width: number; height: number } | nu
  * nothing in the pipeline measures. A project can still opt a model into AR by
  * stating the scale in projects.ts.
  */
-export function toPublishedModel(row: Row | null | undefined, projectSlug: string): ProjectImmersiveMedia | null {
+export function toPublishedModel(
+  row: Row | null | undefined,
+  projectSlug: string,
+  options: { includeInternal?: boolean } = {},
+): ProjectImmersiveMedia | null {
   if (!row) return null;
   if (row.status !== "PUBLISHED" || row.kind !== "MODEL" || row.format !== "GLB") return null;
   if (row.subjectType !== "PROJECT" || row.projectSlug !== projectSlug) return null;
-  // Checked again here, because everything below becomes a public CDN URL.
+  /* Checked again here, because everything below becomes a CDN URL. Internal
+     preview relaxes the visibility half only, never the provenance floor. */
   if (!isPubliclyShowable(row.provenance)) return null;
+  if (!options.includeInternal && !isPubliclyResolvable(row.visibility, row.provenance)) return null;
   if (typeof row.id !== "string" || typeof row.storageKey !== "string" || typeof row.entryFile !== "string") return null;
   if (typeof row.contentHash !== "string" || !positiveInt(row.sizeBytes)) return null;
   // Alt text is required before approval, so its absence means a broken row, not

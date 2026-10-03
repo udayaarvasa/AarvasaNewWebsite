@@ -75,6 +75,23 @@ enum MediaAssetFormat {
 /// asset whose provenance nobody stated is engineering material until someone
 /// says otherwise, so a forgotten code path hides a test asset rather than
 /// publishing it as a property's architecture.
+/// Whether an asset may be resolved by public property browsing.
+///
+/// Separate from provenance on purpose. Provenance says what a thing is and
+/// where it came from; visibility says whether the public may see it. Folding
+/// the two together meant an asset could not be both honestly described as an
+/// Aarvasa reconstruction and withheld from the public — the only way to keep it
+/// private was to mislabel it as a test asset.
+///
+/// INTERNAL is the default, so an asset is withheld until someone decides
+/// otherwise, and a forgotten code path hides media rather than publishing it.
+enum MediaVisibility {
+  /// Resolvable only through authorised internal preview.
+  INTERNAL
+  /// Resolvable by public property browsing.
+  PUBLIC
+}
+
 enum MediaProvenance {
   /// Supplied by the developer as an official model of the building.
   OFFICIAL_MODEL
@@ -288,6 +305,9 @@ model MediaAsset {
   /// Fail closed: an asset is engineering material until it says otherwise.
   provenance MediaProvenance @default(INTERNAL_TEST)
 
+  /// Fail closed: withheld from public browsing until a reviewer releases it.
+  visibility MediaVisibility @default(INTERNAL)
+
   // Uploaded original: an ingest key (uploads/…) or a private original (originals/…).
   sourceKey            String
   sourceSizeBytes      Int
@@ -322,8 +342,9 @@ model MediaAsset {
 
   @@index([propertyId, status, sortOrder])
   @@index([projectSlug, status, sortOrder])
-  // Public lookups filter on provenance as well as status, so it is part of the key.
-  @@index([projectSlug, status, provenance, sortOrder])
+  // Public lookups filter on visibility and provenance as well as status, so both
+  // are part of the key.
+  @@index([projectSlug, status, visibility, provenance, sortOrder])
   @@index([status, createdAt])
   @@index([contentHash])
   @@index([uploadedById])

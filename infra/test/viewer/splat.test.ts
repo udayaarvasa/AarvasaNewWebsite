@@ -339,6 +339,7 @@ const row = (extra: Record<string, unknown> = {}) => ({
   storageKey: `m/${ID}/3f9a1c2b7d4e8f60`,
   entryFile: "scene.sog",
   provenance: "AARVASA_RECONSTRUCTION",
+  visibility: "PUBLIC",
   posterKey: `m/${ID}/3f9a1c2b7d4e8f60/poster.webp`,
   altText: "Reviewed scan of the show apartment",
   sizeBytes: 18_000_000,
@@ -358,6 +359,7 @@ describe("publication gating: published splat lookup", () => {
       subjectType: "PROJECT",
       projectSlug: SLUG,
       // Engineering scans are excluded by the query, not filtered after it.
+      visibility: "PUBLIC",
       provenance: { not: "INTERNAL_TEST" },
     });
   });

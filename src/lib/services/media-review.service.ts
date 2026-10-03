@@ -9,9 +9,11 @@ import {
 } from "../../../shared/media-asset";
 import {
   MEDIA_PROVENANCE,
+  MEDIA_VISIBILITY,
   PROVENANCE_LABEL,
   provenanceAllowedFor,
   type MediaProvenance,
+  type MediaVisibility,
 } from "../media/provenance";
 import { MEDIA_ID_PATTERN, reviewKeyFor } from "../../../shared/media-contract";
 import { assertTransition, publicFailureMessage } from "../../../shared/media-processing";
@@ -62,6 +64,7 @@ export interface ReviewAssetRow {
   readonly title: string | null;
   readonly altText: string | null;
   readonly provenance: MediaProvenance;
+  readonly visibility: MediaVisibility;
   readonly sourceKey: string;
   readonly sourceSizeBytes: number;
   readonly sourceMimeType: string;
@@ -79,12 +82,21 @@ export interface ReviewAssetRow {
   readonly updatedAt: Date;
 }
 
+/** Everything a reviewer settles when they approve. */
+export interface ApproveDecision {
+  readonly altText: string;
+  readonly provenance: MediaProvenance;
+  readonly visibility: MediaVisibility;
+  /** Opening cameras, or null to leave whatever the row has. */
+  readonly viewDefaults: Record<string, unknown> | null;
+}
+
 export interface MediaReviewStore {
   findUser(id: string): Promise<ReviewUser | null>;
   listAssets(filter: { readonly status: MediaAssetStatus | null; readonly limit: number }): Promise<ReviewAssetRow[]>;
   findAsset(id: string): Promise<ReviewAssetRow | null>;
   /** PENDING_REVIEW → PUBLISHED (reviewedAt, publishedAt, reviewer, alt text). Returns rows updated. */
-  approve(id: string, reviewerId: string, now: Date, altText: string, provenance: MediaProvenance): Promise<number>;
+  approve(id: string, reviewerId: string, now: Date, decision: ApproveDecision): Promise<number>;
   /** Any decided state → ARCHIVED (reviewer, timestamp, reason). Returns rows updated. */
   archive(id: string, reviewerId: string, now: Date, from: MediaAssetStatus, reason: string): Promise<number>;
   /** PENDING_REVIEW → REJECTED (reason, reviewedAt, reviewer). Returns rows updated. */
@@ -147,9 +159,32 @@ export const REVIEW_TEXT_LIMITS = { altText: 500, rejectionReason: 500 } as cons
 /* A reviewer states what the asset actually is. This is the step that makes an
    asset public, so it is also the step that decides what the public is told it
    is — and whether it is shown at all, since INTERNAL_TEST never is. */
+const modelViewSchema = z.strictObject({
+  yawDeg: z.number().finite(),
+  // The orbit controls clamp to these; a value outside them would be silently
+  // clamped, which is worse than being told it is wrong.
+  pitchDeg: z.number().min(5).max(80),
+  distanceFactor: z.number().min(0.6).max(8),
+});
+
+/**
+ * The opening cameras a reviewer sets on a model.
+ *
+ * Supplied by a person, not derived by the worker. Nothing in a GLB says where
+ * a building should be looked at from: the generic framing suits an object seen
+ * whole, and a tower needs a decision. `mobile` is the narrow-viewer camera,
+ * nested so an asset that states only one is unambiguous.
+ */
+export const viewDefaultsSchema = modelViewSchema.extend({ mobile: modelViewSchema.optional() });
+
 export const approveBodySchema = z.strictObject({
   altText: z.string().trim().min(1).max(REVIEW_TEXT_LIMITS.altText).optional(),
   provenance: z.enum(MEDIA_PROVENANCE).optional(),
+  /* Where the asset sits relative to the public. Absent keeps whatever the row
+     already has, which starts at INTERNAL — publishing is a lifecycle step, and
+     releasing is a separate decision a reviewer makes deliberately. */
+  visibility: z.enum(MEDIA_VISIBILITY).optional(),
+  viewDefaults: viewDefaultsSchema.optional(),
 });
 /** Rejection body: a reason for the uploader's record. */
 export const rejectBodySchema = z.strictObject({ reason: z.string().trim().min(3).max(REVIEW_TEXT_LIMITS.rejectionReason) });
@@ -178,6 +213,7 @@ export function presentAsset(row: ReviewAssetRow) {
     altText: row.altText,
     provenance: row.provenance,
     provenanceLabel: PROVENANCE_LABEL[row.provenance] ?? row.provenance,
+    visibility: row.visibility,
     source: { sizeBytes: row.sourceSizeBytes, mimeType: row.sourceMimeType },
     processed: row.storageKey
       ? { sizeBytes: row.sizeBytes, mimeType: row.mimeType, fileCount: row.fileCount, dimensions: row.dimensions ?? null, metrics: row.metrics ?? null, hasPoster: row.posterKey !== null, contentHash: row.contentHash }
@@ -309,15 +345,16 @@ export async function approveReviewAsset(request: BodyRequest, deps: MediaReview
      request it then ignored. */
   const provenance = input.data.provenance ?? row.provenance;
   if (!provenanceAllowedFor(row.kind, provenance)) return fail("INVALID_REQUEST");
+  const visibility = input.data.visibility ?? row.visibility;
 
   // Already published: approving again only completes an unfinished publication
   // (idempotent). It deliberately does not re-state provenance or alt text —
   // changing what the public is told about a live asset is a separate decision,
   // not a side effect of retrying a publication that was interrupted.
   if (row.status === "PUBLISHED") {
-    if (provenance !== row.provenance) return fail("NOT_REVIEWABLE");
+    if (provenance !== row.provenance || visibility !== row.visibility) return fail("NOT_REVIEWABLE");
     const error = await publishObjects(row, access, deps);
-    return error ?? ok({ mediaAssetId: row.id, status: "PUBLISHED", provenance: row.provenance, transitioned: false });
+    return error ?? ok({ mediaAssetId: row.id, status: "PUBLISHED", provenance: row.provenance, visibility: row.visibility, transitioned: false });
   }
   if (row.status !== "PENDING_REVIEW") return fail("NOT_REVIEWABLE");
 
@@ -343,7 +380,12 @@ export async function approveReviewAsset(request: BodyRequest, deps: MediaReview
   assertTransition("REVIEW", "PENDING_REVIEW", "PUBLISHED");
   let updated: number;
   try {
-    updated = await deps.store.approve(row.id, user.id, now, altText, provenance);
+    updated = await deps.store.approve(row.id, user.id, now, {
+      altText,
+      provenance,
+      visibility,
+      viewDefaults: input.data.viewDefaults ?? null,
+    });
   } catch (error) {
     deps.log("media approval update failed", { mediaAssetId: row.id, error: errorName(error) });
     return fail("SERVER_ERROR");
@@ -360,7 +402,7 @@ export async function approveReviewAsset(request: BodyRequest, deps: MediaReview
   const error = await publishObjects(publishable, access, deps);
   if (error) return error;
   deps.log("media asset published", { mediaAssetId: row.id, reviewerId: user.id });
-  return ok({ mediaAssetId: row.id, status: "PUBLISHED", provenance, transitioned });
+  return ok({ mediaAssetId: row.id, status: "PUBLISHED", provenance, visibility, transitioned });
 }
 
 export async function rejectReviewAsset(request: BodyRequest, deps: MediaReviewDependencies): Promise<ReviewResult> {

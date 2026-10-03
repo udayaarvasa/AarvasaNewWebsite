@@ -95,3 +95,28 @@ export function provenanceAllowedFor(kind: string, provenance: unknown): boolean
   const allowed = PROVENANCE_BY_KIND[kind as keyof typeof PROVENANCE_BY_KIND];
   return allowed !== undefined && allowed.includes(provenance);
 }
+
+
+/* ── Visibility ───────────────────────────────────────────────────────────── */
+
+export const MEDIA_VISIBILITY = ["INTERNAL", "PUBLIC"] as const;
+export type MediaVisibility = (typeof MEDIA_VISIBILITY)[number];
+
+export const isMediaVisibility = (value: unknown): value is MediaVisibility =>
+  typeof value === "string" && (MEDIA_VISIBILITY as readonly string[]).includes(value);
+
+/**
+ * May this asset be resolved by public property browsing?
+ *
+ * Two independent conditions, and both must hold. Visibility is the decision a
+ * reviewer makes; the provenance check behind it is a floor, because an
+ * engineering test asset is not a property's media whatever anybody sets. They
+ * are not redundant: visibility can be flipped back and forth as release
+ * decisions change, and the floor does not move.
+ *
+ * Anything unrecognised is refused, so a row this build cannot interpret stays
+ * private rather than defaulting into public view.
+ */
+export function isPubliclyResolvable(visibility: unknown, provenance: unknown): boolean {
+  return visibility === "PUBLIC" && isPubliclyShowable(provenance);
+}

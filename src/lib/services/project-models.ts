@@ -19,14 +19,18 @@ import { publishedModelQuery, toPublishedModel } from "@/lib/viewer/published-mo
  * Pages are statically generated, so publishing or withdrawing a model takes
  * effect on the next build — the same timing the tour and splat loaders have.
  */
-export async function loadProjectModel(project: Project): Promise<ProjectViewerConfig | null> {
+export async function loadProjectModel(
+  project: Project,
+  options: { includeInternal?: boolean } = {},
+): Promise<ProjectViewerConfig | null> {
   // No media origin in this build means no project can show a model at all, so
   // there is nothing to look up. Production is currently such a build.
   if (!MEDIA_CDN_ORIGIN) return null;
   try {
     const published = toPublishedModel(
-      await prisma.mediaAsset.findFirst(publishedModelQuery(project.slug)),
+      await prisma.mediaAsset.findFirst(publishedModelQuery(project.slug, options)),
       project.slug,
+      options,
     );
     if (published) {
       // projectViewerConfig owns URL building and the storage-contract re-check,

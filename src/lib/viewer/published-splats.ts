@@ -1,4 +1,4 @@
-import { isPubliclyShowable } from "../media/provenance";
+import { isPubliclyResolvable } from "../media/provenance";
 import { MEDIA_KEY_PATTERN, publishedObjectMetadata } from "../../../shared/media-contract";
 import { SPLAT_LIMITS } from "./splat-budget";
 
@@ -38,6 +38,7 @@ export const PUBLISHED_SPLAT_SELECT = {
   dimensions: true,
   viewDefaults: true,
   provenance: true,
+  visibility: true,
 } as const;
 
 /**
@@ -54,7 +55,8 @@ export function publishedSplatQuery(projectSlug: string, id: string) {
       format: "SOG" as const,
       subjectType: "PROJECT" as const,
       projectSlug,
-      // Engineering assets are excluded in the query, not filtered out later.
+      // Withheld assets are excluded in the query, not filtered out later.
+      visibility: "PUBLIC" as const,
       provenance: { not: "INTERNAL_TEST" as const },
     },
     select: PUBLISHED_SPLAT_SELECT,
@@ -78,7 +80,7 @@ export function toPublishedSplat(r: Row | null | undefined, projectSlug: string)
   if (r.status !== "PUBLISHED" || r.kind !== "SPLAT" || r.format !== "SOG" || r.subjectType !== "PROJECT" || r.projectSlug !== projectSlug) return null;
   // Checked again here: a test splat must not reach a public page even if the
   // caller passed the wrong query.
-  if (!isPubliclyShowable(r.provenance)) return null;
+  if (!isPubliclyResolvable(r.visibility, r.provenance)) return null;
   if (typeof r.id !== "string" || typeof r.storageKey !== "string" || typeof r.entryFile !== "string") return null;
   if (typeof r.altText !== "string" || !r.altText.trim()) return null;
   if (!positiveInt(r.sizeBytes) || r.sizeBytes > SPLAT_LIMITS.bytes.hardLimit) return null;

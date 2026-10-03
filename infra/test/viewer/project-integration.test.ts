@@ -21,6 +21,7 @@ const row = (id: string, extra: Record<string, unknown> = {}) => ({
   storageKey: `m/${id}/3f9a1c2b7d4e8f60`,
   entryFile: "panorama.jpg",
   provenance: "PHOTO_360",
+  visibility: "PUBLIC",
   altText: `Reviewed panorama ${id}`,
   viewDefaults: { yawDeg: 30, pitchDeg: 0, fovDeg: 70 },
   ...extra,
@@ -51,6 +52,7 @@ describe("publication gating: published panorama lookup", () => {
       subjectType: "PROJECT",
       projectSlug: SLUG,
       // Engineering panoramas are excluded by the query, not filtered after it.
+      visibility: "PUBLIC",
       provenance: { not: "INTERNAL_TEST" },
     });
   });

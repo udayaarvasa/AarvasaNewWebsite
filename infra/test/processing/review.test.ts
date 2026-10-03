@@ -47,6 +47,7 @@ const pendingRow = (overrides: Partial<ReviewAssetRow> = {}): ReviewAssetRow => 
   title: "Terrace",
   altText: null,
   provenance: "PHOTO_360",
+  visibility: "PUBLIC",
   sourceKey: `uploads/${MEDIA}/0f1e2d3c4b5a69788796a5b4c3d2e1f0/source.jpg`,
   sourceSizeBytes: 1_200_000,
   sourceMimeType: "image/jpeg",
@@ -102,10 +103,19 @@ function harness(row: ReviewAssetRow | null = pendingRow(), options: { access?: 
       findUser: async (id) => USERS[id] ?? null,
       listAssets: async ({ status, limit }) => [...rows.values()].filter((r) => !status || r.status === status).slice(0, limit),
       findAsset: async (id) => rows.get(id) ?? null,
-      approve: async (id, reviewerId, now, altText, provenance) => {
+      approve: async (id, reviewerId, now, decision) => {
         const r = rows.get(id);
         if (!r || r.status !== "PENDING_REVIEW") return 0;
-        rows.set(id, { ...r, status: "PUBLISHED", reviewedAt: now, publishedAt: now, altText, provenance, updatedAt: now });
+        rows.set(id, {
+          ...r,
+          status: "PUBLISHED",
+          reviewedAt: now,
+          publishedAt: now,
+          altText: decision.altText,
+          provenance: decision.provenance,
+          visibility: decision.visibility,
+          updatedAt: now,
+        });
         decisions.push(`approve:${reviewerId}`);
         return 1;
       },
@@ -219,7 +229,7 @@ describe("review API: approve and publish", () => {
     const h = harness();
     const r = await approveReviewAsset(h.body({ altText: "Terrace at sunset" }), h.deps);
     assert.equal(r.status, 200);
-    assert.deepEqual(data(r), { mediaAssetId: MEDIA, status: "PUBLISHED", provenance: "PHOTO_360", transitioned: true });
+    assert.deepEqual(data(r), { mediaAssetId: MEDIA, status: "PUBLISHED", provenance: "PHOTO_360", visibility: "PUBLIC", transitioned: true });
     const row = h.row();
     assert.equal(row.status, "PUBLISHED");
     assert.equal(row.altText, "Terrace at sunset");
@@ -245,7 +255,7 @@ describe("review API: approve and publish", () => {
     const h = harness();
     await approveReviewAsset(h.body({ altText: "A" }), h.deps);
     const again = await approveReviewAsset(h.body({ altText: "B" }), h.deps);
-    assert.deepEqual(data(again), { mediaAssetId: MEDIA, status: "PUBLISHED", provenance: "PHOTO_360", transitioned: false });
+    assert.deepEqual(data(again), { mediaAssetId: MEDIA, status: "PUBLISHED", provenance: "PHOTO_360", visibility: "PUBLIC", transitioned: false });
     assert.equal(h.row().altText, "A", "a repeat approval changes nothing");
     assert.deepEqual(h.decisions, ["approve:admin"]);
   });
@@ -429,5 +439,57 @@ describe("review API: withdrawal", () => {
     const before = h.access.published.size;
     await archiveReviewAsset(h.body({ reason: "Engineering asset." }, "admin"), h.deps);
     assert.equal(h.access.published.size, before, "withdrawal must not touch stored objects");
+  });
+});
+
+describe("review API: visibility and opening cameras", () => {
+  it("publishes withheld by default, so releasing is a separate decision", async () => {
+    // The fixture starts PUBLIC; one that says nothing keeps whatever it has.
+    const h = harness(pendingRow({ visibility: "INTERNAL" }));
+    const out = await approveReviewAsset(h.body({ altText: "Room" }, "admin"), h.deps);
+    assert.equal(out.status, 200);
+    assert.equal((out.body.data as Record<string, unknown>).visibility, "INTERNAL");
+    assert.equal(h.row().visibility, "INTERNAL");
+  });
+
+  it("a reviewer releases it explicitly", async () => {
+    const h = harness(pendingRow({ visibility: "INTERNAL" }));
+    const out = await approveReviewAsset(h.body({ altText: "Room", visibility: "PUBLIC" }, "admin"), h.deps);
+    assert.equal((out.body.data as Record<string, unknown>).visibility, "PUBLIC");
+  });
+
+  it("re-publishing an asset does not quietly change its visibility", async () => {
+    const h = harness();
+    assert.equal((await approveReviewAsset(h.body({ altText: "Room" }, "admin"), h.deps)).status, 200);
+    const flip = await approveReviewAsset(h.body({ altText: "Room", visibility: "INTERNAL" }, "admin"), h.deps);
+    assert.equal(flip.status, 409);
+  });
+
+  it("refuses a camera the orbit controls would silently clamp", async () => {
+    for (const viewDefaults of [
+      { yawDeg: 0, pitchDeg: 95, distanceFactor: 2 },
+      { yawDeg: 0, pitchDeg: 16, distanceFactor: 99 },
+      { yawDeg: 0, pitchDeg: 16 },
+      { yawDeg: 0, pitchDeg: 16, distanceFactor: 2, mobile: { yawDeg: 0, pitchDeg: 2, distanceFactor: 2 } },
+    ]) {
+      const h = harness();
+      const out = await approveReviewAsset(h.body({ altText: "Room", viewDefaults }, "admin"), h.deps);
+      assert.equal(out.status, 400, JSON.stringify(viewDefaults));
+    }
+  });
+
+  it("accepts a desktop camera with its own narrow-viewer camera", async () => {
+    const h = harness();
+    const out = await approveReviewAsset(
+      h.body({
+        altText: "Room",
+        viewDefaults: {
+          yawDeg: 26, pitchDeg: 16, distanceFactor: 2.15,
+          mobile: { yawDeg: 18, pitchDeg: 10, distanceFactor: 2.0 },
+        },
+      }, "admin"),
+      h.deps,
+    );
+    assert.equal(out.status, 200);
   });
 });

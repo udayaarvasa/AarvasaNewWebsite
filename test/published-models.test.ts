@@ -33,6 +33,7 @@ const row = (over: Record<string, unknown> = {}) => ({
   altText: "A grey cube test model.",
   processorVersion: "1.0.0/passthrough-v1",
   provenance: "OFFICIAL_MODEL",
+  visibility: "PUBLIC",
   ...over,
 });
 
@@ -122,13 +123,14 @@ test("nothing at all maps to nothing", () => {
   assert.equal(toPublishedModel(undefined, SLUG), null);
 });
 
-test("the query itself constrains status, kind, subject and provenance", () => {
+test("the query itself constrains status, kind, subject, visibility and provenance", () => {
   const q = publishedModelQuery(SLUG);
   assert.deepEqual(q.where, {
     status: "PUBLISHED",
     kind: "MODEL",
     subjectType: "PROJECT",
     projectSlug: SLUG,
+    visibility: "PUBLIC",
     provenance: { not: "INTERNAL_TEST" },
   });
   assert.equal(q.take, 1);
@@ -153,5 +155,34 @@ test("a row with no provenance at all is refused, not assumed real", () => {
 test("every genuine provenance is carried through for labelling", () => {
   for (const p of ["OFFICIAL_MODEL", "DEVELOPER_RENDER", "AARVASA_RECONSTRUCTION"]) {
     assert.equal(toPublishedModel(row({ provenance: p }), SLUG)?.provenance, p, p);
+  }
+});
+
+test("an INTERNAL asset is withheld from public browsing, whatever its provenance", () => {
+  // The case the visibility split exists for: an honest Aarvasa reconstruction
+  // that nobody has released yet.
+  const withheld = row({ provenance: "AARVASA_RECONSTRUCTION", visibility: "INTERNAL" });
+  assert.equal(toPublishedModel(withheld, SLUG), null);
+  // And the query refuses it before it is ever read.
+  assert.equal(publishedModelQuery(SLUG).where.visibility, "PUBLIC");
+});
+
+test("authorised internal preview resolves it, and only it", () => {
+  const withheld = row({ provenance: "AARVASA_RECONSTRUCTION", visibility: "INTERNAL" });
+  const seen = toPublishedModel(withheld, SLUG, { includeInternal: true });
+  assert.equal(seen?.provenance, "AARVASA_RECONSTRUCTION");
+  // Preview relaxes visibility, never the provenance floor: a test asset is not
+  // a project's architecture even to an admin.
+  const test = row({ provenance: "INTERNAL_TEST", visibility: "INTERNAL" });
+  assert.equal(toPublishedModel(test, SLUG, { includeInternal: true }), null);
+  // The internal query drops the visibility filter and keeps the floor.
+  const q = publishedModelQuery(SLUG, { includeInternal: true });
+  assert.equal("visibility" in q.where, false);
+  assert.deepEqual(q.where.provenance, { not: "INTERNAL_TEST" });
+});
+
+test("an unrecognised visibility is withheld rather than assumed public", () => {
+  for (const visibility of [undefined, null, "", "public", "RELEASED", 1]) {
+    assert.equal(toPublishedModel(row({ visibility }), SLUG), null, String(visibility));
   }
 });
