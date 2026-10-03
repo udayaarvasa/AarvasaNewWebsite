@@ -4,10 +4,13 @@ import { useCallback, useEffect, useId, useRef, useState } from "react";
 import { Globe2, Loader2, MapPin, TriangleAlert } from "lucide-react";
 import {
   EXPLORE_AREA_CAMERA,
+  EXPLORE_AREA_HINTS,
+  EXPLORE_AREA_MESSAGES,
   EXPLORE_AREA_NOTE,
   GOOGLE_ATTRIBUTION,
   exploreAreaMode,
   mapsScriptUrl,
+  type ExploreAreaBlocker,
   type ExploreAreaMode,
   type VerifiedCoordinates,
 } from "@/lib/maps/google-3d";
@@ -33,7 +36,10 @@ type Phase =
   | { k: "closed" }
   | { k: "loading" }
   | { k: "ready"; mode: "3d" | "2d" }
-  | { k: "failed"; message: string };
+  /* Named rather than free text, so each failure says which thing is wrong and
+     who can fix it: a rejected key is ours, absent coverage is Google's and will
+     not change on a retry. */
+  | { k: "failed"; blocker: ExploreAreaBlocker };
 
 declare global {
   interface Window {
@@ -100,7 +106,7 @@ export function ExploreArea({
        silently did nothing. */
     const host = hostRef.current;
     if (!host) {
-      setPhase({ k: "failed", message: "The map could not be started. Please reload the page." });
+      setPhase({ k: "failed", blocker: "LOAD_FAILED" });
       return;
     }
     try {
@@ -154,16 +160,20 @@ export function ExploreArea({
 
         if (authFailed) {
           host.replaceChildren();
-          setPhase({
-            k: "failed",
-            message: "Maps are not available here — this deployment's map key was rejected.",
-          });
+          setPhase({ k: "failed", blocker: "INVALID_API_KEY" });
           return;
         }
         if (!rendered) {
+          /* No settled frame means Google has nothing in three dimensions here.
+             The flat map at the same point is an honest substitute and says so;
+             if even that fails, the absence is reported rather than papered over. */
           host.replaceChildren();
-          await mountFlatMap(host, resolved.center, name, location);
-          setPhase({ k: "ready", mode: "2d" });
+          try {
+            await mountFlatMap(host, resolved.center, name, location);
+            setPhase({ k: "ready", mode: "2d" });
+          } catch {
+            setPhase({ k: "failed", blocker: "NO_3D_COVERAGE" });
+          }
           return;
         }
         setPhase({ k: "ready", mode: "3d" });
@@ -173,10 +183,8 @@ export function ExploreArea({
       await mountFlatMap(host, resolved.center, name, location);
       setPhase({ k: "ready", mode: "2d" });
     } catch {
-      setPhase({
-        k: "failed",
-        message: "The map could not be loaded. The address and locality are listed above.",
-      });
+      // A rejected key is reported as such even when it surfaced as a throw.
+      setPhase({ k: "failed", blocker: authFailed ? "INVALID_API_KEY" : "LOAD_FAILED" });
     }
   }, [resolved, name, location]);
 
@@ -235,7 +243,10 @@ export function ExploreArea({
         {phase.k === "failed" && (
           <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 px-6 text-center text-stage-muted">
             <TriangleAlert className="h-6 w-6" aria-hidden="true" />
-            <p className="max-w-[44ch] text-[14px]">{phase.message}</p>
+            <p className="max-w-[44ch] text-[14px]">{EXPLORE_AREA_MESSAGES[phase.blocker]}</p>
+            {EXPLORE_AREA_HINTS[phase.blocker] && (
+              <p className="max-w-[44ch] text-[13px] opacity-80">{EXPLORE_AREA_HINTS[phase.blocker]}</p>
+            )}
           </div>
         )}
       </div>

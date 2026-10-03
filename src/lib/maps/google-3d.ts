@@ -54,14 +54,43 @@ export type ExploreAreaMode =
   /** Nothing can be shown. `reason` is for developers, `message` for visitors. */
   | { readonly kind: "unavailable"; readonly reason: ExploreAreaBlocker; readonly message: string };
 
-export type ExploreAreaBlocker = "NO_API_KEY" | "NO_VERIFIED_COORDINATES" | "COORDINATES_OUT_OF_RANGE";
+/**
+ * Every way Explore Area can fail to show a map.
+ *
+ * Distinct cases rather than one apology, because they are not the same problem
+ * and they are not fixed by the same person. A missing key is ours; an
+ * unverified location is the data's; absent coverage is Google's and will not
+ * change by retrying. A visitor told "unavailable" learns nothing, and whoever
+ * has to fix it learns less.
+ */
+export type ExploreAreaBlocker =
+  | "NO_API_KEY"
+  | "INVALID_API_KEY"
+  | "NO_VERIFIED_COORDINATES"
+  | "COORDINATES_OUT_OF_RANGE"
+  | "NO_3D_COVERAGE"
+  | "LOAD_FAILED";
 
 export const EXPLORE_AREA_MESSAGES: Readonly<Record<ExploreAreaBlocker, string>> = {
-  NO_API_KEY: "Maps are not configured in this environment.",
+  NO_API_KEY: "3D area unavailable — maps are not configured.",
+  INVALID_API_KEY: "3D area unavailable — map configuration needs attention.",
   NO_VERIFIED_COORDINATES:
-    "This project's exact location has not been confirmed yet, so it is not shown on a map. The address is listed above.",
+    "3D area unavailable — this property's location has not been verified.",
   COORDINATES_OUT_OF_RANGE:
-    "This project's recorded location could not be read, so it is not shown on a map.",
+    "3D area unavailable — this property's recorded location could not be read.",
+  NO_3D_COVERAGE: "Photorealistic 3D is not available at this location.",
+  LOAD_FAILED: "3D area could not be loaded.",
+};
+
+/**
+ * What a visitor can usefully do about each one. Absent where there is nothing
+ * to do: telling someone to retry a place Google has not captured is a lie.
+ */
+export const EXPLORE_AREA_HINTS: Readonly<Partial<Record<ExploreAreaBlocker, string>>> = {
+  NO_VERIFIED_COORDINATES:
+    "The address and locality are listed on this page. No map is shown rather than one placed at a guessed position.",
+  NO_3D_COVERAGE: "Google has not captured this area in three dimensions.",
+  LOAD_FAILED: "This is usually a network problem. Reloading the page may be enough.",
 };
 
 /**

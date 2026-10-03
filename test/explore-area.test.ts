@@ -11,6 +11,8 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 
 import {
+  EXPLORE_AREA_HINTS,
+  EXPLORE_AREA_MESSAGES,
   EXPLORE_AREA_NOTE,
   GOOGLE_ATTRIBUTION,
   exploreAreaMode,
@@ -42,9 +44,28 @@ test("every REEF record today produces no map, because none has coordinates", ()
   }
 });
 
-test("the visitor is told the location is unconfirmed, not that something broke", () => {
+test("the visitor is told the location is unverified, not that something broke", () => {
   const mode = exploreAreaMode({ coordinates: null, apiKey: KEY });
-  assert.ok(mode.kind === "unavailable" && /not been confirmed/i.test(mode.message));
+  assert.ok(mode.kind === "unavailable" && /has not been verified/i.test(mode.message));
+});
+
+test("each failure says which thing is wrong, because they are not the same problem", () => {
+  // A missing key is ours to fix, an unverified location is the data's, and
+  // absent coverage is Google's and will not change on a retry. One shared
+  // "unavailable" would tell the visitor nothing and the maintainer less.
+  const messages = Object.values(EXPLORE_AREA_MESSAGES);
+  assert.equal(new Set(messages).size, messages.length, "no two blockers share a message");
+
+  assert.match(EXPLORE_AREA_MESSAGES.NO_API_KEY, /not configured/i);
+  assert.match(EXPLORE_AREA_MESSAGES.INVALID_API_KEY, /needs attention/i);
+  assert.match(EXPLORE_AREA_MESSAGES.NO_VERIFIED_COORDINATES, /not been verified/i);
+  assert.match(EXPLORE_AREA_MESSAGES.NO_3D_COVERAGE, /not available at this location/i);
+  assert.match(EXPLORE_AREA_MESSAGES.LOAD_FAILED, /could not be loaded/i);
+
+  // Nothing claims a map exists, and nothing offers a retry where retrying is futile.
+  for (const m of messages) assert.doesNotMatch(m, /showing|approximate|nearby location instead/i);
+  assert.equal(EXPLORE_AREA_HINTS.NO_3D_COVERAGE?.includes("Reload"), false);
+  assert.match(EXPLORE_AREA_HINTS.LOAD_FAILED ?? "", /Reloading/);
 });
 
 test("nonsense coordinates are refused rather than plotted", () => {

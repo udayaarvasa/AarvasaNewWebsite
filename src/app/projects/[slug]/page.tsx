@@ -34,7 +34,7 @@ import { loadProjectModel } from "@/lib/services/project-models";
 import { loadProjectTour } from "@/lib/services/project-panoramas";
 import { loadProjectSplat } from "@/lib/services/project-splats";
 import { ExploreArea } from "@/components/property/explore-area";
-import { exploreAreaMode } from "@/lib/maps/google-3d";
+import { EXPLORE_AREA_HINTS, exploreAreaMode } from "@/lib/maps/google-3d";
 import ImmersiveSection from "./immersive-section";
 
 // Only slugs from generateStaticParams resolve; anything else 404s at the routing
@@ -311,11 +311,12 @@ export default async function ProjectPage({
                     />
                   </MotionReveal>
                 ) : (
-                  <p className="max-w-[46ch] border border-rule-firm/40 p-[var(--s-5)] text-[14px] leading-relaxed text-stage-muted">
-                    {area.kind === "unavailable" ? area.message : null} The address and
-                    locality are listed below; no map is shown rather than one placed
-                    at a guessed position.
-                  </p>
+                  <div className="max-w-[46ch] border border-rule-firm/40 p-[var(--s-5)] text-[14px] leading-relaxed text-stage-muted">
+                    <p>{area.kind === "unavailable" ? area.message : null}</p>
+                    {area.kind === "unavailable" && EXPLORE_AREA_HINTS[area.reason] && (
+                      <p className="mt-2 opacity-80">{EXPLORE_AREA_HINTS[area.reason]}</p>
+                    )}
+                  </div>
                 )}
               </div>
             </div>
