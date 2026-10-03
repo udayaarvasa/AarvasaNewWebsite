@@ -5,6 +5,11 @@ media database is private and must stay that way: no public address, and a
 security group admitting one security group on 5432 and nothing else. Reaching
 it means running inside the VPC.
 
+This is the mechanism for schema changes. To run the app itself against the dev
+data you want the other one — a temporary bastion and an SSM port-forward, in
+`docs/dev-database.md`. No bastion exists at rest; one is created and destroyed
+around the work that needs it.
+
 ## Why it is not part of the app
 
 Nothing here is wired into startup, and the processing worker never migrates on
