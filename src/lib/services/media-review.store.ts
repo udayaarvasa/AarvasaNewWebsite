@@ -90,6 +90,17 @@ export function createPrismaReviewStore(prisma: PrismaClient): MediaReviewStore 
       return count;
     },
 
+    async release(id, reviewerId, now) {
+      /* Conditional on BOTH the published status and the current INTERNAL
+         visibility. Without the visibility clause a release racing an archive
+         could publish something that had just been withdrawn. */
+      const { count } = await prisma.mediaAsset.updateMany({
+        where: { id, status: "PUBLISHED", visibility: "INTERNAL" },
+        data: { visibility: "PUBLIC", reviewedAt: now, reviewedById: reviewerId },
+      });
+      return count;
+    },
+
     async archive(id, reviewerId, now, from, reason) {
       // Conditional on the status the caller actually read, so two withdrawals
       // racing cannot both count as the one that moved it.

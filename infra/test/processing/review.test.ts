@@ -9,6 +9,7 @@ import {
   getReviewAsset,
   listReviewAssets,
   rejectReviewAsset,
+  releaseReviewAsset,
   type MediaReviewDependencies,
   type ReviewAssetRow,
   type ReviewResult,
@@ -124,6 +125,15 @@ function harness(row: ReviewAssetRow | null = pendingRow(), options: { access?: 
         if (!r || r.status !== "PENDING_REVIEW") return 0;
         rows.set(id, { ...r, status: "REJECTED", reviewedAt: now, rejectionReason: reason, updatedAt: now });
         decisions.push(`reject:${reviewerId}`);
+        return 1;
+      },
+      // Conditional on BOTH status and visibility, as the real store is: a
+      // release racing an archive must not publish what was just withdrawn.
+      release: async (id, reviewerId, now) => {
+        const r = rows.get(id);
+        if (!r || r.status !== "PUBLISHED" || r.visibility !== "INTERNAL") return 0;
+        rows.set(id, { ...r, visibility: "PUBLIC", reviewedAt: now, updatedAt: now });
+        decisions.push(`release:${reviewerId}`);
         return 1;
       },
       // Conditional on the status the caller read, as the real store is, so a
@@ -491,5 +501,89 @@ describe("review API: visibility and opening cameras", () => {
       h.deps,
     );
     assert.equal(out.status, 200);
+  });
+});
+
+describe("release: PUBLISHED + INTERNAL → PUBLIC", () => {
+  /* Approval and release are two decisions on purpose. Approval says the asset
+     is correct and properly described; release says the organisation will put
+     it in front of buyers. REEF 996's reconstruction is why: approved,
+     published, and INTERNAL until somebody chooses otherwise. Every case below
+     is a way it could have become visible without anyone choosing. */
+  const published = (over: Partial<ReviewAssetRow> = {}) =>
+    pendingRow({ status: "PUBLISHED", visibility: "INTERNAL", provenance: "AARVASA_RECONSTRUCTION", ...over });
+
+  it("moves a published internal asset to public, and audits who did it", async () => {
+    const h = harness(published());
+    const r = await releaseReviewAsset(h.body({}), h.deps);
+    assert.equal(r.status, 200);
+    assert.deepEqual(data(r), { mediaAssetId: MEDIA, status: "PUBLISHED", visibility: "PUBLIC", transitioned: true });
+    assert.equal(h.row().visibility, "PUBLIC");
+    assert.deepEqual(h.decisions, ["release:admin"]);
+    assert.ok(
+      h.logs.some((l) => /released to the public/.test(l) && /AARVASA_RECONSTRUCTION/.test(l)),
+      "the release is audited with its provenance",
+    );
+  });
+
+  it("refuses anyone who is not an admin, and writes nothing", async () => {
+    for (const caller of ["", "user"]) {
+      const h = harness(published());
+      const r = await releaseReviewAsset(h.body({}, caller), h.deps);
+      assert.ok(r.status === 401 || r.status === 403, `${caller || "anonymous"} → ${r.status}`);
+      assert.equal(h.row().visibility, "INTERNAL");
+      assert.deepEqual(h.decisions, []);
+    }
+  });
+
+  it("releases only from PUBLISHED, never from any other state", async () => {
+    for (const status of ["UPLOADED", "PROCESSING", "PENDING_REVIEW", "REJECTED", "ARCHIVED"] as MediaAssetStatus[]) {
+      const h = harness(published({ status }));
+      const r = await releaseReviewAsset(h.body({}), h.deps);
+      assert.equal(r.status, 409, status);
+      assert.equal(h.row().visibility, "INTERNAL");
+      assert.deepEqual(h.decisions, []);
+    }
+  });
+
+  it("refuses a provenance that may never be public, as the resolver does", async () => {
+    // Enforced here as well as at read time: a check that lives only in the
+    // resolver is one regression away from being the only thing between a test
+    // cube and a property page.
+    const h = harness(published({ provenance: "INTERNAL_TEST" }));
+    const r = await releaseReviewAsset(h.body({}), h.deps);
+    assert.equal(r.status, 409);
+    assert.equal(h.row().visibility, "INTERNAL");
+    assert.deepEqual(h.decisions, []);
+  });
+
+  it("is idempotent: releasing an already public asset succeeds without writing", async () => {
+    const h = harness(published({ visibility: "PUBLIC" }));
+    const r = await releaseReviewAsset(h.body({}), h.deps);
+    assert.equal(r.status, 200);
+    assert.deepEqual(data(r), { mediaAssetId: MEDIA, status: "PUBLISHED", visibility: "PUBLIC", transitioned: false });
+    assert.deepEqual(h.decisions, []);
+  });
+
+  it("refuses an unknown asset rather than inventing one", async () => {
+    const h = harness(null);
+    const r = await releaseReviewAsset(h.body({}), h.deps);
+    assert.equal(r.status, 404);
+    assert.deepEqual(h.decisions, []);
+  });
+
+  it("accepts no fields, so nothing can be smuggled into the transition", async () => {
+    const h = harness(published());
+    const r = await releaseReviewAsset(h.body({ visibility: "PUBLIC", provenance: "OFFICIAL_MODEL" }), h.deps);
+    assert.equal(r.status, 400);
+    assert.equal(h.row().visibility, "INTERNAL");
+    assert.deepEqual(h.decisions, []);
+  });
+
+  it("requires JSON, like every other decision endpoint", async () => {
+    const h = harness(published());
+    const r = await releaseReviewAsset(h.body({}, "admin", "text/plain"), h.deps);
+    assert.equal(r.status, 415);
+    assert.deepEqual(h.decisions, []);
   });
 });

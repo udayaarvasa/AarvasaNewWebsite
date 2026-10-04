@@ -11,6 +11,7 @@ import {
   MEDIA_PROVENANCE,
   MEDIA_VISIBILITY,
   PROVENANCE_LABEL,
+  isPubliclyShowable,
   provenanceAllowedFor,
   type MediaProvenance,
   type MediaVisibility,
@@ -101,6 +102,14 @@ export interface MediaReviewStore {
   archive(id: string, reviewerId: string, now: Date, from: MediaAssetStatus, reason: string): Promise<number>;
   /** PENDING_REVIEW → REJECTED (reason, reviewedAt, reviewer). Returns rows updated. */
   reject(id: string, reviewerId: string, now: Date, reason: string): Promise<number>;
+  /**
+   * PUBLISHED+INTERNAL → PUBLISHED+PUBLIC. Returns rows updated.
+   *
+   * Conditional on both the status and the current visibility, so two reviewers
+   * releasing at once cannot both count as the one that moved it, and a release
+   * can never resurrect something that has since been archived.
+   */
+  release(id: string, reviewerId: string, now: Date): Promise<number>;
 }
 
 export interface MediaReviewDependencies {
@@ -125,6 +134,7 @@ export type ReviewErrorCode =
   | "UNSUPPORTED_MEDIA_TYPE"
   | "NOT_REVIEWABLE"
   | "NOT_ARCHIVABLE"
+  | "NOT_RELEASABLE"
   | "ALT_TEXT_REQUIRED"
   | "INCONSISTENT_ASSET"
   | "REVIEW_COPY_MISSING"
@@ -140,6 +150,7 @@ const ERRORS: Record<ReviewErrorCode, { status: number; message: string; retryab
   UNSUPPORTED_MEDIA_TYPE: { status: 415, message: "Content-Type must be application/json", retryable: false },
   NOT_REVIEWABLE: { status: 409, message: "This asset is not awaiting review.", retryable: false },
   NOT_ARCHIVABLE: { status: 409, message: "This asset cannot be withdrawn.", retryable: false },
+  NOT_RELEASABLE: { status: 409, message: "This asset cannot be released to the public.", retryable: false },
   ALT_TEXT_REQUIRED: { status: 400, message: "Alt text is required before publishing.", retryable: false },
   INCONSISTENT_ASSET: { status: 409, message: "This asset cannot be published. Please re-upload it.", retryable: false },
   REVIEW_COPY_MISSING: { status: 409, message: "The processed files are no longer available. Please re-upload the asset.", retryable: false },
@@ -403,6 +414,74 @@ export async function approveReviewAsset(request: BodyRequest, deps: MediaReview
   if (error) return error;
   deps.log("media asset published", { mediaAssetId: row.id, reviewerId: user.id });
   return ok({ mediaAssetId: row.id, status: "PUBLISHED", provenance, visibility, transitioned });
+}
+
+/**
+ * Release an already-published asset to the public.
+ *
+ * Deliberately separate from approval. Approval decides that an asset is
+ * correct and well described; it leaves visibility wherever the reviewer set it,
+ * and for a reconstruction that is INTERNAL. Making something publicly visible
+ * is a different judgement — about whether the organisation is willing to stand
+ * behind it in front of buyers — and folding the two together would mean every
+ * approval quietly published, which is the opposite of what the visibility
+ * column exists for.
+ *
+ * Fails closed at every step: unauthenticated, non-admin, unknown id, not yet
+ * published, or a provenance that may never be public are all refusals, and the
+ * update itself is conditional so a concurrent archive wins.
+ */
+export async function releaseReviewAsset(request: BodyRequest, deps: MediaReviewDependencies): Promise<ReviewResult> {
+  const loaded = await loadAsset(request, deps);
+  if ("error" in loaded) return loaded.error;
+  const parsed = await readJson(request);
+  if ("error" in parsed) return parsed.error;
+  // No fields: the asset id in the path is the whole request.
+  if (!z.strictObject({}).safeParse(parsed.body).success) return fail("INVALID_REQUEST");
+  const { user, row } = loaded;
+
+  /* Already public: a repeated release is a success, not a conflict. Reviewers
+     retry, and tooling retries on a dropped response. */
+  if (row.status === "PUBLISHED" && row.visibility === "PUBLIC") {
+    return ok({ mediaAssetId: row.id, status: row.status, visibility: "PUBLIC", transitioned: false });
+  }
+
+  // Only a published asset can be released; nothing else is a candidate.
+  if (row.status !== "PUBLISHED") return fail("NOT_RELEASABLE");
+
+  /* The provenance floor, enforced here as well as in the resolver. An internal
+     test asset must never become public by any route, and a check that exists
+     only at read time is one deployment away from being the only thing standing
+     between a test cube and a property page. */
+  if (!isPubliclyShowable(row.provenance)) return fail("NOT_RELEASABLE");
+
+  let updated: number;
+  try {
+    updated = await deps.store.release(row.id, user.id, deps.now());
+  } catch (error) {
+    deps.log("media release update failed", { mediaAssetId: row.id, error: errorName(error) });
+    return fail("SERVER_ERROR");
+  }
+
+  if (updated === 1) {
+    /* Audited: who released what, when, and from which provenance. This is the
+       moment an asset becomes visible to buyers, so it is the one most worth
+       being able to reconstruct afterwards. */
+    deps.log("media asset released to the public", {
+      mediaAssetId: row.id,
+      reviewerId: user.id,
+      provenance: row.provenance ?? null,
+      from: "INTERNAL",
+    });
+    return ok({ mediaAssetId: row.id, status: "PUBLISHED", visibility: "PUBLIC", transitioned: true });
+  }
+
+  // Someone moved it first. Only an identical release still counts as success.
+  const current = await deps.store.findAsset(row.id);
+  if (current?.status === "PUBLISHED" && current.visibility === "PUBLIC") {
+    return ok({ mediaAssetId: row.id, status: "PUBLISHED", visibility: "PUBLIC", transitioned: false });
+  }
+  return fail("NOT_RELEASABLE");
 }
 
 export async function rejectReviewAsset(request: BodyRequest, deps: MediaReviewDependencies): Promise<ReviewResult> {
