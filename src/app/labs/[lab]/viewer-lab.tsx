@@ -8,11 +8,16 @@ import { TEST_360_TOUR } from "./lab-tour";
 import { Button } from "@/components/ui/button";
 import type { ViewerSource, ViewerStatus } from "@/lib/viewer/types";
 
-type SceneChoice = "procedural" | "sample" | "blocked";
+type SceneChoice = "procedural" | "sample" | "reef998" | "blocked";
 
 const SOURCES: Record<SceneChoice, ViewerSource | undefined> = {
   procedural: undefined,
   sample: { kind: "model", url: "/labs/viewer/sample.glb" },
+  /* The REEF 998 reference-based reconstruction, served through the dev CDN
+     stand-in under its real content-addressed key so the lab exercises the same
+     path a published asset would. Staged only: no MediaAsset row, and INTERNAL
+     when it gets one. */
+  reef998: { kind: "model", url: "/labs/media/m/3eecb8df7d61b40c456ee53d/0756752510fe54e4/scene.glb" },
   // Must be rejected by the same-origin guard without any request being made.
   blocked: { kind: "model", url: "https://example.com/untrusted.glb" },
 };
@@ -85,6 +90,7 @@ export function ViewerLab({ initialLoadOn }: { initialLoadOn: "visible" | "inter
           options={[
             { value: "procedural", label: "Procedural" },
             { value: "sample", label: "Sample GLB" },
+            { value: "reef998", label: "REEF 998" },
             { value: "blocked", label: "Blocked URL" },
           ]}
         />
