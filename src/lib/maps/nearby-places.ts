@@ -204,10 +204,17 @@ export const NEARBY_FAILURE_MESSAGES: Readonly<Record<NearbyFailure, string>> = 
  */
 export function nearbyFailureReason(error: unknown): NearbyFailure {
   if (!error || typeof error !== "object") return "LOAD_FAILED";
-  const { code, endpoint, message } = error as Record<string, unknown>;
+  const { code, endpoint, message, name } = error as Record<string, unknown>;
+
+  /* The SDK refused to send the request at all, because we built it wrong.
+     Nothing left this machine, so it is certainly not a network problem — and
+     saying so would send whoever reads it to check their wifi over our bug. */
+  if (name === "InvalidValueError") return "REQUEST_REJECTED";
+
   // No endpoint means the request never reached Places.
   if (typeof endpoint !== "string") return "LOAD_FAILED";
   if (code === "PERMISSION_DENIED" || code === "UNAUTHENTICATED") return "CONFIG";
   if (typeof message === "string" && /api key/i.test(message)) return "CONFIG";
+  if (typeof message === "string" && /referer|referrer/i.test(message)) return "CONFIG";
   return "REQUEST_REJECTED";
 }

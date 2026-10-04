@@ -158,3 +158,27 @@ test("only the case that established a network problem mentions one", () => {
   assert.doesNotMatch(NEARBY_FAILURE_MESSAGES.CONFIG, /network/i);
   assert.doesNotMatch(NEARBY_FAILURE_MESSAGES.REQUEST_REJECTED, /network/i);
 });
+
+test("a request the SDK refused to send is our bug, not the visitor's network", () => {
+  // Captured from the SDK: it validates client-side and throws before any
+  // request leaves the machine, so there is no endpoint to key off.
+  const refusedLocally = {
+    name: "InvalidValueError",
+    message: 'in property locationRestriction: Invalid LocationRestriction: {"center":{"lat":25,"lng":55},"radius":2000}',
+  };
+  assert.equal(nearbyFailureReason(refusedLocally), "REQUEST_REJECTED");
+  assert.doesNotMatch(NEARBY_FAILURE_MESSAGES[nearbyFailureReason(refusedLocally)], /network/i);
+});
+
+test("a blocked referrer is configuration, which is where it is actually fixed", () => {
+  // Captured verbatim: a valid key whose HTTP-referrer restriction excludes the
+  // host. Google answered, so it is not a network problem, and it is not the
+  // key being invalid either — it is the restriction list.
+  const blocked = {
+    name: "MapsRequestError",
+    code: "PERMISSION_DENIED",
+    endpoint: "PLACES_SEARCH_TEXT",
+    message: "PLACES_SEARCH_TEXT: PERMISSION_DENIED: Error in searchByText: Requests from referer http://localhost:3000/ are blocked.",
+  };
+  assert.equal(nearbyFailureReason(blocked), "CONFIG");
+});
