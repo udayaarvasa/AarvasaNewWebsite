@@ -213,6 +213,13 @@ describe("storage stack: CloudFront", () => {
     assert.equal(cors.AccessControlAllowCredentials, false);
     assert.deepEqual(cors.AccessControlAllowOrigins, { Items: ["http://localhost:3000"] });
     assert.deepEqual(cors.AccessControlAllowMethods, { Items: ["GET", "HEAD", "OPTIONS"] });
+    /* Range for byte-range media; Accept because Google's 3D model loader sends
+       `Accept: model/vnd.collada+xml;context=google-earth`, which is not
+       CORS-safelisted and so preflights for `accept`. With Range alone that
+       preflight came back without an allow-origin header and the browser blocked
+       every GLB fetch. Both named explicitly — a wildcard here would also admit
+       Authorization. */
+    assert.deepEqual(cors.AccessControlAllowHeaders, { Items: ["Range", "Accept"] });
     assert.deepEqual(cors.AccessControlExposeHeaders, { Items: CORS_EXPOSED_HEADERS });
     assert.deepEqual([...CORS_EXPOSED_HEADERS].sort(), ["Accept-Ranges", "Content-Length", "Content-Range", "ETag"]);
     assert.ok(!JSON.stringify(cors).includes('"*"'), "no wildcard origins, methods or headers");

@@ -195,7 +195,13 @@ export class MediaStorageStack extends Stack {
         accessControlAllowCredentials: false,
         accessControlAllowOrigins: [...cfg.allowedOrigins],
         accessControlAllowMethods: ["GET", "HEAD", "OPTIONS"],
-        accessControlAllowHeaders: ["Range"],
+        /* Range for byte-range media. Accept because Google's 3D model loader
+           fetches a GLB with `Accept: model/vnd.collada+xml;context=google-earth`
+           — a value containing ";", "/" and "=", so it is not CORS-safelisted and
+           forces a preflight asking for `accept`. With Range alone CloudFront
+           answered that preflight 204 WITHOUT Access-Control-Allow-Origin, and the
+           browser blocked the model fetch. Explicit list, not a wildcard. */
+        accessControlAllowHeaders: ["Range", "Accept"],
         accessControlExposeHeaders: CORS_EXPOSED_HEADERS,
         accessControlMaxAge: Duration.days(1),
         originOverride: true,
