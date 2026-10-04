@@ -210,7 +210,10 @@ describe("storage stack: CloudFront", () => {
     const [policy] = resourcesOfType(t, "AWS::CloudFront::ResponseHeadersPolicy");
     const cfg = policy.properties.ResponseHeadersPolicyConfig as Record<string, Record<string, unknown>>;
     const cors = cfg.CorsConfig;
-    assert.equal(cors.AccessControlAllowCredentials, false);
+    /* True because Google's model loader fetches GLBs with withCredentials.
+       It is only permissible alongside an exact origin allowlist — the wildcard
+       assertion below is what keeps the pair honest. */
+    assert.equal(cors.AccessControlAllowCredentials, true);
     assert.deepEqual(cors.AccessControlAllowOrigins, { Items: ["http://localhost:3000"] });
     assert.deepEqual(cors.AccessControlAllowMethods, { Items: ["GET", "HEAD", "OPTIONS"] });
     /* Range for byte-range media; Accept because Google's 3D model loader sends

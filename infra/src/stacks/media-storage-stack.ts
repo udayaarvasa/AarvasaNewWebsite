@@ -192,7 +192,12 @@ export class MediaStorageStack extends Stack {
       responseHeadersPolicyName: `${prefix}-media-headers`,
       comment: "CORS allowlist and media-host security headers. Applies to every response, including errors.",
       corsBehavior: {
-        accessControlAllowCredentials: false,
+        /* Google's 3D model loader issues its GLB fetch with
+           withCredentials=true, so the browser requires this to be true or it
+           discards the response — captured from the live XHR, not assumed. Safe
+           only because the allow-origin list below stays an exact allowlist: the
+           credentialed mode forbids "*", and nothing here may ever become one. */
+        accessControlAllowCredentials: true,
         accessControlAllowOrigins: [...cfg.allowedOrigins],
         accessControlAllowMethods: ["GET", "HEAD", "OPTIONS"],
         /* Range for byte-range media. Accept because Google's 3D model loader
