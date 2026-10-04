@@ -36,6 +36,8 @@ export interface MediaEnvironmentConfig {
     readonly errorCachingSeconds: { readonly notFound: number; readonly forbidden: number; readonly serverError: number };
     /** WAF web ACL ARN from the edge stack's output. Absent until the edge stack exists. */
     readonly webAclArn: string | undefined;
+    /** Origins permitted to read published media (CORS policy + viewer function). */
+    readonly allowedOrigins: readonly string[];
   };
   readonly waf: {
     readonly webAclName: string;
@@ -95,6 +97,22 @@ export interface MediaEnvironmentConfig {
 /** The only local origin the repository uses: `next dev` on its default port. */
 const REPO_DEV_ORIGINS = ["http://localhost:3000"];
 
+/**
+ * Origins allowed to READ published media from the CDN, beyond the uploading
+ * origins above.
+ *
+ * Separate from `allowedOrigins` on purpose. That list also governs the ingest
+ * bucket's S3 CORS, and the public site never uploads — it only reads. Google's
+ * 3D model loader fetches a GLB cross-origin with credentials, so a page
+ * offering the geographic overlay must be named here or CloudFront refuses it;
+ * widening the upload surface to achieve that would hand the public site a
+ * permission it has no use for.
+ *
+ * Listing them does not by itself make the live site show models: production
+ * builds resolve MEDIA_CDN_ORIGIN to null and load no media at all.
+ */
+const AARVASA_SITE_READ_ORIGINS = ["http://127.0.0.1:3000", "https://aarvasa.com", "https://www.aarvasa.com"];
+
 const GIB = 1024 ** 3;
 
 export const DEV_DEFAULTS: MediaEnvironmentConfig = {
@@ -111,6 +129,7 @@ export const DEV_DEFAULTS: MediaEnvironmentConfig = {
     priceClass: PriceClass.PRICE_CLASS_ALL,
     errorCachingSeconds: { notFound: 10, forbidden: 10, serverError: 0 },
     webAclArn: undefined,
+    allowedOrigins: [...REPO_DEV_ORIGINS, ...AARVASA_SITE_READ_ORIGINS],
   },
   waf: {
     webAclName: "aarvasa-media-dev-cdn",
@@ -239,7 +258,13 @@ export function loadDevConfig(app: App): MediaEnvironmentConfig {
     ...DEV_DEFAULTS,
     accountId,
     allowedOrigins,
-    cdn: { ...DEV_DEFAULTS.cdn, webAclArn },
+    /* A context override of allowedOrigins is an upload-surface decision; the
+       CDN must still serve whoever can upload, so it reads the union. */
+    cdn: {
+      ...DEV_DEFAULTS.cdn,
+      webAclArn,
+      allowedOrigins: [...new Set([...allowedOrigins, ...AARVASA_SITE_READ_ORIGINS])].map(validateOrigin),
+    },
     monitoring: { ...DEV_DEFAULTS.monitoring, distributionId },
     processing: { artifactKey, artifactVersion, databaseSecretArn, vpcId, lambdaSecurityGroupId, artifactBucketName, reserveConcurrency },
   };

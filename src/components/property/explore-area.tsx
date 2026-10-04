@@ -4,6 +4,10 @@ import { useCallback, useEffect, useId, useRef, useState } from "react";
 import { Globe2, Loader2, LocateFixed, MapPin, TriangleAlert } from "lucide-react";
 import {
   AREA_2D_NO_COVERAGE,
+  MODEL_OVERLAY_LABEL,
+  MODEL_OVERLAY_NOTE,
+  MODEL_OVERLAY_PLACEMENT,
+  MODEL_OVERLAY_UNAVAILABLE,
   AREA_2D_UNKNOWN,
   AREA_3D_READY,
   EXPLORE_AREA_HINTS,
@@ -93,19 +97,34 @@ export function ExploreArea({
   location,
   coordinates,
   apiKey,
+  modelOverlay = null,
 }: {
   name: string;
   location: string;
   coordinates: VerifiedCoordinates | null;
   apiKey: string | null;
+  /**
+   * A reconstructed model to stand at `coordinates`, or null.
+   *
+   * Null on the public page by construction: it is passed whatever the PUBLIC
+   * resolver returned, and an INTERNAL asset resolves to nothing there. The
+   * authorisation lives in the resolver that produced this, not in a check here.
+   */
+  modelOverlay?: { readonly url: string; readonly baseOffsetMetres: number } | null;
 }) {
   const [phase, setPhase] = useState<Phase>({ k: "closed" });
   const hostRef = useRef<HTMLDivElement>(null);
   /** Put the camera back where it opened. Set once a map has mounted. */
   const recenterRef = useRef<(() => void) | null>(null);
+  /** The 3D map, kept so the overlay can be attached and detached on demand. */
+  const mapRef = useRef<(HTMLElement & Record<string, unknown>) | null>(null);
+  const modelRef = useRef<HTMLElement | null>(null);
+  const [showModel, setShowModel] = useState(true);
+  const [modelFailed, setModelFailed] = useState(false);
   const statusId = useId();
 
   const resolved: ExploreAreaMode = exploreAreaMode({ coordinates, apiKey });
+  const resolvedCenter = resolved.kind === "unavailable" ? null : resolved.center;
 
   const open = useCallback(async () => {
     if (resolved.kind === "unavailable") return;
@@ -237,6 +256,7 @@ export function ExploreArea({
           map.tilt = camera.tilt;
           map.range = camera.range;
         };
+        mapRef.current = map;
         setPhase({ k: "ready", mode: "3d" });
         return;
       }
@@ -251,6 +271,46 @@ export function ExploreArea({
       setPhase({ k: "failed", blocker: keyWasRejected() ? "INVALID_API_KEY" : "LOAD_FAILED" });
     }
   }, [resolved, name, location]);
+
+  /* The overlay, attached to the live 3D map and removed when switched off.
+     Separate from the map's own lifecycle: the surroundings are the experience,
+     and a model that cannot be placed must never take them down with it. */
+  useEffect(() => {
+    const map = mapRef.current;
+    if (phase.k !== "ready" || phase.mode !== "3d" || !map || !modelOverlay) return;
+    if (!showModel) {
+      modelRef.current?.remove();
+      modelRef.current = null;
+      return;
+    }
+    let cancelled = false;
+    void (async () => {
+      try {
+        const lib = await importMapsLibrary<{
+          Model3DElement: new (o: Record<string, unknown>) => HTMLElement;
+          AltitudeMode: Record<string, string>;
+        }>("maps3d");
+        if (cancelled) return;
+        const model = new lib.Model3DElement({
+          src: modelOverlay.url,
+          /* Anchored to the property's own coordinate, lifted so the model's
+             base — not its centroid — meets the ground. */
+          position: { ...(resolvedCenter as VerifiedCoordinates), altitude: modelOverlay.baseOffsetMetres },
+          orientation: { ...MODEL_OVERLAY_PLACEMENT.orientation },
+          scale: MODEL_OVERLAY_PLACEMENT.scale,
+          altitudeMode: lib.AltitudeMode[MODEL_OVERLAY_PLACEMENT.altitudeMode],
+        });
+        model.addEventListener("gmp-error", () => setModelFailed(true));
+        map.appendChild(model);
+        modelRef.current = model;
+      } catch {
+        if (!cancelled) setModelFailed(true);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [phase, modelOverlay, showModel, resolvedCenter]);
 
   // Tear the map down when the section leaves, so its tile streaming stops.
   useEffect(() => {
@@ -327,6 +387,28 @@ export function ExploreArea({
           </div>
         )}
       </div>
+
+      {/* The overlay control. Only where an authorised resolver supplied a
+          model, and only once a 3D scene exists to stand it in. The note is not
+          dismissible: a reconstruction among Google's real buildings looks
+          surveyed, and it is not. */}
+      {modelOverlay && phase.k === "ready" && phase.mode === "3d" && (
+        <div className="mt-[var(--s-3)] flex flex-wrap items-center gap-x-3 gap-y-1">
+          <label className="inline-flex cursor-pointer items-center gap-2">
+            <input
+              type="checkbox"
+              checked={showModel && !modelFailed}
+              disabled={modelFailed}
+              onChange={(e) => setShowModel(e.target.checked)}
+              className="h-3.5 w-3.5 accent-burgundy"
+            />
+            <span className="av-label text-[11px] text-stage-ink">{MODEL_OVERLAY_LABEL}</span>
+          </label>
+          <span className="av-meta text-ink-disabled">
+            {modelFailed ? MODEL_OVERLAY_UNAVAILABLE : MODEL_OVERLAY_NOTE}
+          </span>
+        </div>
+      )}
 
       <p id={statusId} aria-live="polite" className="av-meta mt-2 text-ink-disabled">
         {phase.k === "ready"

@@ -16,6 +16,10 @@ import {
   AREA_2D_NO_COVERAGE,
   AREA_2D_UNKNOWN,
   AREA_3D_READY,
+  MODEL_OVERLAY_NOTE,
+  MODEL_OVERLAY_PLACEMENT,
+  MODEL_OVERLAY_UNAVAILABLE,
+  REEF_996_BASE_OFFSET_M,
   EXPLORE_AREA_CAMERA,
   EXPLORE_AREA_CAMERA_NARROW,
   EXPLORE_AREA_NOTE,
@@ -166,4 +170,35 @@ test("a slow map is not a map that is not there", () => {
   for (const m of [AREA_2D_NO_COVERAGE, AREA_2D_UNKNOWN]) {
     assert.match(m, /flat map/i);
   }
+});
+
+test("the overlay placement is the measured one, not a flattering one", () => {
+  // Each of these was read off the asset, and two of them were wrong first.
+  assert.equal(MODEL_OVERLAY_PLACEMENT.scale, 10, "authored 1:10, metresPerUnit 10");
+  assert.equal(MODEL_OVERLAY_PLACEMENT.altitudeMode, "RELATIVE_TO_GROUND");
+
+  // CLAMP_TO_GROUND would put the centroid on the ground and bury half the
+  // tower, so the base offset has to be a real lift, not zero.
+  assert.ok(REEF_996_BASE_OFFSET_M > 0);
+  assert.equal(REEF_996_BASE_OFFSET_M, 43.97);
+
+  // tilt 270 converts glTF's Y-up into Google's frame. At 0 the tower lay on
+  // its side as a flat slab — observed, not theorised.
+  assert.equal(MODEL_OVERLAY_PLACEMENT.orientation.tilt, 270);
+
+  // heading 0 is the honest one: no source gives the building's bearing, so
+  // none is claimed. If this ever becomes non-zero it is a factual claim about
+  // which way somebody's balcony faces, and needs a source.
+  assert.equal(MODEL_OVERLAY_PLACEMENT.orientation.heading, 0);
+  assert.equal(MODEL_OVERLAY_PLACEMENT.orientation.roll, 0);
+});
+
+test("the overlay never claims the placement is exact", () => {
+  assert.match(MODEL_OVERLAY_NOTE, /approximate/i);
+  assert.match(MODEL_OVERLAY_NOTE, /reconstructed/i);
+  for (const phrase of [/exact/i, /surveyed/i, /true-to-site/i, /official/i, /developer model/i]) {
+    assert.doesNotMatch(MODEL_OVERLAY_NOTE, phrase);
+  }
+  // A model that failed says so, rather than the page going quiet about it.
+  assert.match(MODEL_OVERLAY_UNAVAILABLE, /unavailable/i);
 });

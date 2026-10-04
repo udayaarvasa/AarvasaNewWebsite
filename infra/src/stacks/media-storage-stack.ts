@@ -198,7 +198,7 @@ export class MediaStorageStack extends Stack {
            only because the allow-origin list below stays an exact allowlist: the
            credentialed mode forbids "*", and nothing here may ever become one. */
         accessControlAllowCredentials: true,
-        accessControlAllowOrigins: [...cfg.allowedOrigins],
+        accessControlAllowOrigins: [...cfg.cdn.allowedOrigins],
         accessControlAllowMethods: ["GET", "HEAD", "OPTIONS"],
         /* Range for byte-range media. Accept because Google's 3D model loader
            fetches a GLB with `Accept: model/vnd.collada+xml;context=google-earth`
@@ -234,7 +234,7 @@ export class MediaStorageStack extends Stack {
       functionName: `${prefix}-viewer-request`,
       comment: "Path/extension allowlist, CORS preflight, strip query strings and cookies",
       runtime: FunctionRuntime.JS_2_0,
-      code: FunctionCode.fromInline(renderViewerRequestFunction(cfg.allowedOrigins)),
+      code: FunctionCode.fromInline(renderViewerRequestFunction(cfg.cdn.allowedOrigins)),
     });
 
     const origin = S3BucketOrigin.withBucketDefaults(this.publishedBucket, { originId: "published-media" });

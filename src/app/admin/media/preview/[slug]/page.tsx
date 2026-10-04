@@ -6,6 +6,8 @@ import { Wrap } from "@/components/av/primitives";
 import { getProject } from "@/lib/projects";
 import { loadProjectModel } from "@/lib/services/project-models";
 import { ImmersiveExperience } from "@/app/projects/[slug]/immersive-viewer";
+import { ExploreArea } from "@/components/property/explore-area";
+import { REEF_996_BASE_OFFSET_M, exploreAreaMode } from "@/lib/maps/google-3d";
 
 /**
  * Authorised internal preview of a project's withheld media.
@@ -81,6 +83,37 @@ export default async function InternalMediaPreview({
             {model.provenance.note}
           </p>
         )}
+
+        {/* Explore Area with the withheld model standing in Google's scene.
+            Here and not on the project page, because this is where an INTERNAL
+            asset is legitimately resolvable — the overlay inherits that
+            authorisation rather than adding one of its own. */}
+        {(() => {
+          const area = exploreAreaMode({
+            coordinates: project.coordinates,
+            apiKey: process.env.NEXT_PUBLIC_GOOGLE_MAPS_BROWSER_KEY,
+          });
+          if (area.kind === "unavailable") return null;
+          const url = model?.source.kind === "model" ? model.source.url : null;
+          return (
+            <div className="mt-[var(--s-8)]">
+              <h2 className="av-label text-ink-muted">Explore area</h2>
+              <p className="mt-1 text-[14px] text-ink-muted">
+                The surroundings, with the withheld model placed at the project&rsquo;s recorded
+                coordinate. That coordinate is locality precision, so the placement is approximate.
+              </p>
+              <div className="mt-[var(--s-5)]">
+                <ExploreArea
+                  name={project.name}
+                  location={`${project.location}, ${project.city}`}
+                  coordinates={area.center}
+                  apiKey={process.env.NEXT_PUBLIC_GOOGLE_MAPS_BROWSER_KEY ?? null}
+                  modelOverlay={url ? { url, baseOffsetMetres: REEF_996_BASE_OFFSET_M } : null}
+                />
+              </div>
+            </div>
+          );
+        })()}
 
         <div className="mt-[var(--s-8)]">
           {model ? (

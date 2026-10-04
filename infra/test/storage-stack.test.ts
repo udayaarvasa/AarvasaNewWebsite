@@ -214,7 +214,17 @@ describe("storage stack: CloudFront", () => {
        It is only permissible alongside an exact origin allowlist — the wildcard
        assertion below is what keeps the pair honest. */
     assert.equal(cors.AccessControlAllowCredentials, true);
-    assert.deepEqual(cors.AccessControlAllowOrigins, { Items: ["http://localhost:3000"] });
+    /* Exact origins, and this list is load-bearing rather than hygiene: the
+       policy sets allow-credentials, which the spec forbids alongside "*". The
+       public site is here because the model overlay reads the GLB cross-origin
+       from whichever origin the page is served on; it is NOT in the ingest
+       allowlist, because the site never uploads. */
+    assert.deepEqual(cors.AccessControlAllowOrigins, { Items: [
+        "http://localhost:3000",
+        "http://127.0.0.1:3000",
+        "https://aarvasa.com",
+        "https://www.aarvasa.com",
+      ] });
     assert.deepEqual(cors.AccessControlAllowMethods, { Items: ["GET", "HEAD", "OPTIONS"] });
     /* Range for byte-range media; Accept because Google's 3D model loader sends
        `Accept: model/vnd.collada+xml;context=google-earth`, which is not
@@ -245,7 +255,11 @@ describe("storage stack: CloudFront", () => {
   it("embeds the same origins in the edge function and runs it on JS runtime 2.0", () => {
     const [fn] = resourcesOfType(t, "AWS::CloudFront::Function");
     assert.equal((fn.properties.FunctionConfig as { Runtime: string }).Runtime, "cloudfront-js-2.0");
-    assert.ok((fn.properties.FunctionCode as string).includes('["http://localhost:3000"]'));
+    assert.ok(
+      (fn.properties.FunctionCode as string).includes(
+        '["http://localhost:3000","http://127.0.0.1:3000","https://aarvasa.com","https://www.aarvasa.com"]',
+      ),
+    );
   });
 
   it("reports the missing WAF association instead of silently omitting it", () => {
@@ -262,11 +276,15 @@ describe("storage stack: configuration overrides", () => {
 
   it("propagates allowed origins to CloudFront CORS, the edge function and ingest CORS", () => {
     const expected = origins.split(",");
+    /* An override names who may UPLOAD. The CDN must still serve them, so it
+       reads the union with the public site's read-only origins — overriding the
+       upload surface must not quietly drop the site's ability to read media. */
+    const expectedCdn = [...new Set([...expected, "http://127.0.0.1:3000", "https://aarvasa.com", "https://www.aarvasa.com"])];
     const [policy] = resourcesOfType(s, "AWS::CloudFront::ResponseHeadersPolicy");
     const cors = (policy.properties.ResponseHeadersPolicyConfig as Record<string, Record<string, unknown>>).CorsConfig;
-    assert.deepEqual(cors.AccessControlAllowOrigins, { Items: expected });
+    assert.deepEqual(cors.AccessControlAllowOrigins, { Items: expectedCdn });
     const [fn] = resourcesOfType(s, "AWS::CloudFront::Function");
-    assert.ok((fn.properties.FunctionCode as string).includes(JSON.stringify(expected)));
+    assert.ok((fn.properties.FunctionCode as string).includes(JSON.stringify(expectedCdn)));
     const ingest = resourcesOfType(s, "AWS::S3::Bucket").find((b) => b.id.startsWith("IngestBucket"));
     assert.deepEqual((ingest?.properties.CorsConfiguration as { CorsRules: Array<{ AllowedOrigins: string[] }> }).CorsRules[0].AllowedOrigins, expected);
   });

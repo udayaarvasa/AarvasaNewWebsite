@@ -238,6 +238,49 @@ export const AREA_2D_NO_COVERAGE =
 export const AREA_2D_UNKNOWN = "Showing the flat map for this area.";
 
 /**
+ * How a reconstructed model is placed into Google's 3D scene.
+ *
+ * Every number here was measured from the GLB, not chosen to look right:
+ *
+ *   scale 10      the asset is authored at 1:10 and records metresPerUnit 10 in
+ *                 its own glTF copyright string. Google works in metres.
+ *   altitude      the geometry is centred on all three axes, so its origin is
+ *                 the centroid and its base sits half the height below. Lifting
+ *                 by that half-height puts the base on the ground; the obvious
+ *                 CLAMP_TO_GROUND instead buries half the building.
+ *   tilt 270      an axis conversion, NOT a bearing. glTF is Y-up and Google's
+ *                 frame is not, so at tilt 0 the tower lies on its side — which
+ *                 is exactly what it did, as a flat slab, until this was set.
+ *   heading 0     unrotated, and deliberately so: nothing in the source material
+ *                 establishes which way the building faces, so no bearing is
+ *                 claimed rather than one being invented.
+ */
+export const MODEL_OVERLAY_PLACEMENT = {
+  scale: 10,
+  altitudeMode: "RELATIVE_TO_GROUND",
+  orientation: { heading: 0, tilt: 270, roll: 0 },
+} as const;
+
+/** Half the model's own height, in metres: what lifts its base onto the ground. */
+export const REEF_996_BASE_OFFSET_M = 43.97;
+
+export const MODEL_OVERLAY_LABEL = "Aarvasa reconstructed model";
+
+/**
+ * Shown beside the toggle, always, whenever the overlay can be turned on.
+ *
+ * The coordinate is locality precision — the right community, not a surveyed
+ * plot — and the model's dimensions are plausible rather than measured. Standing
+ * it among Google's real buildings makes it look surveyed, so the one thing the
+ * page must keep saying is that the placement is approximate.
+ */
+export const MODEL_OVERLAY_NOTE =
+  "Aarvasa reconstructed model · approximate geographic placement";
+
+/** Shown when the overlay was offered but the model did not load. */
+export const MODEL_OVERLAY_UNAVAILABLE = "Property model unavailable.";
+
+/**
  * What the section says about what the visitor is looking at.
  *
  * Deliberately explicit that the buildings are Google's capture of the area as
