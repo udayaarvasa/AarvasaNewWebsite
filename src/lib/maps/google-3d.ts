@@ -47,6 +47,32 @@ export const EXPLORE_AREA_CAMERA = {
   altitude: 0,
 } as const;
 
+/**
+ * The same view, framed for a phone.
+ *
+ * 900 m across a 343 px frame is a lot of ground in very few pixels: street
+ * names stop resolving and the neighbourhood reads as texture. Pulling in to
+ * 550 m and easing the tilt gives a phone roughly the legibility the wide frame
+ * has at 900. Measured by looking at both, not derived.
+ */
+export const EXPLORE_AREA_CAMERA_NARROW = {
+  range: 550,
+  tilt: 60,
+  heading: 0,
+  altitude: 0,
+} as const;
+
+/**
+ * Below this width the narrow framing is used. Matches the viewer's own
+ * threshold, so the two experiences change shape at the same point.
+ */
+export const NARROW_AREA_PX = 560;
+
+/** The opening camera for a map of this width. */
+export function exploreAreaCamera(viewportWidth: number) {
+  return viewportWidth < NARROW_AREA_PX ? EXPLORE_AREA_CAMERA_NARROW : EXPLORE_AREA_CAMERA;
+}
+
 export type ExploreAreaMode =
   /** Everything is present; attempt the photorealistic 3D map. */
   | { readonly kind: "3d"; readonly center: VerifiedCoordinates; readonly apiKey: string }
@@ -176,6 +202,21 @@ export function mapsScriptUrl(apiKey: string, library: "maps3d" | "maps" = "maps
 
 /** Shown under every map. Google's terms require the imagery to be credited. */
 export const GOOGLE_ATTRIBUTION = "Map data and imagery ©Google";
+
+/**
+ * What the status line says once a 3D frame has settled.
+ *
+ * Deliberately NOT "Photorealistic 3D", which it used to say. The 3D element
+ * renders wherever there is terrain, and `gmp-steadychange` fires just the same
+ * over an area Google has no photorealistic mesh for — observed directly in
+ * Bhopal, where a settled frame is a smooth grey-green landform with no
+ * buildings at all, while Dubai renders towers with real massing and shadow.
+ *
+ * Nothing in the API distinguishes the two, so the page cannot honestly claim
+ * the stronger one. This wording is true in both cases, and the detail a
+ * visitor sees speaks for itself.
+ */
+export const AREA_3D_READY = "3D view of the surrounding area.";
 
 /**
  * What the section says about what the visitor is looking at.

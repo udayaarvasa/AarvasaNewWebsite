@@ -13,8 +13,12 @@ import assert from "node:assert/strict";
 import {
   EXPLORE_AREA_HINTS,
   EXPLORE_AREA_MESSAGES,
+  AREA_3D_READY,
+  EXPLORE_AREA_CAMERA,
+  EXPLORE_AREA_CAMERA_NARROW,
   EXPLORE_AREA_NOTE,
   GOOGLE_ATTRIBUTION,
+  exploreAreaCamera,
   exploreAreaMode,
   isUsableCoordinate,
   mapsScriptUrl,
@@ -117,4 +121,32 @@ test("the script URL loads only the 3D library, and carries the key Google expec
 test("the note says the surroundings are not the property", () => {
   assert.match(EXPLORE_AREA_NOTE, /not a model of the property/i);
   assert.match(GOOGLE_ATTRIBUTION, /Google/);
+});
+
+test("a phone is framed closer, because 900 m of ground in 343 px reads as texture", () => {
+  assert.equal(exploreAreaCamera(375), EXPLORE_AREA_CAMERA_NARROW);
+  assert.equal(exploreAreaCamera(768), EXPLORE_AREA_CAMERA);
+  assert.equal(exploreAreaCamera(1280), EXPLORE_AREA_CAMERA);
+
+  // Closer, but still an oblique view of a neighbourhood rather than a roof.
+  assert.ok(EXPLORE_AREA_CAMERA_NARROW.range < EXPLORE_AREA_CAMERA.range);
+  assert.ok(EXPLORE_AREA_CAMERA_NARROW.range > 300, "not zoomed onto a single plot");
+  assert.ok(EXPLORE_AREA_CAMERA_NARROW.tilt > 40 && EXPLORE_AREA_CAMERA_NARROW.tilt < 80);
+
+  // North on both, so the opening view is never an implicit claim.
+  assert.equal(EXPLORE_AREA_CAMERA_NARROW.heading, 0);
+  assert.equal(EXPLORE_AREA_CAMERA.heading, 0);
+});
+
+test("a settled 3D frame is not claimed to be photorealistic, because it may not be", () => {
+  // Observed directly: over Bhopal the 3D element settles into a smooth
+  // landform with no buildings, and gmp-steadychange fires exactly as it does
+  // over Dubai. Nothing in the API separates the two, so the stronger claim
+  // cannot be made from the weaker signal.
+  assert.doesNotMatch(AREA_3D_READY, /photorealistic/i);
+  assert.match(AREA_3D_READY, /3D/);
+
+  // The absent-coverage message is a different statement, made only when the
+  // 3D map actually failed and the flat map stood in, so it keeps its wording.
+  assert.match(EXPLORE_AREA_MESSAGES.NO_3D_COVERAGE, /not available at this location/i);
 });

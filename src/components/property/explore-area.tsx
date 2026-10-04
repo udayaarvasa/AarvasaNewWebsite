@@ -1,13 +1,14 @@
 "use client";
 
 import { useCallback, useEffect, useId, useRef, useState } from "react";
-import { Globe2, Loader2, MapPin, TriangleAlert } from "lucide-react";
+import { Globe2, Loader2, LocateFixed, MapPin, TriangleAlert } from "lucide-react";
 import {
-  EXPLORE_AREA_CAMERA,
+  AREA_3D_READY,
   EXPLORE_AREA_HINTS,
   EXPLORE_AREA_MESSAGES,
   EXPLORE_AREA_NOTE,
   GOOGLE_ATTRIBUTION,
+  exploreAreaCamera,
   exploreAreaMode,
   type ExploreAreaBlocker,
   type ExploreAreaMode,
@@ -32,6 +33,46 @@ import { importMapsLibrary, keyWasRejected, loadMaps } from "@/lib/maps/loader";
  * visitor is never shown a broken 3D frame and told it is their area.
  */
 
+/**
+ * How long to wait for the map to come into view before giving up on it.
+ *
+ * Generous, because nothing is being blamed on anyone yet — this is only
+ * waiting for the element to be on screen so that Google can start drawing.
+ */
+const COVERAGE_VISIBLE_WAIT_MS = 10_000;
+
+/**
+ * How long a *visible* element gets to produce a settled frame before the flat
+ * map is tried. A covered location settles in roughly two seconds.
+ */
+const COVERAGE_TIMEOUT_MS = 8_000;
+
+/**
+ * Resolve once `element` is actually in the viewport, or after `timeout`.
+ *
+ * Resolving on timeout rather than rejecting is deliberate: a map that never
+ * becomes visible is not a coverage fact, and the caller should go on to try
+ * rather than conclude anything.
+ */
+function waitUntilVisible(element: Element, timeout: number): Promise<void> {
+  return new Promise((resolve) => {
+    if (element.getBoundingClientRect().top < window.innerHeight) {
+      resolve();
+      return;
+    }
+    const done = () => {
+      clearTimeout(timer);
+      observer.disconnect();
+      resolve();
+    };
+    const observer = new IntersectionObserver((entries) => {
+      if (entries.some((e) => e.isIntersecting)) done();
+    });
+    const timer = setTimeout(done, timeout);
+    observer.observe(element);
+  });
+}
+
 type Phase =
   | { k: "closed" }
   | { k: "loading" }
@@ -54,6 +95,8 @@ export function ExploreArea({
 }) {
   const [phase, setPhase] = useState<Phase>({ k: "closed" });
   const hostRef = useRef<HTMLDivElement>(null);
+  /** Put the camera back where it opened. Set once a map has mounted. */
+  const recenterRef = useRef<(() => void) | null>(null);
   const statusId = useId();
 
   const resolved: ExploreAreaMode = exploreAreaMode({ coordinates, apiKey });
@@ -86,16 +129,31 @@ export function ExploreArea({
       host.replaceChildren();
 
       if (is3d && customElements.get("gmp-map-3d")) {
+        /* Framed for the space it actually has, not for a nominal desktop. */
+        const camera = exploreAreaCamera(host.clientWidth || window.innerWidth);
         const map = document.createElement("gmp-map-3d") as HTMLElement & Record<string, unknown>;
-        map.setAttribute("center", `${resolved.center.lat},${resolved.center.lng},${EXPLORE_AREA_CAMERA.altitude}`);
-        map.setAttribute("range", String(EXPLORE_AREA_CAMERA.range));
-        map.setAttribute("tilt", String(EXPLORE_AREA_CAMERA.tilt));
-        map.setAttribute("heading", String(EXPLORE_AREA_CAMERA.heading));
+        map.setAttribute("center", `${resolved.center.lat},${resolved.center.lng},${camera.altitude}`);
+        map.setAttribute("range", String(camera.range));
+        map.setAttribute("tilt", String(camera.tilt));
+        map.setAttribute("heading", String(camera.heading));
         map.setAttribute("mode", "hybrid");
         map.style.width = "100%";
         map.style.height = "100%";
         map.setAttribute("aria-label", `Photorealistic 3D map of the area around ${name}, ${location}`);
         host.appendChild(map);
+
+        /* The element will not draw while it is off-screen, so the clock cannot
+           start until it is actually in the viewport.
+
+           This was a real bug, and a bad one. On a phone the map mounts below
+           the fold; Google never rendered a frame, never fired
+           gmp-steadychange, and the timeout below concluded "no photorealistic
+           3D coverage" — at coordinates that render perfectly on a wider screen.
+           The page told mobile visitors a fact about Google's data that was
+           false, and that the desktop page contradicted. Visible, a settled
+           frame arrives in about two seconds. */
+        map.scrollIntoView({ block: "nearest" });
+        await waitUntilVisible(map, COVERAGE_VISIBLE_WAIT_MS);
 
         /* Coverage, discovered rather than assumed. The element emits
            gmp-steadychange once it has actually rendered a settled frame, which
@@ -112,7 +170,7 @@ export function ExploreArea({
           };
           const onSteady = () => done(true);
           const onError = () => done(false);
-          const timer = setTimeout(() => done(false), 8000);
+          const timer = setTimeout(() => done(false), COVERAGE_TIMEOUT_MS);
           map.addEventListener("gmp-steadychange", onSteady);
           map.addEventListener("gmp-error", onError);
         });
@@ -129,7 +187,8 @@ export function ExploreArea({
              says so while still showing the visitor their surroundings. */
           host.replaceChildren();
           try {
-            await mountFlatMap(host, resolved.center, name, location);
+            const fallback = await mountFlatMap(host, resolved.center, name, location);
+            recenterRef.current = () => fallback.recenter();
             setPhase({ k: "ready", mode: "2d" });
           } catch {
             /* The flat map is what separates the two cases, and it is a better
@@ -147,11 +206,24 @@ export function ExploreArea({
           }
           return;
         }
+        /* Panning away is the point of a map, so there has to be a way back.
+           Without this a visitor who drags once has lost the property, which is
+           the only reason the map is on the page. Assigning the camera
+           properties is what actually moves it — flyCameraTo returned without
+           error and without moving anything. */
+        recenterRef.current = () => {
+          (map as unknown as { stopCameraAnimation?: () => void }).stopCameraAnimation?.();
+          map.center = { ...resolved.center, altitude: camera.altitude };
+          map.heading = camera.heading;
+          map.tilt = camera.tilt;
+          map.range = camera.range;
+        };
         setPhase({ k: "ready", mode: "3d" });
         return;
       }
 
-      await mountFlatMap(host, resolved.center, name, location);
+      const flat = await mountFlatMap(host, resolved.center, name, location);
+      recenterRef.current = () => flat.recenter();
       setPhase({ k: "ready", mode: "2d" });
     } catch {
       // A rejected key is reported as such even when it surfaced as a throw.
@@ -211,6 +283,19 @@ export function ExploreArea({
             <span className="text-[14px]">Loading the area…</span>
           </div>
         )}
+        {phase.k === "ready" && (
+          /* Deliberately a real button rather than a gesture hint: the gesture
+             that gets you back does not exist, and on a touch screen there is
+             nothing to discover. */
+          <button
+            type="button"
+            onClick={() => recenterRef.current?.()}
+            className="av-label absolute left-3 top-3 inline-flex items-center gap-1.5 rounded-xs border border-rule-firm/60 bg-paper/90 px-2.5 py-1.5 text-[11px] text-ink backdrop-blur-sm transition-opacity hover:opacity-90"
+          >
+            <LocateFixed className="h-3.5 w-3.5" aria-hidden="true" />
+            Recentre
+          </button>
+        )}
         {phase.k === "failed" && (
           <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 px-6 text-center text-stage-muted">
             <TriangleAlert className="h-6 w-6" aria-hidden="true" />
@@ -225,7 +310,7 @@ export function ExploreArea({
       <p id={statusId} aria-live="polite" className="av-meta mt-2 text-ink-disabled">
         {phase.k === "ready"
           ? phase.mode === "3d"
-            ? `Photorealistic 3D. ${GOOGLE_ATTRIBUTION}`
+            ? `${AREA_3D_READY} ${GOOGLE_ATTRIBUTION}`
             : `No photorealistic 3D coverage here, so this is the flat map. ${GOOGLE_ATTRIBUTION}`
           : phase.k === "loading"
             ? "Loading the area map."
@@ -241,7 +326,7 @@ async function mountFlatMap(
   center: VerifiedCoordinates,
   name: string,
   location: string,
-): Promise<void> {
+): Promise<{ recenter: () => void }> {
   if (keyWasRejected()) throw new Error("maps key rejected");
   const maps = await importMapsLibrary<{
     Map: new (el: HTMLElement, options: Record<string, unknown>) => unknown;
@@ -249,13 +334,20 @@ async function mountFlatMap(
   const marker = await importMapsLibrary<{
     AdvancedMarkerElement: new (options: Record<string, unknown>) => unknown;
   }>("marker");
+  const FLAT_ZOOM = 16;
   const map = new maps.Map(host, {
     center,
-    zoom: 16,
+    zoom: FLAT_ZOOM,
     mapTypeId: "hybrid",
     mapId: "aarvasa-area",
     disableDefaultUI: false,
-  });
+  }) as { setCenter: (c: VerifiedCoordinates) => void; setZoom: (z: number) => void };
   host.setAttribute("aria-label", `Map of the area around ${name}, ${location}`);
   new marker.AdvancedMarkerElement({ map, position: center, title: name });
+  return {
+    recenter: () => {
+      map.setCenter(center);
+      map.setZoom(FLAT_ZOOM);
+    },
+  };
 }
