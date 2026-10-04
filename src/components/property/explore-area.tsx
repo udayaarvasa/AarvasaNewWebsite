@@ -3,6 +3,8 @@
 import { useCallback, useEffect, useId, useRef, useState } from "react";
 import { Globe2, Loader2, LocateFixed, MapPin, TriangleAlert } from "lucide-react";
 import {
+  AREA_2D_NO_COVERAGE,
+  AREA_2D_UNKNOWN,
   AREA_3D_READY,
   EXPLORE_AREA_HINTS,
   EXPLORE_AREA_MESSAGES,
@@ -45,7 +47,7 @@ const COVERAGE_VISIBLE_WAIT_MS = 10_000;
  * How long a *visible* element gets to produce a settled frame before the flat
  * map is tried. A covered location settles in roughly two seconds.
  */
-const COVERAGE_TIMEOUT_MS = 8_000;
+const COVERAGE_TIMEOUT_MS = 15_000;
 
 /**
  * Resolve once `element` is actually in the viewport, or after `timeout`.
@@ -76,7 +78,11 @@ function waitUntilVisible(element: Element, timeout: number): Promise<void> {
 type Phase =
   | { k: "closed" }
   | { k: "loading" }
-  | { k: "ready"; mode: "3d" | "2d" }
+  /* `coverage` says what was actually established, and is only ever "absent"
+     when Google's own element reported an error. A timeout leaves it
+     "unknown", because a slow map is not a map that is not there. */
+  | { k: "ready"; mode: "3d" }
+  | { k: "ready"; mode: "2d"; coverage: "absent" | "unknown" }
   /* Named rather than free text, so each failure says which thing is wrong and
      who can fix it: a rejected key is ours, absent coverage is Google's and will
      not change on a retry. */
@@ -161,16 +167,16 @@ export function ExploreArea({
            mean they do not. The element merely being *defined* proves nothing —
            it is defined whether or not anything loads, and treating that as
            success is how a failed map came to be labelled "photorealistic 3D". */
-        const rendered = await new Promise<boolean>((resolve) => {
-          const done = (value: boolean) => {
+        const outcome = await new Promise<"settled" | "error" | "timeout">((resolve) => {
+          const done = (value: "settled" | "error" | "timeout") => {
             clearTimeout(timer);
             map.removeEventListener("gmp-steadychange", onSteady);
             map.removeEventListener("gmp-error", onError);
             resolve(value);
           };
-          const onSteady = () => done(true);
-          const onError = () => done(false);
-          const timer = setTimeout(() => done(false), COVERAGE_TIMEOUT_MS);
+          const onSteady = () => done("settled");
+          const onError = () => done("error");
+          const timer = setTimeout(() => done("timeout"), COVERAGE_TIMEOUT_MS);
           map.addEventListener("gmp-steadychange", onSteady);
           map.addEventListener("gmp-error", onError);
         });
@@ -180,7 +186,19 @@ export function ExploreArea({
           setPhase({ k: "failed", blocker: "INVALID_API_KEY" });
           return;
         }
-        if (!rendered) {
+        /* Only Google's own error sends us to the flat map.
+
+           A timeout used to, and that was wrong twice over. The 3D tiles were
+           arriving with 200s while the timer ran — 47 of them, measured — so
+           the fallback was tearing down a working map and then describing the
+           replacement as absent coverage. gmp-steadychange settled in about two
+           seconds on one load and not within fifteen on the next, which makes it
+           a fine signal for "ready" and no kind of evidence for "not there".
+
+           So: the element stays unless Google says it failed. If it is drawing
+           tiles, the visitor is looking at their surroundings, which is the
+           entire point. */
+        if (outcome === "error") {
           /* No settled 3D frame. That alone does not establish absent coverage —
              a rejected key looks identical — so the flat map is tried at the same
              point. If it renders, the 3D data genuinely is not there and the page
@@ -189,7 +207,8 @@ export function ExploreArea({
           try {
             const fallback = await mountFlatMap(host, resolved.center, name, location);
             recenterRef.current = () => fallback.recenter();
-            setPhase({ k: "ready", mode: "2d" });
+            /* Only Google saying so counts as absent coverage. */
+            setPhase({ k: "ready", mode: "2d", coverage: "absent" });
           } catch {
             /* The flat map is what separates the two cases, and it is a better
                witness than Google's auth callback — which does not fire on the
@@ -222,9 +241,11 @@ export function ExploreArea({
         return;
       }
 
+      /* The 3D library itself was unavailable, so there is nothing to say about
+         coverage at this point either. */
       const flat = await mountFlatMap(host, resolved.center, name, location);
       recenterRef.current = () => flat.recenter();
-      setPhase({ k: "ready", mode: "2d" });
+      setPhase({ k: "ready", mode: "2d", coverage: "unknown" });
     } catch {
       // A rejected key is reported as such even when it surfaced as a throw.
       setPhase({ k: "failed", blocker: keyWasRejected() ? "INVALID_API_KEY" : "LOAD_FAILED" });
@@ -311,7 +332,7 @@ export function ExploreArea({
         {phase.k === "ready"
           ? phase.mode === "3d"
             ? `${AREA_3D_READY} ${GOOGLE_ATTRIBUTION}`
-            : `No photorealistic 3D coverage here, so this is the flat map. ${GOOGLE_ATTRIBUTION}`
+            : `${phase.coverage === "absent" ? AREA_2D_NO_COVERAGE : AREA_2D_UNKNOWN} ${GOOGLE_ATTRIBUTION}`
           : phase.k === "loading"
             ? "Loading the area map."
             : GOOGLE_ATTRIBUTION}

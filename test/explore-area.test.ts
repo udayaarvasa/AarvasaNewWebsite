@@ -13,6 +13,8 @@ import assert from "node:assert/strict";
 import {
   EXPLORE_AREA_HINTS,
   EXPLORE_AREA_MESSAGES,
+  AREA_2D_NO_COVERAGE,
+  AREA_2D_UNKNOWN,
   AREA_3D_READY,
   EXPLORE_AREA_CAMERA,
   EXPLORE_AREA_CAMERA_NARROW,
@@ -149,4 +151,19 @@ test("a settled 3D frame is not claimed to be photorealistic, because it may not
   // The absent-coverage message is a different statement, made only when the
   // 3D map actually failed and the flat map stood in, so it keeps its wording.
   assert.match(EXPLORE_AREA_MESSAGES.NO_3D_COVERAGE, /not available at this location/i);
+});
+
+test("a slow map is not a map that is not there", () => {
+  // Observed twice against REEF 996, at 375px and again at 1280px: the 3D
+  // element had not settled within the timeout and the page announced "no
+  // photorealistic 3D coverage here" — at coordinates that render a full 3D
+  // scene seconds later. A timeout is not evidence about Google's data.
+  assert.match(AREA_2D_NO_COVERAGE, /no photorealistic 3d coverage/i);
+  assert.doesNotMatch(AREA_2D_UNKNOWN, /no .*coverage|not available/i);
+  assert.notEqual(AREA_2D_NO_COVERAGE, AREA_2D_UNKNOWN);
+
+  // Neither claims the flat map is the property, or that it is 3D.
+  for (const m of [AREA_2D_NO_COVERAGE, AREA_2D_UNKNOWN]) {
+    assert.match(m, /flat map/i);
+  }
 });

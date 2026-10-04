@@ -219,6 +219,25 @@ export const GOOGLE_ATTRIBUTION = "Map data and imagery ©Google";
 export const AREA_3D_READY = "3D view of the surrounding area.";
 
 /**
+ * Shown on the flat map when Google's 3D element reported an error here.
+ *
+ * Google said no, so this is a statement about its data.
+ */
+export const AREA_2D_NO_COVERAGE =
+  "No photorealistic 3D coverage here, so this is the flat map.";
+
+/**
+ * Shown on the flat map when the 3D element simply never settled.
+ *
+ * A timeout establishes nothing. It happens when tiles are slow, when the
+ * connection is poor, when the machine is busy — and it happened repeatedly in
+ * development against coordinates that render 3D perfectly a moment later.
+ * Saying "no coverage here" on that evidence states a fact about Google's data
+ * that we have not got, and that the same page contradicts on the next load.
+ */
+export const AREA_2D_UNKNOWN = "Showing the flat map for this area.";
+
+/**
  * What the section says about what the visitor is looking at.
  *
  * Deliberately explicit that the buildings are Google's capture of the area as
