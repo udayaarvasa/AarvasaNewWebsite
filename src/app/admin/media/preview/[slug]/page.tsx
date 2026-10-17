@@ -8,6 +8,8 @@ import { loadProjectModel } from "@/lib/services/project-models";
 import { ImmersiveExperience } from "@/app/projects/[slug]/immersive-viewer";
 import { ExploreArea } from "@/components/property/explore-area";
 import { REEF_996_BASE_OFFSET_M, exploreAreaMode } from "@/lib/maps/google-3d";
+import { ImmersiveTour } from "@/components/property/immersive-tour";
+import { loadImmersiveTour } from "@/lib/services/immersive-tour";
 
 /**
  * Authorised internal preview of a project's withheld media.
@@ -50,6 +52,11 @@ export default async function InternalMediaPreview({
 
   const model = await loadProjectModel(project, { includeInternal: true });
   const publicModel = await loadProjectModel(project);
+  /* Withheld films too, so a reviewer can watch a tour before deciding to
+     release it. Same resolver as the public page with the visibility filter
+     relaxed — never the provenance floor. */
+  const films = await loadImmersiveTour(project, { includeInternal: true });
+  const publicFilms = await loadImmersiveTour(project);
 
   return (
     <div className="pb-[var(--s-24)] pt-[var(--s-14)]">
@@ -74,6 +81,12 @@ export default async function InternalMediaPreview({
           <dd>{publicModel ? "returns this model" : "returns nothing — withheld"}</dd>
           <dt className="av-label text-ink-muted">Provenance</dt>
           <dd>{model?.provenance?.label ?? "—"}</dd>
+          <dt className="av-label text-ink-muted">Tour films</dt>
+          <dd>
+            {films
+              ? `${films.length} scenes resolve here; ${publicFilms ? `${publicFilms.length} publicly` : "none publicly"}`
+              : "none published"}
+          </dd>
           <dt className="av-label text-ink-muted">Opening camera</dt>
           <dd>{model ? "set by a reviewer; narrow viewers get their own" : "—"}</dd>
         </dl>
@@ -114,6 +127,15 @@ export default async function InternalMediaPreview({
             </div>
           );
         })()}
+
+        {films && (
+          <div className="mt-[var(--s-8)] bg-stage p-[var(--s-6)]">
+            <h2 className="av-label text-stage-ink">Immersive tour</h2>
+            <div className="mt-[var(--s-5)]">
+              <ImmersiveTour scenes={films} projectName={project.name} />
+            </div>
+          </div>
+        )}
 
         <div className="mt-[var(--s-8)]">
           {model ? (

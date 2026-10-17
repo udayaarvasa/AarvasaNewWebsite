@@ -181,6 +181,7 @@ describe("MediaAsset migrations", () => {
       // Visibility, split out of provenance: what a thing is and whether the
       // public may see it are different questions.
       "20261003134653_media_visibility",
+      "20261018120000_media_video",
     ]);
     const init = sql("0_init");
     assert.match(init, /NEVER execute this against an existing database/);

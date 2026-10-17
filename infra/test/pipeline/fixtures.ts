@@ -245,3 +245,112 @@ export async function tempDir(prefix = "aarvasa-media-"): Promise<string> {
 export async function writeFiles(dir: string, files: Record<string, Uint8Array>): Promise<void> {
   for (const [name, bytes] of Object.entries(files)) await writeFile(join(dir, name), bytes);
 }
+
+// ── MP4 (ISO base media) ─────────────────────────────────────────────────────
+
+const be32 = (n: number) => {
+  const b = Buffer.alloc(4);
+  b.writeInt32BE(n | 0);
+  return b;
+};
+const ube32 = (n: number) => {
+  const b = Buffer.alloc(4);
+  b.writeUInt32BE(n >>> 0);
+  return b;
+};
+const ube64 = (n: number) => {
+  const b = Buffer.alloc(8);
+  b.writeBigUInt64BE(BigInt(n));
+  return b;
+};
+const fourcc = (s: string) => Buffer.from(s.padEnd(4, " ").slice(0, 4), "latin1");
+const isoBox = (type: string, ...parts: Uint8Array[]) => {
+  const payload = Buffer.concat(parts.map((p) => Buffer.from(p)));
+  return Buffer.concat([ube32(8 + payload.length), fourcc(type), payload]);
+};
+
+const IDENTITY = [0x00010000, 0, 0, 0, 0x00010000, 0, 0, 0, 0x40000000];
+// A quarter turn: a = d = 0, b = 1, c = -1.
+const QUARTER_TURN = [0, 0x00010000, 0, -0x00010000, 0, 0, 0, 0, 0x40000000];
+
+export interface Mp4Options {
+  readonly brand?: string;
+  readonly compatible?: readonly string[];
+  /** Stored track size, before any rotation. */
+  readonly width?: number;
+  readonly height?: number;
+  readonly codec?: string;
+  readonly video?: boolean;
+  readonly audio?: boolean;
+  readonly faststart?: boolean;
+  readonly rotate90?: boolean;
+  readonly durationSeconds?: number;
+  readonly version1?: boolean;
+  readonly mdat?: boolean;
+  /** Write the mdat with a 64-bit largesize header. */
+  readonly largeMdat?: boolean;
+}
+
+/**
+ * A structurally real MP4: ftyp, moov (mvhd, video and audio traks with
+ * tkhd/mdia/hdlr/minf/stbl/stsd) and mdat. No frames are encoded — the
+ * pipeline never decodes one — but every box the reader walks is genuine.
+ */
+export function mp4(options: Mp4Options = {}): Uint8Array {
+  const {
+    brand = "isom",
+    compatible = ["isom", "iso2", "avc1", "mp41"],
+    width = 480,
+    height = 848,
+    codec = "avc1",
+    video = true,
+    audio = true,
+    faststart = true,
+    rotate90 = false,
+    durationSeconds = 21,
+    version1 = false,
+    mdat = true,
+    largeMdat = false,
+  } = options;
+  const timescale = 1000;
+  const duration = Math.round(durationSeconds * timescale);
+  const vf = (version: number) => Buffer.from([version, 0, 0, 0]);
+  const matrix = Buffer.concat((rotate90 ? QUARTER_TURN : IDENTITY).map(be32));
+
+  const mvhd = version1
+    ? isoBox("mvhd", vf(1), ube64(0), ube64(0), ube32(timescale), ube64(duration), ube32(0x00010000), Buffer.alloc(12), matrix, Buffer.alloc(24), ube32(3))
+    : isoBox("mvhd", vf(0), ube32(0), ube32(0), ube32(timescale), ube32(duration), ube32(0x00010000), Buffer.alloc(12), matrix, Buffer.alloc(24), ube32(3));
+
+  const tkhd = (w: number, h: number, m: Buffer) =>
+    version1
+      ? isoBox("tkhd", vf(1), ube64(0), ube64(0), ube32(1), ube32(0), ube64(duration), Buffer.alloc(8), Buffer.alloc(8), m, ube32(w * 65536), ube32(h * 65536))
+      : isoBox("tkhd", vf(0), ube32(0), ube32(0), ube32(1), ube32(0), ube32(duration), Buffer.alloc(8), Buffer.alloc(8), m, ube32(w * 65536), ube32(h * 65536));
+
+  const trak = (handler: string, sampleEntry: string, w: number, h: number, m: Buffer) =>
+    isoBox(
+      "trak",
+      tkhd(w, h, m),
+      isoBox(
+        "mdia",
+        isoBox("hdlr", vf(0), ube32(0), fourcc(handler), Buffer.alloc(12), Buffer.from([0])),
+        isoBox("minf", isoBox("stbl", isoBox("stsd", vf(0), ube32(1), ube32(16), fourcc(sampleEntry), Buffer.alloc(8)))),
+      ),
+    );
+
+  const traks: Buffer[] = [];
+  if (video) traks.push(trak("vide", codec, width, height, matrix));
+  if (audio) traks.push(trak("soun", "mp4a", 0, 0, Buffer.concat(IDENTITY.map(be32))));
+  const moov = isoBox("moov", mvhd, ...traks);
+  const ftyp = isoBox("ftyp", fourcc(brand), ube32(0), ...compatible.map(fourcc));
+
+  const media = Buffer.alloc(256, 0x42);
+  const mdatBox = largeMdat
+    ? Buffer.concat([ube32(1), fourcc("mdat"), ube64(16 + media.length), media])
+    : isoBox("mdat", media);
+
+  const parts = [ftyp];
+  if (!mdat) parts.push(moov);
+  else if (faststart) parts.push(moov, mdatBox);
+  else parts.push(mdatBox, moov);
+  return new Uint8Array(Buffer.concat(parts));
+}

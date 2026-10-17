@@ -51,6 +51,7 @@ export const PUBLISHED_CONTENT_TYPES: Readonly<Record<string, string>> = {
   sog: "application/zip",
   json: "application/json",
   wasm: "application/wasm",
+  mp4: "video/mp4",
 };
 
 /**

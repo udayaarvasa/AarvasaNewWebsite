@@ -5,6 +5,8 @@ import { useState } from "react";
 import { Aarvasa3DViewer } from "@/components/viewer/aarvasa-3d-viewer";
 import { PanoramaTourViewer } from "@/components/viewer/panorama-tour";
 import { TEST_360_TOUR } from "./lab-tour";
+import { LAB_FILM_SCENES } from "./lab-film";
+import { ImmersiveTour } from "@/components/property/immersive-tour";
 import { Button } from "@/components/ui/button";
 import type { ViewerSource, ViewerStatus } from "@/lib/viewer/types";
 
@@ -52,7 +54,7 @@ function Choice<T extends string>({
 }
 
 export function ViewerLab({ initialLoadOn }: { initialLoadOn: "visible" | "interaction" }) {
-  const [bench, setBench] = useState<"model" | "tour">("model");
+  const [bench, setBench] = useState<"model" | "tour" | "film">("model");
   const [scene, setScene] = useState<SceneChoice>("procedural");
   const [loadOn, setLoadOn] = useState<"visible" | "interaction">(initialLoadOn);
   const [autoRotate, setAutoRotate] = useState<"off" | "on">("off");
@@ -81,6 +83,7 @@ export function ViewerLab({ initialLoadOn }: { initialLoadOn: "visible" | "inter
           options={[
             { value: "model", label: "3D model" },
             { value: "tour", label: "TEST-360 tour" },
+            { value: "film", label: "Tour film" },
           ]}
         />
         <Choice
@@ -137,7 +140,13 @@ export function ViewerLab({ initialLoadOn }: { initialLoadOn: "visible" | "inter
 
       <div className="mt-6">
         {mounted === "mounted" &&
-          (bench === "tour" ? (
+          (bench === "film" ? (
+            /* The Immersive Tour player, on a generated test film staged by the
+               real pipeline. Flat video; never routed near the panorama viewer. */
+            <div className="bg-stage p-6">
+              <ImmersiveTour scenes={LAB_FILM_SCENES} projectName="Viewer lab" />
+            </div>
+          ) : bench === "tour" ? (
             /* The 360° bench. Orientation is checkable by eye: room A opens
                facing "0° FRONT", and its info hotspot must sit above that
                label. Room B opens at yaw 90, so returning to it proves each

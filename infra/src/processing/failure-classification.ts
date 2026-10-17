@@ -18,6 +18,10 @@ const UNSUPPORTED_RULES: ReadonlySet<string> = new Set([
   "input.extension",
   "input.file",
   "mime.content-mismatch",
+  // A QuickTime or HEIC file in an .mp4 name, or a codec no browser plays: the
+  // wrong kind of file, not a broken one, and a re-export is the fix.
+  "video.brand",
+  "video.codec",
   "gltf.external-uri",
   "gltf.data-uri",
   "gltf.meshopt",

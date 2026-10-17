@@ -139,7 +139,10 @@ describe("upload contract (shared/media-asset.ts)", () => {
     assert.equal(BYTE_BUDGETS.MODEL.sourceMax, SOURCE_MAX_BYTES.MODEL);
     assert.equal(BYTE_BUDGETS.PANORAMA.sourceMax, SOURCE_MAX_BYTES.PANORAMA);
     assert.equal(BYTE_BUDGETS.SPLAT.sourceMax, SOURCE_MAX_BYTES.SPLAT);
-    assert.deepEqual(SOURCE_MAX_BYTES, { MODEL: 250_000_000, PANORAMA: 50_000_000, SPLAT: 80_000_000 });
+    assert.equal(BYTE_BUDGETS.VIDEO.sourceMax, SOURCE_MAX_BYTES.VIDEO);
+    // Passthrough: a film is published as uploaded, so its hard limit IS its source ceiling.
+    assert.equal(BYTE_BUDGETS.VIDEO.hardLimit, SOURCE_MAX_BYTES.VIDEO);
+    assert.deepEqual(SOURCE_MAX_BYTES, { MODEL: 250_000_000, PANORAMA: 50_000_000, SPLAT: 80_000_000, VIDEO: 100_000_000 });
   });
 
   it("keeps the single-PUT ceiling well below S3's 5 GiB limit and at or above the smaller kind limits", () => {
@@ -576,5 +579,61 @@ describe("upload intent: provenance", () => {
     const h = harness();
     assert.equal((await send(h, propertyBody({ provenance: "REAL" }), "owner")).status, 400);
     assert.deepEqual(h.created, []);
+  });
+});
+
+// ── VIDEO ───────────────────────────────────────────────────────────────────
+
+describe("upload intent: VIDEO", () => {
+  const filmBody = (overrides: Record<string, unknown> = {}) =>
+    projectBody({ kind: "VIDEO", expectedFormat: "MP4", filename: "REEF tour.mp4", sourceSizeBytes: 2_538_354, sourceMimeType: "video/mp4", ...overrides });
+
+  it("accepts an MP4 and signs it as video/mp4, and nothing else", () => {
+    const base = { kind: "VIDEO", expectedFormat: "MP4", filename: "tour.MP4", sourceSizeBytes: 30_367_731, sourceMimeType: "video/mp4" } as const;
+    assert.deepEqual(checkUploadSource(base), { ok: true, contentType: "video/mp4" });
+    const cases: Array<[Record<string, unknown>, number]> = [
+      [{ expectedFormat: "GLB" }, 400], // a film is not a model
+      [{ kind: "PANORAMA" }, 400], // and never a panorama
+      [{ filename: "tour.mov" }, 400],
+      [{ filename: "tour.webm" }, 400],
+      [{ sourceMimeType: "video/quicktime" }, 400],
+      [{ sourceMimeType: "video/webm" }, 400],
+      // Browsers know MP4's type; an empty one is tolerated only for GLB and SOG.
+      [{ sourceMimeType: "" }, 400],
+      [{ sourceSizeBytes: SOURCE_MAX_BYTES.VIDEO + 1 }, 413],
+    ];
+    for (const [override, status] of cases) {
+      const result = checkUploadSource({ ...base, ...override } as Parameters<typeof checkUploadSource>[0]);
+      assert.equal(result.ok ? 200 : result.status, status, JSON.stringify(override));
+    }
+  });
+
+  it("an admin's film for a real project is created INTERNAL, keyed source.mp4", async () => {
+    const h = harness();
+    assert.equal((await send(h, filmBody({ provenance: "SITE_FOOTAGE" }), "admin")).status, 201);
+    const row = h.created[0] as unknown as Record<string, unknown>;
+    assert.equal(row.kind, "VIDEO");
+    assert.match(String(row.sourceKey), /\/source\.mp4$/);
+    assert.equal(row.provenance, "SITE_FOOTAGE");
+    // Never public on creation: visibility is left to the column's INTERNAL default.
+    assert.notEqual(row.visibility, "PUBLIC");
+  });
+
+  it("a film is never a reconstruction and never 360", async () => {
+    for (const provenance of ["AARVASA_RECONSTRUCTION", "PHOTO_360", "RENDERED_360", "OFFICIAL_MODEL"]) {
+      const h = harness();
+      assert.equal((await send(h, filmBody({ provenance }), "admin")).status, 400, provenance);
+      assert.equal(h.created.length, 0, `${provenance} wrote no row`);
+    }
+    for (const provenance of ["DEVELOPER_RENDER", "SITE_FOOTAGE"]) {
+      assert.equal((await send(harness(), filmBody({ provenance }), "admin")).status, 201, provenance);
+    }
+  });
+
+  it("follows the same authorisation as every other kind", async () => {
+    assert.equal((await send(harness(), filmBody(), "builder")).status, 403);
+    assert.equal((await send(harness(), filmBody(), null)).status, 401);
+    // REEF 999 and 1000 have no project record, so their films have nowhere to go.
+    assert.equal((await send(harness(), filmBody({ projectSlug: "reef-999" }), "admin")).status, 404);
   });
 });

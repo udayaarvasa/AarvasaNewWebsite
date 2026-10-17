@@ -57,6 +57,8 @@ enum MediaAssetKind {
   MODEL
   PANORAMA
   SPLAT
+  /// Flat video, played as video. Never spherical, never in the panorama viewer.
+  VIDEO
 }
 
 enum MediaAssetFormat {
@@ -64,6 +66,7 @@ enum MediaAssetFormat {
   EQUIRECT_JPEG
   EQUIRECT_WEBP
   SOG
+  MP4
 }
 
 /// How an asset was produced. Declared at upload, correctable at review, and
@@ -105,6 +108,8 @@ enum MediaProvenance {
   RENDERED_360
   /// Produced by Aarvasa's reconstruction pipeline from photos or video.
   AARVASA_RECONSTRUCTION
+  /// Filmed on site during construction. Shows the site as filmed, not the finished building.
+  SITE_FOOTAGE
   /// Engineering and QA only. Never public, in any environment.
   INTERNAL_TEST
 }

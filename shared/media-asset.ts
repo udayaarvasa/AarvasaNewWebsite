@@ -13,8 +13,8 @@
 import { CONTENT_HASH_PATTERN, INGEST_PREFIX, MEDIA_ID_PATTERN, MEDIA_KEY_PATTERN, ORIGINAL_KEY_PATTERN, PUBLISHED_CONTENT_TYPES, publishedObjectMetadata } from "./media-contract";
 
 export const MEDIA_SUBJECT_TYPES = ["PROPERTY", "PROJECT"] as const;
-export const MEDIA_ASSET_KINDS = ["MODEL", "PANORAMA", "SPLAT"] as const;
-export const MEDIA_ASSET_FORMATS = ["GLB", "EQUIRECT_JPEG", "EQUIRECT_WEBP", "SOG"] as const;
+export const MEDIA_ASSET_KINDS = ["MODEL", "PANORAMA", "SPLAT", "VIDEO"] as const;
+export const MEDIA_ASSET_FORMATS = ["GLB", "EQUIRECT_JPEG", "EQUIRECT_WEBP", "SOG", "MP4"] as const;
 /**
  * UPLOADED means an upload was authorised and the row exists; the source bytes have
  * NOT been verified or processed and may not exist yet. An UPLOADED asset is never
@@ -61,6 +61,10 @@ export const FORMATS_BY_KIND: Readonly<Record<MediaAssetKind, readonly MediaAsse
   MODEL: ["GLB"],
   PANORAMA: ["EQUIRECT_JPEG", "EQUIRECT_WEBP"],
   SPLAT: ["SOG"],
+  /* Flat video, played as video. Never routed to the panorama viewer: a
+     portrait clip shot on a phone is not spherical footage, and nothing about
+     storing it next to the 360 kinds makes it one. */
+  VIDEO: ["MP4"],
 };
 
 /** Statuses whose rows must carry the processed-asset fields. */
@@ -120,6 +124,16 @@ export const MEDIA_FORMAT_SPECS: Readonly<Record<MediaAssetFormat, MediaFormatSp
     contentType: PUBLISHED_CONTENT_TYPES.sog,
     clientMimeTypes: ["application/zip", "application/x-zip-compressed", "application/octet-stream", ""],
   },
+  /* MP4 only. QuickTime .mov, WebM and the rest are refused rather than
+     accepted on the strength of a container that might play: the worker does
+     not transcode, so what is uploaded is what a visitor's browser receives. */
+  MP4: {
+    kind: "VIDEO",
+    keyExtension: "mp4",
+    filenameExtensions: ["mp4"],
+    contentType: PUBLISHED_CONTENT_TYPES.mp4,
+    clientMimeTypes: ["video/mp4"],
+  },
 };
 
 /**
@@ -130,6 +144,11 @@ export const SOURCE_MAX_BYTES: Readonly<Record<MediaAssetKind, number>> = {
   MODEL: 250 * MB,
   PANORAMA: 50 * MB,
   SPLAT: 80 * MB,
+  /* Passthrough, not transcoded, so this is what a visitor downloads. 100 MB
+     covers a 1080x1920 tour film at the quality REEF supplies (about 30 MB for
+     21 s) with room to spare, and refuses the brand films that would need a
+     streaming ladder this pipeline does not build. */
+  VIDEO: 100 * MB,
 };
 
 /**

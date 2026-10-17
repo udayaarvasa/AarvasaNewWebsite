@@ -68,6 +68,7 @@ const FORMAT_LABELS: Record<MediaAssetFormat, string> = {
   EQUIRECT_JPEG: "360° panorama (.jpg)",
   EQUIRECT_WEBP: "360° panorama (.webp)",
   SOG: "Gaussian splat bundle (.sog)",
+  MP4: "Tour film (.mp4)",
 }
 
 const STATUS_STYLES: Record<Status, string> = {

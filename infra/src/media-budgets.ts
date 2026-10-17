@@ -12,7 +12,7 @@ import { SOURCE_MAX_BYTES } from "../../shared/media-asset";
 
 export const MB = 1_000_000;
 
-export type MediaKind = "MODEL" | "PANORAMA" | "SPLAT" | "TEXTURE";
+export type MediaKind = "MODEL" | "PANORAMA" | "SPLAT" | "VIDEO" | "TEXTURE";
 
 export interface ByteBudget {
   /** Above this: WARN, exceeds the mobile target. */
@@ -25,12 +25,16 @@ export interface ByteBudget {
   readonly sourceMax: number;
 }
 
-export const BYTE_BUDGETS: Readonly<Record<"MODEL" | "PANORAMA" | "SPLAT" | "POSTER", ByteBudget>> = {
+export const BYTE_BUDGETS: Readonly<Record<"MODEL" | "PANORAMA" | "SPLAT" | "VIDEO" | "POSTER", ByteBudget>> = {
   MODEL: { mobileTarget: 10 * MB, desktopTarget: 25 * MB, hardLimit: 50 * MB, sourceMax: SOURCE_MAX_BYTES.MODEL },
   PANORAMA: { mobileTarget: 2.5 * MB, desktopTarget: 8 * MB, hardLimit: 12 * MB, sourceMax: SOURCE_MAX_BYTES.PANORAMA },
   // A .sog bundle is already the delivery format (no conversion offline), so its
   // source ceiling is the single-file hard limit. PLY sources are out of scope here.
   SPLAT: { mobileTarget: 20 * MB, desktopTarget: 50 * MB, hardLimit: 80 * MB, sourceMax: SOURCE_MAX_BYTES.SPLAT },
+  /* Published as uploaded, so the hard limit is the source ceiling. The targets
+     are warnings about what a visitor on mobile data pays to watch it through;
+     they do not block, because a film streams and can be stopped. */
+  VIDEO: { mobileTarget: 40 * MB, desktopTarget: 80 * MB, hardLimit: SOURCE_MAX_BYTES.VIDEO, sourceMax: SOURCE_MAX_BYTES.VIDEO },
   POSTER: { mobileTarget: 0.2 * MB, desktopTarget: 0.2 * MB, hardLimit: 0.5 * MB, sourceMax: 10 * MB },
 };
 

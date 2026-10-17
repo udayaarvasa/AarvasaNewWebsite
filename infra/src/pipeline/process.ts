@@ -10,6 +10,7 @@ import { type GlbResult, validateGlb } from "./glb";
 import { type PanoramaResult, validatePanorama } from "./panorama";
 import { type SplatMetrics, validateSog } from "./sog";
 import { validateKtx2Texture } from "./texture";
+import { validateMp4 } from "./video";
 import { PLAYCANVAS_VERSION } from "./viewer-capabilities";
 
 export const PIPELINE_NAME = "aarvasa-media-pipeline";
@@ -18,7 +19,7 @@ export const PIPELINE_VERSION = "1.0.0";
 export const PROCESSING_PROFILE = "passthrough-v1";
 export const MANIFEST_SCHEMA_VERSION = 1;
 
-export type MediaFormat = "GLB" | "EQUIRECT_JPEG" | "EQUIRECT_WEBP" | "SOG" | "KTX2";
+export type MediaFormat = "GLB" | "EQUIRECT_JPEG" | "EQUIRECT_WEBP" | "SOG" | "KTX2" | "MP4";
 
 export interface ManifestObject {
   readonly role: "entry" | "poster";
@@ -128,6 +129,7 @@ const SUPPORTED: Readonly<Record<string, KindSpec>> = {
   ".webp": { kind: "PANORAMA", sniffed: "webp", entryFile: "panorama.webp" },
   ".sog": { kind: "SPLAT", sniffed: "zip", entryFile: "scene.sog" },
   ".ktx2": { kind: "TEXTURE", sniffed: "ktx2", entryFile: "texture.ktx2" },
+  ".mp4": { kind: "VIDEO", sniffed: "isobmff", entryFile: "film.mp4" },
 };
 
 /** Recognised formats that are deliberately not accepted, with the reason. */
@@ -145,6 +147,11 @@ const RECOGNISED_UNSUPPORTED: Readonly<Record<string, string>> = {
   ".exr": "EXR environments are deferred to a later phase",
   ".zip": "Generic ZIP archives are not accepted; SOG bundles must use the .sog extension",
   ".json": "Standalone JSON (e.g. streamed SOG lod-meta.json) is not supported yet",
+  ".mov": "QuickTime .mov is not accepted; export MP4 (H.264). Nothing is transcoded here",
+  ".m4v": "Rename an MP4-compatible .m4v to .mp4, or export MP4 (H.264)",
+  ".webm": "WebM is not accepted; export MP4 (H.264). Nothing is transcoded here",
+  ".mkv": "Matroska is not accepted; export MP4 (H.264)",
+  ".avi": "AVI is not accepted; export MP4 (H.264)",
 };
 
 const POSTER_SIDECAR = /^(.+)\.poster\.(webp|jpe?g)$/i;
@@ -336,6 +343,15 @@ async function processItem(
       if (result) metrics = { ...result };
       break;
     }
+    case "VIDEO": {
+      format = "MP4";
+      const result = validateMp4(bytes, findings);
+      if (result) {
+        dimensions = { width: result.width, height: result.height };
+        metrics = { ...result.metrics };
+      }
+      break;
+    }
     case "TEXTURE": {
       format = "KTX2";
       const info = validateKtx2Texture(bytes, findings);
@@ -512,7 +528,10 @@ export async function processAssets(inputPath: string, options: ProcessOptions):
   const published = items.filter((i) => i.status !== "fail");
   const publishedBytes = published.reduce((sum, i) => sum + i.objects.reduce((s, o) => s + o.sizeBytes, 0), 0);
   const posterBytes = published.reduce((sum, i) => sum + (i.poster?.sizeBytes ?? 0), 0);
-  const largestEntry = published.reduce((max, i) => Math.max(max, i.sizeBytes), 0);
+  /* A film is not part of the initial view: it streams on demand and nothing
+     downloads until the visitor presses play. Counting it here would warn about
+     a cost no visitor pays just by opening the page. */
+  const largestEntry = published.filter((i) => i.kind !== "VIDEO").reduce((max, i) => Math.max(max, i.sizeBytes), 0);
   const initialViewBytes = posterBytes + largestEntry;
   const { reviewRequired } = checkSetBudgets(setFindings, publishedBytes, initialViewBytes);
 

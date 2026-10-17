@@ -35,6 +35,9 @@ import { loadProjectTour } from "@/lib/services/project-panoramas";
 import { loadProjectSplat } from "@/lib/services/project-splats";
 import { ExploreArea } from "@/components/property/explore-area";
 import { NearbyPlaces } from "@/components/property/nearby-places";
+import { ImmersiveTour } from "@/components/property/immersive-tour";
+import { loadImmersiveTour } from "@/lib/services/immersive-tour";
+import { TOUR_UNAVAILABLE_HINT, TOUR_UNAVAILABLE_MESSAGE } from "@/lib/immersive-tours";
 import {
   EXPLORE_AREA_HINTS,
   NO_PROPERTY_MODEL_HINT,
@@ -106,12 +109,17 @@ export default async function ProjectPage({
   /* All three come from the database where the project has published media, so
      a model a creator published through the studio appears here rather than only
      the hand-authored pilot asset. */
-  const [viewer, tour, splat] = await Promise.all([
+  const [viewer, tour, splat, films] = await Promise.all([
     loadProjectModel(project),
     loadProjectTour(project),
     loadProjectSplat(project),
+    /* The developer's films, through the PUBLIC media resolver only. Null until
+       they have been through upload, worker, review and release — there is no
+       local file for this to fall back to, by design. */
+    loadImmersiveTour(project),
   ]);
   const hasImmersive = Boolean(viewer || tour || splat);
+  const hasFilms = Boolean(films && films.length > 0);
 
   /* Explore Area is geographic context, not the property's own model, so it is
      offered independently of whether any immersive media exists. It still needs
@@ -271,9 +279,9 @@ export default async function ProjectPage({
         <Wrap>
           <SectionHead
             label="Explore"
-            title={hasImmersive || hasArea ? "See it for yourself" : "Not captured yet"}
+            title={hasImmersive || hasArea || hasFilms ? "See it for yourself" : "Not captured yet"}
             note={
-              hasImmersive || hasArea
+              hasImmersive || hasArea || hasFilms
                 ? "Nothing downloads until you open it."
                 : "When this project has been captured, the experiences appear here."
             }
@@ -302,8 +310,28 @@ export default async function ProjectPage({
               </div>
             </div>
 
-            {/* Explore area — the surroundings */}
+            {/* Immersive tour — the developer's films, cut into the spaces they
+                show. Flat films, never offered as 360: they cover what the camera
+                pointed at and nothing more. */}
             <div>
+              <h3 className="av-label text-stage-ink">Immersive tour</h3>
+              <p className="mt-1 text-[14px] text-stage-muted">Films of the spaces</p>
+              <div className="mt-[var(--s-5)]">
+                {films && hasFilms ? (
+                  <ImmersiveTour scenes={films} projectName={project.name} />
+                ) : (
+                  <div className="max-w-[46ch] border border-rule-firm/40 p-[var(--s-5)] text-[14px] leading-relaxed text-stage-muted">
+                    <p>{TOUR_UNAVAILABLE_MESSAGE}</p>
+                    <p className="mt-2 opacity-80">{TOUR_UNAVAILABLE_HINT}</p>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Explore area — the surroundings. Full width in its own row: the
+                order is property, tour, area, and the map keeps all of its
+                behaviour — only the column it sits in is wider. */}
+            <div className="lg:col-span-2">
               <h3 className="av-label text-stage-ink">Explore area</h3>
               <p className="mt-1 text-[14px] text-stage-muted">3D surroundings</p>
               <div className="mt-[var(--s-5)]">

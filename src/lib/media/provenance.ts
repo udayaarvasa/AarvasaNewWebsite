@@ -25,6 +25,7 @@ export const MEDIA_PROVENANCE = [
   "PHOTO_360",
   "RENDERED_360",
   "AARVASA_RECONSTRUCTION",
+  "SITE_FOOTAGE",
   "INTERNAL_TEST",
 ] as const;
 
@@ -60,6 +61,7 @@ export const PROVENANCE_LABEL: Readonly<Record<MediaProvenance, string>> = {
   PHOTO_360: "360° photograph",
   RENDERED_360: "360° rendered from a 3D model",
   AARVASA_RECONSTRUCTION: "Aarvasa reconstruction",
+  SITE_FOOTAGE: "Site footage",
   INTERNAL_TEST: "Internal test asset",
 };
 
@@ -74,6 +76,10 @@ export const PROVENANCE_NOTE: Readonly<Partial<Record<MediaProvenance, string>>>
   RENDERED_360: "Rendered from a 3D model, not photographed on site.",
   AARVASA_RECONSTRUCTION:
     "Reconstructed by Aarvasa from photographs or video. Not an official developer model.",
+  /* The one claim footage of a building site must not make is that this is the
+     finished building. It shows the site on the day it was filmed. */
+  SITE_FOOTAGE:
+    "Filmed on site during construction. It shows the building as it stood when filmed, not as it will be completed.",
   INTERNAL_TEST: "Engineering test asset. Not a model of this project.",
 };
 
@@ -84,10 +90,15 @@ export const PROVENANCE_NOTE: Readonly<Partial<Record<MediaProvenance, string>>>
  * building model, so the upload boundary rejects the combination rather than
  * storing a claim that contradicts itself.
  */
-export const PROVENANCE_BY_KIND: Readonly<Record<"MODEL" | "PANORAMA" | "SPLAT", readonly MediaProvenance[]>> = {
+export const PROVENANCE_BY_KIND: Readonly<Record<"MODEL" | "PANORAMA" | "SPLAT" | "VIDEO", readonly MediaProvenance[]>> = {
   MODEL: ["OFFICIAL_MODEL", "DEVELOPER_RENDER", "AARVASA_RECONSTRUCTION", "INTERNAL_TEST"],
   PANORAMA: ["PHOTO_360", "RENDERED_360", "SHOW_APARTMENT_PHOTO", "INTERNAL_TEST"],
   SPLAT: ["AARVASA_RECONSTRUCTION", "INTERNAL_TEST"],
+  /* A film is either made of renders or filmed on site, and the visitor is told
+     which. It is never a reconstruction — nothing was rebuilt from it — and
+     never 360, because a flat film covers what its camera pointed at and
+     nothing else. */
+  VIDEO: ["DEVELOPER_RENDER", "SITE_FOOTAGE", "INTERNAL_TEST"],
 };
 
 export function provenanceAllowedFor(kind: string, provenance: unknown): boolean {

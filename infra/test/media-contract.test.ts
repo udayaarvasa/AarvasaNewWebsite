@@ -25,6 +25,7 @@ describe("media contract", () => {
         sog: "application/zip",
         json: "application/json",
         wasm: "application/wasm",
+        mp4: "video/mp4",
       },
     );
     assert.ok(!Object.values(PUBLISHED_CONTENT_TYPES).includes("application/octet-stream"));
