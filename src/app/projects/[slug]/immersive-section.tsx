@@ -22,12 +22,15 @@ export default function ImmersiveSection({
   splat = null,
   projectName,
   projectSlug,
+  bare = false,
 }: {
   viewer: ProjectViewerConfig | null;
   tour: PanoramaTour | null;
   splat?: ProjectSplatConfig | null;
   projectName: string;
   projectSlug: string;
+  /** Inside the combined 3D board, which supplies its own heading. */
+  bare?: boolean;
 }) {
   if (!viewer && !tour && !splat) return null;
   const heading = tour && (viewer || splat) ? "Explore in 3D and 360°" : tour ? "Explore in 360°" : "Explore in 3D";
@@ -39,6 +42,7 @@ export default function ImmersiveSection({
   return (
     <section aria-label={heading}>
       <Wrap>
+      {!bare && (
       <MotionReveal>
         <SectionHead label="Explore" title={heading} />
         <p className="-mt-[var(--s-6)] mb-[var(--s-5)] max-w-[62ch] text-[13.5px] leading-relaxed text-stage-muted">
@@ -54,6 +58,7 @@ export default function ImmersiveSection({
           </p>
         )}
       </MotionReveal>
+      )}
       {/* Outside MotionReveal so the canvas is never inside an animating transform. */}
       <ImmersiveExperience model={viewer} tour={tour} splat={splat} analyticsId={projectSlug} />
       </Wrap>

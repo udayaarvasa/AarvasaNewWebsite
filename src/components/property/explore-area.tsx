@@ -155,7 +155,13 @@ export function ExploreArea({
 
       if (is3d && customElements.get("gmp-map-3d")) {
         /* Framed for the space it actually has, not for a nominal desktop. */
-        const camera = exploreAreaCamera(host.clientWidth || window.innerWidth);
+        const base = exploreAreaCamera(host.clientWidth || window.innerWidth);
+        /* With a model to show, open close on it: aimed at its mid-height,
+           near enough that the tower reads among its neighbours. */
+        const narrow = (host.clientWidth || window.innerWidth) < 560;
+        const camera = modelOverlay
+          ? { range: narrow ? 360 : 460, tilt: 67, heading: base.heading, altitude: modelOverlay.baseOffsetMetres }
+          : base;
         const map = document.createElement("gmp-map-3d") as HTMLElement & Record<string, unknown>;
         map.setAttribute("center", `${resolved.center.lat},${resolved.center.lng},${camera.altitude}`);
         map.setAttribute("range", String(camera.range));
@@ -270,7 +276,7 @@ export function ExploreArea({
       // A rejected key is reported as such even when it surfaced as a throw.
       setPhase({ k: "failed", blocker: keyWasRejected() ? "INVALID_API_KEY" : "LOAD_FAILED" });
     }
-  }, [resolved, name, location]);
+  }, [resolved, name, location, modelOverlay]);
 
   /* The overlay, attached to the live 3D map and removed when switched off.
      Separate from the map's own lifecycle: the surroundings are the experience,
@@ -336,7 +342,7 @@ export function ExploreArea({
       {phase.k === "closed" && (
         <div className="border border-rule-firm bg-paper-raised p-[var(--s-6)]">
           <p className="max-w-[56ch] text-[15px] leading-relaxed">
-            See this property in its surroundings.
+            {modelOverlay ? `See ${name} standing in its surroundings.` : "See this property in its surroundings."}
           </p>
           <p className="mt-2 max-w-[60ch] text-[13px] leading-relaxed text-ink-muted">
             {EXPLORE_AREA_NOTE}
@@ -348,7 +354,7 @@ export function ExploreArea({
             className="av-label mt-[var(--s-5)] inline-flex items-center gap-2 rounded-xs border border-burgundy bg-burgundy px-4 py-[9px] text-paper transition-opacity hover:opacity-90"
           >
             <Globe2 className="h-4 w-4" aria-hidden="true" />
-            Explore area
+            {modelOverlay ? "Open the 3D view" : "Explore area"}
           </button>
         </div>
       )}

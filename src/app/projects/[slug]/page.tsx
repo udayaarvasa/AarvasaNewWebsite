@@ -31,6 +31,7 @@ import { ImmersiveTour } from "@/components/property/immersive-tour";
 import { loadImmersiveTour } from "@/lib/services/immersive-tour";
 import { exploreAreaMode } from "@/lib/maps/google-3d";
 import ImmersiveSection from "./immersive-section";
+import { ExploreBoard } from "./explore-board";
 import { MapPin } from "lucide-react";
 import { FadeUp, LuxHeading } from "@/components/lux/motion";
 import { Container as LuxContainer, GhostButton, GoldButton } from "@/components/lux/primitives";
@@ -300,6 +301,49 @@ export default async function ProjectPage({
               or verified coordinates is left out rather than shown as an empty
               box: a page of "not yet available" panels reads as unfinished, and
               an entry point to something unvalidated is a promise. */}
+          {mapModel && hasImmersive && area.kind !== "unavailable" ? (
+            /* One board: the reconstruction standing in its surroundings, with
+               the model on its own a switch away. */
+            <div className="mt-[var(--s-8)]">
+              <ExploreBoard
+                projectName={project.name}
+                surroundings={
+                  <>
+                    <ExploreArea
+                      name={project.name}
+                      location={`${project.location}, ${project.city}`}
+                      coordinates={area.center}
+                      apiKey={process.env.NEXT_PUBLIC_GOOGLE_MAPS_BROWSER_KEY ?? null}
+                      modelOverlay={mapModel}
+                    />
+                    <NearbyPlaces
+                      center={area.center}
+                      apiKey={process.env.NEXT_PUBLIC_GOOGLE_MAPS_BROWSER_KEY ?? ""}
+                    />
+                  </>
+                }
+                model={
+                  <ImmersiveSection
+                    viewer={viewer}
+                    tour={tour}
+                    splat={splat}
+                    projectName={project.name}
+                    projectSlug={project.slug}
+                    bare
+                  />
+                }
+              />
+              {films && hasFilms && (
+                <div className="mt-[var(--s-10)]">
+                  <h3 className="av-label text-stage-ink">Immersive tour</h3>
+                  <p className="mt-1 text-[14px] text-stage-muted">Films of the spaces</p>
+                  <div className="mt-[var(--s-5)]">
+                    <ImmersiveTour scenes={films} projectName={project.name} />
+                  </div>
+                </div>
+              )}
+            </div>
+          ) : (
           <div className="mt-[var(--s-8)] grid gap-[var(--s-8)] lg:grid-cols-2">
             {hasImmersive && (
               <div className={hasFilms ? undefined : "lg:col-span-2"}>
@@ -356,6 +400,7 @@ export default async function ProjectPage({
               </div>
             )}
           </div>
+          )}
         </Wrap>
       </StageBand>
       ) : null}
