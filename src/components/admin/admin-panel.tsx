@@ -58,7 +58,7 @@ function formatCurrency(amount: number) {
   return `₹${amount.toLocaleString("en-IN")}`
 }
 
-export function AdminPanel() {
+export function AdminPanel({ mediaEnabled = true }: { mediaEnabled?: boolean } = {}) {
   const [tab, setTab] = useState<Tab>("overview")
   const [stats, setStats] = useState<AdminStats | null>(null)
   const [users, setUsers] = useState<AdminUser[]>([])
@@ -182,7 +182,8 @@ export function AdminPanel() {
     { id: "users", label: "Users", icon: Users },
     { id: "properties", label: "Properties", icon: Building2 },
     { id: "inquiries", label: "Inquiries", icon: MessageSquare },
-    { id: "media", label: "Media", icon: Box },
+    // Media review needs the media schema; hidden while media features are off.
+    ...(mediaEnabled ? [{ id: "media" as const, label: "Media", icon: Box }] : []),
   ]
 
   const roleBadge = (role: string) => {
@@ -485,7 +486,7 @@ export function AdminPanel() {
 
             {/* ── INQUIRIES TAB (placeholder for future) ── */}
             {/* ── MEDIA TAB ── */}
-            {tab === "media" && <MediaManager />}
+            {mediaEnabled && tab === "media" && <MediaManager />}
 
             {tab === "inquiries" && (
               <Card className="border-rule bg-paper-raised p-12 text-center">

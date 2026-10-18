@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { getAuthUser } from "@/lib/auth-context";
 import { activeCapabilities } from "@/lib/entitlements/service";
 import { paymentsAvailable } from "@/lib/entitlements/payment-provider";
+import { mediaFeaturesResponse } from "@/lib/media-features";
 
 /**
  * GET /api/studio/entitlements — what the signed-in user may currently do.
@@ -12,6 +13,9 @@ import { paymentsAvailable } from "@/lib/entitlements/payment-provider";
  * who forges this response gains exactly nothing.
  */
 export async function GET(req: Request) {
+  const gated = mediaFeaturesResponse();
+  if (gated) return gated;
+
   const user = await getAuthUser(req);
   const capabilities = await activeCapabilities(user?.id);
 

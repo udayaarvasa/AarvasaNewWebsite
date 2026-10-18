@@ -2,9 +2,13 @@ import { NextResponse } from "next/server"
 import { getAuthUser } from "@/lib/auth-context"
 import { listReviewAssets } from "@/lib/services/media-review.service"
 import { mediaReviewRouteDeps, NO_STORE } from "@/lib/services/media-review.route-deps"
+import { mediaFeaturesResponse } from "@/lib/media-features";
 
 // GET /api/admin/media?status=PENDING_REVIEW&limit=50 — admin media list (Phase 5)
 export async function GET(req: Request) {
+  const gated = mediaFeaturesResponse();
+  if (gated) return gated;
+
   try {
     const url = new URL(req.url)
     const result = await listReviewAssets(

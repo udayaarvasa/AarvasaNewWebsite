@@ -1,5 +1,6 @@
+import { mediaFeaturesEnabled } from "@/lib/media-features";
 import Link from "next/link";
-import { redirect } from "next/navigation";
+import { redirect, notFound } from "next/navigation";
 import { Lock } from "lucide-react";
 import { auth } from "@/auth";
 import { Wrap, SectionHead } from "@/components/av/primitives";
@@ -29,6 +30,9 @@ export const metadata = {
 export const dynamic = "force-dynamic";
 
 export default async function NewExperiencePage() {
+  // Off in production until the media schema exists (see src/lib/media-features.ts).
+  if (!mediaFeaturesEnabled()) notFound();
+
   const session = await auth();
   if (!session?.user) redirect("/login?callbackUrl=%2Fmedia-studio%2Fnew");
 

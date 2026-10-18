@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
+import { diagAccess } from "@/lib/diag-access"
 
 // Reduce the driver error to a coarse cause. This is safe to expose publicly —
 // unlike the raw message, which embeds the database hostname.
@@ -22,7 +23,12 @@ function classify(error: any): string {
 // reachable, but leaks no infrastructure details.
 export async function GET(req: Request) {
   const key = new URL(req.url).searchParams.get("key")
-  const detailed = !!process.env.AUTH_DIAG_KEY && key === process.env.AUTH_DIAG_KEY
+  const access = diagAccess({ nodeEnv: process.env.NODE_ENV, key, diagKey: process.env.AUTH_DIAG_KEY })
+  // Production: not found, unless the caller holds AUTH_DIAG_KEY (unset in Amplify).
+  if (access === "none") {
+    return NextResponse.json({ error: "Not found" }, { status: 404, headers: { "Cache-Control": "no-store" } })
+  }
+  const detailed = access === "detailed"
 
   const diag = {
     hasDatabaseUrl: !!process.env.DATABASE_URL,

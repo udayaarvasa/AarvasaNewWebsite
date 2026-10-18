@@ -1,6 +1,7 @@
 import { auth } from "@/auth"
 import { redirect } from "next/navigation"
 import { AdminPanel } from "@/components/admin/admin-panel"
+import { mediaFeaturesEnabled } from "@/lib/media-features"
 
 export const metadata = {
   title: "Admin Panel | Aarvasa",
@@ -16,5 +17,5 @@ export default async function AdminPage() {
     redirect("/dashboard")
   }
 
-  return <AdminPanel />
+  return <AdminPanel mediaEnabled={mediaFeaturesEnabled()} />
 }

@@ -33,23 +33,17 @@ export function railProjects(): RailProject[] {
 }
 
 /**
- * The headline figures. The first three are the business's stated reach,
- * supplied by Aarvasa (18 Oct 2026) and set here deliberately — they must be
- * kept true to the partnerships actually in place before they are published.
- * The last is counted from the listed project records.
+ * The headline figures, every one counted from the published project records,
+ * so a figure can never claim more than a visitor can open. (Stated figures of
+ * "10+ projects / 20+ developers" were removed on 19 Oct 2026: the records hold
+ * 5 projects from 2 developers, and no source supported the larger numbers.)
  */
-export const STATED_FIGURES = {
-  projects: 10,
-  countries: 2,
-  developers: 20,
-} as const;
-
 export function platformFigures(): { value: number; suffix: string; label: string }[] {
   const projects = publishedProjects();
   return [
-    { value: STATED_FIGURES.projects, suffix: "+", label: "Projects listed" },
-    { value: STATED_FIGURES.countries, suffix: "+", label: "Countries" },
-    { value: STATED_FIGURES.developers, suffix: "+", label: "Developers" },
+    { value: projects.length, suffix: "", label: "Projects listed" },
+    { value: new Set(projects.map((p) => p.country)).size, suffix: "", label: "Countries" },
+    { value: new Set(projects.map((p) => p.developer)).size, suffix: "", label: "Developers" },
     { value: projects.reduce((sum, p) => sum + (p.totalUnits ?? 0), 0), suffix: "", label: "Homes & plots on record" },
   ];
 }

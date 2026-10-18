@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 import type { Project, ProjectPanoramaTour } from "../../../src/lib/project-types";
-import { projects, getProject } from "../../../src/lib/projects";
+import { PUBLIC_MODEL_APPROVALS, projects, getProject } from "../../../src/lib/projects";
 import { sanitizeViewerEvent, trackViewerEvent, VIEWER_EVENT_TYPE, type ViewerEvent } from "../../../src/lib/viewer/analytics";
 import { projectViewerConfig } from "../../../src/lib/viewer/project-media";
 import { projectTourConfig, tourMediaAssetIds } from "../../../src/lib/viewer/project-tour";
@@ -169,24 +169,21 @@ describe("project page integration: no project carries test media", () => {
     }
   });
 
-  it("gives REEF 996 its approved, site-hosted reconstruction — labelled, same-origin, no XR — and no test tour", () => {
-    const reef = getProject("reef-996-dubai-production-city") as Project;
-    for (const env of ["development", "production"]) {
-      const viewer = projectViewerConfig(reef, env);
-      assert.ok(viewer, env);
-      assert.equal(viewer.placeholder, false);
-      assert.equal(viewer.provenance?.label, "Aarvasa reconstruction");
-      assert.match(viewer.source.kind === "model" ? viewer.source.url : "", /^\/media\/m\/[0-9a-f]{24}\/[0-9a-f]{16}\/scene\.glb$/);
-      assert.equal(viewer.xr, null);
+  it("attaches no site-hosted reconstruction until its public release is approved", () => {
+    assert.deepEqual([...PUBLIC_MODEL_APPROVALS], []);
+    for (const slug of ["reef-996-dubai-production-city", "reef-997-dubai-islands", "reef-998-dlrc"]) {
+      const reef = getProject(slug) as Project;
+      for (const env of ["development", "production"]) {
+        assert.equal(projectViewerConfig(reef, env), null, `${slug} ${env}`);
+      }
+      assert.equal(reef.immersive?.hosting, undefined, `${slug} carries no site-hosted model`);
     }
-    assert.equal(projectTourConfig(reef, new Map(), { nodeEnv: "development", cdnOrigin: CDN }).tour, null);
-    assert.equal(tourMediaAssetIds(reef).length, 0);
   });
 
-  it("gives REEF 997, which has no model, no immersive experience", () => {
-    const reef = getProject("reef-997-dubai-islands") as Project;
-    assert.equal(projectViewerConfig(reef, "development"), null);
-    assert.equal(projectViewerConfig(reef, "production"), null);
+  it("gives REEF 996 no immersive experience at all, because nothing real is published for it", () => {
+    const reef = getProject("reef-996-dubai-production-city") as Project;
+    assert.equal(projectTourConfig(reef, new Map(), { nodeEnv: "development", cdnOrigin: CDN }).tour, null);
+    assert.equal(tourMediaAssetIds(reef).length, 0);
   });
 
   it("gives projects without immersive media neither experience", () => {

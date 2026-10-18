@@ -153,7 +153,7 @@ const aaradhyamPrime: Project = {
  * the same values). The model is a placeholder that exercises the pipeline and
  * viewer; it is not a model of REEF 996 and is never shown in production builds.
  */
-export const REEF_996_PILOT_MEDIA: ProjectImmersiveMedia = {
+const REEF_996_PILOT_MEDIA: ProjectImmersiveMedia = {
   mediaId: "8ba87bf969112016e7905b6f",
   kind: "MODEL",
   format: "GLB",
@@ -301,10 +301,27 @@ const REEF_996_RECONSTRUCTION: ProjectImmersiveMedia = {
   mapOverlay: { baseOffsetMetres: 43.97 },
 };
 
-// reef-projects.ts is generated, so immersive media is attached here instead.
-const IMMERSIVE_BY_SLUG: Readonly<Record<string, ProjectImmersiveMedia>> = {
+/**
+ * Public visibility approvals for the site-hosted reconstructions.
+ *
+ * The repository is public and the GLBs ship from /media, so a reconstruction
+ * is attached to its project page only once its public release is approved in
+ * writing and recorded here (slug, date, approver). Until then the files are
+ * not in the release and the pages show no model. Empty in the 20 Oct release.
+ */
+export const PUBLIC_MODEL_APPROVALS: readonly string[] = [];
+
+const SITE_RECONSTRUCTIONS: Readonly<Record<string, ProjectImmersiveMedia>> = {
   "reef-996-dubai-production-city": REEF_996_RECONSTRUCTION,
   "reef-998-dlrc": REEF_998_RECONSTRUCTION,
+};
+
+// reef-projects.ts is generated, so immersive media is attached here instead.
+const IMMERSIVE_BY_SLUG: Readonly<Record<string, ProjectImmersiveMedia>> = {
+  "reef-996-dubai-production-city": REEF_996_PILOT_MEDIA,
+  ...Object.fromEntries(
+    Object.entries(SITE_RECONSTRUCTIONS).filter(([slug]) => PUBLIC_MODEL_APPROVALS.includes(slug)),
+  ),
 };
 
 /**

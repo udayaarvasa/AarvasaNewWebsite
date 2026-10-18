@@ -1,5 +1,6 @@
+import { mediaFeaturesEnabled } from "@/lib/media-features";
 import Link from "next/link";
-import { redirect } from "next/navigation";
+import { redirect, notFound } from "next/navigation";
 import { Lock, Check } from "lucide-react";
 import { auth } from "@/auth";
 import { SectionHead, Wrap } from "@/components/av/primitives";
@@ -76,6 +77,9 @@ const PIPELINE: { step: string; title: string; body: string; needs: Capability |
 ];
 
 export default async function MediaStudioPage() {
+  // Off in production until the media schema exists (see src/lib/media-features.ts).
+  if (!mediaFeaturesEnabled()) notFound();
+
   const session = await auth();
   if (!session?.user) redirect("/login?callbackUrl=%2Fmedia-studio");
 

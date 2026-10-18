@@ -4,10 +4,14 @@ import { prisma } from "@/lib/prisma"
 import { projects } from "@/lib/projects"
 import { requireReviewAdmin } from "@/lib/services/media-review.service"
 import { mediaReviewRouteDeps, NO_STORE } from "@/lib/services/media-review.route-deps"
+import { mediaFeaturesResponse } from "@/lib/media-features";
 
 // GET /api/admin/media/subjects — what an admin may attach immersive media to:
 // properties (most recent 200) and every defined project (admin only).
 export async function GET(req: Request) {
+  const gated = mediaFeaturesResponse();
+  if (gated) return gated;
+
   try {
     const admin = await requireReviewAdmin({ caller: await getAuthUser(req) }, mediaReviewRouteDeps("GET /api/admin/media/subjects"))
     if ("error" in admin) return NextResponse.json(admin.error.body, { status: admin.error.status, headers: NO_STORE })

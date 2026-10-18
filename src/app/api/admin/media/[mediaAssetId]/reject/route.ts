@@ -2,11 +2,15 @@ import { NextResponse } from "next/server"
 import { getAuthUser } from "@/lib/auth-context"
 import { rejectReviewAsset } from "@/lib/services/media-review.service"
 import { mediaReviewRouteDeps, NO_STORE } from "@/lib/services/media-review.route-deps"
+import { mediaFeaturesResponse } from "@/lib/media-features";
 
 type Params = { params: Promise<{ mediaAssetId: string }> }
 
 // POST /api/admin/media/{mediaAssetId}/reject — reject → REJECTED (admin only)
 export async function POST(req: Request, { params }: Params) {
+  const gated = mediaFeaturesResponse();
+  if (gated) return gated;
+
   try {
     const { mediaAssetId } = await params
     const result = await rejectReviewAsset(

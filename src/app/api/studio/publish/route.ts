@@ -3,6 +3,7 @@ import { z } from "zod";
 import { prisma } from "@/lib/prisma";
 import { getAuthUser } from "@/lib/auth-context";
 import { requireCapability } from "@/lib/entitlements/route-guard";
+import { mediaFeaturesResponse } from "@/lib/media-features";
 
 /**
  * POST /api/studio/publish — make a creator-generated immersive asset public.
@@ -21,6 +22,9 @@ import { requireCapability } from "@/lib/entitlements/route-guard";
 const BodySchema = z.object({ mediaAssetId: z.string().min(1).max(64) });
 
 export async function POST(req: Request) {
+  const gated = mediaFeaturesResponse();
+  if (gated) return gated;
+
   let parsed;
   try {
     parsed = BodySchema.safeParse(await req.json());

@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getAuthUser } from "@/lib/auth-context";
+import { mediaFeaturesResponse } from "@/lib/media-features";
 
 /**
  * GET /api/studio/assets — the caller's own immersive media.
@@ -22,6 +23,9 @@ import { getAuthUser } from "@/lib/auth-context";
 export const dynamic = "force-dynamic";
 
 export async function GET(req: Request) {
+  const gated = mediaFeaturesResponse();
+  if (gated) return gated;
+
   const user = await getAuthUser(req);
   if (!user) {
     return NextResponse.json(

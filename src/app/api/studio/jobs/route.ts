@@ -10,6 +10,7 @@ import {
   RECONSTRUCTION_DEFAULTS,
   type CoverageStats,
 } from "@/lib/media/reconstruction";
+import { mediaFeaturesResponse } from "@/lib/media-features";
 
 /**
  * POST /api/studio/jobs — start an immersive reconstruction or processing job.
@@ -74,6 +75,9 @@ const BodySchema = z.object({
 const noStore = { "Cache-Control": "no-store" };
 
 export async function POST(req: Request) {
+  const gated = mediaFeaturesResponse();
+  if (gated) return gated;
+
   let parsed;
   try {
     parsed = BodySchema.safeParse(await req.json());

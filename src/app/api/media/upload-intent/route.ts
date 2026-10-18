@@ -5,10 +5,14 @@ import { getIngestUploadSigner } from "@/lib/media/ingest-storage"
 import { getProject } from "@/lib/projects"
 import { handleUploadIntent, randomUploadIdentifier } from "@/lib/services/media-upload.service"
 import { prismaUploadIntentStore } from "@/lib/services/media-upload.store"
+import { mediaFeaturesResponse } from "@/lib/media-features";
 
 // POST /api/media/upload-intent — authorise one direct upload of an immersive media
 // source to the ingest bucket (Phase 5A). See lib/services/media-upload.service.ts.
 export async function POST(req: Request) {
+  const gated = mediaFeaturesResponse();
+  if (gated) return gated;
+
   try {
     // Entitlement first: a presigned upload URL commits Aarvasa to storing and
     // then processing someone's media, so it is checked before any work — and

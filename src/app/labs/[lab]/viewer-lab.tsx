@@ -19,7 +19,12 @@ const SOURCES: Record<SceneChoice, ViewerSource | undefined> = {
      stand-in under its real content-addressed key so the lab exercises the same
      path a published asset would. Staged only: no MediaAsset row, and INTERNAL
      when it gets one. */
-  reef998: { kind: "model", url: "/labs/media/m/3eecb8df7d61b40c456ee53d/0756752510fe54e4/scene.glb" },
+  // Development only: the condition is folded at build time, so a production
+  // bundle carries no path to the staged reconstruction.
+  reef998:
+    process.env.NODE_ENV === "production"
+      ? undefined
+      : { kind: "model", url: "/labs/media/m/3eecb8df7d61b40c456ee53d/0756752510fe54e4/scene.glb" },
   // Must be rejected by the same-origin guard without any request being made.
   blocked: { kind: "model", url: "https://example.com/untrusted.glb" },
 };

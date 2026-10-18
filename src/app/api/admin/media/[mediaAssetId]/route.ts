@@ -2,11 +2,15 @@ import { NextResponse } from "next/server"
 import { getAuthUser } from "@/lib/auth-context"
 import { getReviewAsset } from "@/lib/services/media-review.service"
 import { mediaReviewRouteDeps, NO_STORE } from "@/lib/services/media-review.route-deps"
+import { mediaFeaturesResponse } from "@/lib/media-features";
 
 type Params = { params: Promise<{ mediaAssetId: string }> }
 
 // GET /api/admin/media/{mediaAssetId} — one asset, with processing status and diagnostics (admin only)
 export async function GET(req: Request, { params }: Params) {
+  const gated = mediaFeaturesResponse();
+  if (gated) return gated;
+
   try {
     const { mediaAssetId } = await params
     const result = await getReviewAsset({ caller: await getAuthUser(req), mediaAssetId }, mediaReviewRouteDeps("GET /api/admin/media/[mediaAssetId]"))

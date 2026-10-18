@@ -6,6 +6,7 @@ import { getProcessingJobQueue } from "@/lib/media/processing-queue"
 import { getProject } from "@/lib/projects"
 import { handleUploadCompletion } from "@/lib/services/media-completion.service"
 import { prismaUploadCompletionStore } from "@/lib/services/media-completion.store"
+import { mediaFeaturesResponse } from "@/lib/media-features";
 
 type Params = { params: Promise<{ mediaAssetId: string }> }
 
@@ -13,6 +14,9 @@ type Params = { params: Promise<{ mediaAssetId: string }> }
 // bucket and hand the asset to processing (Phase 5B). Body: {}. See
 // lib/services/media-completion.service.ts.
 export async function POST(req: Request, { params }: Params) {
+  const gated = mediaFeaturesResponse();
+  if (gated) return gated;
+
   const queue = getProcessingJobQueue()
   const dispatch = queue ? (job: Parameters<typeof queue.send>[0]) => queue.send(job) : undefined
   try {

@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { mediaFeaturesEnabled } from "@/lib/media-features";
 import { notFound, redirect } from "next/navigation";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
@@ -37,6 +38,9 @@ export default async function InternalMediaPreview({
 }: {
   params: Promise<{ slug: string }>;
 }) {
+  // Off in production until the media schema exists (see src/lib/media-features.ts).
+  if (!mediaFeaturesEnabled()) notFound();
+
   const session = await auth();
   if (!session?.user) redirect("/login?callbackUrl=%2Fadmin");
 
