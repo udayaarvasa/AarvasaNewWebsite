@@ -153,7 +153,7 @@ export function Navbar() {
                   href={link.href}
                   aria-current={active ? "page" : undefined}
                   className={cn(
-                    "group relative isolate rounded-full px-3.5 py-2 text-[13px] font-medium transition-colors duration-300",
+                    "group relative isolate whitespace-nowrap rounded-full px-3 py-2 text-[13px] font-medium transition-colors duration-300 xl:px-3.5",
                     active ? "text-gold" : "text-stage-ink/80 hover:text-stage-ink",
                   )}
                 >
@@ -232,14 +232,14 @@ export function Navbar() {
                 </AnimatePresence>
               </div>
             ) : !authLoading ? (
-              <Link href="/login" className="hidden rounded-full px-4 py-2 text-[13px] font-medium text-stage-ink/80 transition-colors hover:text-gold lg:inline-flex">
+              <Link href="/login" className="hidden whitespace-nowrap rounded-full px-3 py-2 text-[13px] font-medium text-stage-ink/80 transition-colors hover:text-gold xl:inline-flex">
                 Sign in
               </Link>
             ) : null}
 
             <Link
               href="/listings"
-              className="av-gold hidden items-center gap-2 rounded-full px-5 py-2.5 text-[12px] font-bold uppercase tracking-[0.12em] md:inline-flex"
+              className="av-gold hidden items-center gap-2 whitespace-nowrap rounded-full px-5 py-2.5 text-[12px] font-bold uppercase tracking-[0.12em] md:inline-flex"
             >
               Explore <ArrowUpRight className="h-3.5 w-3.5" aria-hidden="true" />
             </Link>
