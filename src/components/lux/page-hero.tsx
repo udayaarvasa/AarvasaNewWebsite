@@ -48,7 +48,7 @@ export function PageHero({
             "absolute inset-0",
             image
               ? "bg-[linear-gradient(180deg,rgba(7,5,5,0.55)_0%,rgba(7,5,5,0.05)_35%,rgba(7,5,5,0.5)_72%,var(--paper)_100%)]"
-              : "bg-[radial-gradient(90%_90%_at_75%_0%,#3d0c10_0%,#0c0909_65%)]",
+              : "bg-[radial-gradient(90%_90%_at_75%_0%,#4f060c_0%,#0c0909_65%)]",
           )}
         />
         {image && <div aria-hidden="true" className="absolute inset-0 bg-[linear-gradient(90deg,rgba(7,5,5,0.82)_0%,rgba(7,5,5,0.45)_45%,rgba(7,5,5,0)_75%)]" />}

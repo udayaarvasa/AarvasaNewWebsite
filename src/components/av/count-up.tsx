@@ -17,6 +17,7 @@ export function CountUp({ value, duration = 1400 }: { value: number; duration?: 
     const el = ref.current;
     if (!el || window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
     let frame = 0;
+    let settle = 0;
     const observer = new IntersectionObserver(
       ([entry]) => {
         if (!entry.isIntersecting) return;
@@ -30,6 +31,9 @@ export function CountUp({ value, duration = 1400 }: { value: number; duration?: 
         };
         setShown(0);
         frame = requestAnimationFrame(tick);
+        // A throttled or backgrounded tab can starve animation frames; the
+        // figure must still land on its real value.
+        settle = window.setTimeout(() => setShown(value), duration + 250);
       },
       { threshold: 0.4 },
     );
@@ -37,6 +41,7 @@ export function CountUp({ value, duration = 1400 }: { value: number; duration?: 
     return () => {
       observer.disconnect();
       cancelAnimationFrame(frame);
+      window.clearTimeout(settle);
     };
   }, [value, duration]);
 

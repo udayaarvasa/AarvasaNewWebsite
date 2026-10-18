@@ -27,9 +27,10 @@ export type GalleryItem = {
   kind?: "photo" | "render" | "drawing";
 };
 
-/** Short mark shown on anything that is not a photograph. */
+/** Short mark shown on anything that is not a photograph. Renders carry
+ *  their provenance in the caption ("— Developer render") instead of a badge
+ *  over the picture. */
 const KIND_MARK: Partial<Record<NonNullable<GalleryItem["kind"]>, string>> = {
-  render: "Render",
   drawing: "Drawing",
 };
 

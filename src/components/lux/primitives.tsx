@@ -102,7 +102,7 @@ export function GoldButton({
   const inner = (
     <>
       {children}
-      <span className="flex h-9 w-9 items-center justify-center rounded-full bg-[#1a0e0f] text-gold transition-transform duration-500 group-hover:rotate-45">
+      <span className="flex h-9 w-9 items-center justify-center rounded-full bg-[#3a0509] text-gold transition-transform duration-500 group-hover:rotate-45">
         <ArrowUpRight className="h-4 w-4" aria-hidden="true" />
       </span>
     </>

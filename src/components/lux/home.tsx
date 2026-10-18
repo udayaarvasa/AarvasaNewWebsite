@@ -96,6 +96,7 @@ export function LuxHero() {
             <div key={f.label} className="lux-glass rounded-2xl px-5 py-3">
               <div className="av-display text-[30px] leading-none text-stage-ink">
                 <CountUp value={f.value} />
+                {f.suffix && <span className="text-gold">{f.suffix}</span>}
               </div>
               <div className="av-meta mt-1.5 text-[9.5px] text-stage-muted">{f.label}</div>
             </div>
@@ -232,10 +233,10 @@ export function CollectionRail() {
           }
         />
       </Container>
-      <div className="mt-[var(--s-10)] lg:mt-0">
+      <div className="mt-[var(--s-10)]">
         <ProjectRail projects={railProjects()} />
       </div>
-      <div className="h-[clamp(40px,6vw,80px)] lg:hidden" />
+      <div className="h-[clamp(64px,8vw,120px)]" />
     </section>
   );
 }
@@ -291,7 +292,7 @@ export function Pillars() {
                     <span className="av-display absolute right-5 top-3 text-[64px] font-light text-white/25">0{i + 1}</span>
                   </div>
                   <div className="relative -mt-8 flex flex-1 flex-col px-7 pb-8">
-                    <span className="flex h-14 w-14 items-center justify-center rounded-2xl bg-[linear-gradient(135deg,#3d0c10,#7a1622)] text-gold-pale shadow-[0_12px_30px_rgba(122,22,34,0.45)] transition-transform duration-500 group-hover:-rotate-6 group-hover:scale-110">
+                    <span className="flex h-14 w-14 items-center justify-center rounded-2xl bg-[linear-gradient(135deg,#4f060c,#7a0f19)] text-gold-pale shadow-[0_12px_30px_rgba(122,15,25,0.45)] transition-transform duration-500 group-hover:-rotate-6 group-hover:scale-110">
                       <Icon className="h-6 w-6" aria-hidden="true" />
                     </span>
                     <h3 className="av-display mt-6 text-[38px] font-normal leading-none text-ink">{title}</h3>
@@ -311,12 +312,12 @@ export function Pillars() {
 
 export function LedgerSection() {
   return (
-    <section className="relative isolate overflow-hidden bg-[radial-gradient(120%_90%_at_50%_0%,#2a0a0d_0%,#0c0909_60%)] py-[clamp(80px,12vw,160px)]">
+    <section className="relative isolate overflow-hidden bg-[radial-gradient(120%_90%_at_50%_0%,#3a060b_0%,#0c0909_60%)] py-[clamp(80px,12vw,160px)]">
       {/* A hex lattice, faint, like a ledger's grid */}
       <svg aria-hidden="true" className="absolute inset-0 -z-10 h-full w-full opacity-[0.07]">
         <defs>
           <pattern id="hex" width="56" height="48.5" patternUnits="userSpaceOnUse" patternTransform="scale(1.2)">
-            <path d="M14 0h28l14 24.25L42 48.5H14L0 24.25z" fill="none" stroke="#e6c87c" strokeWidth="0.8" />
+            <path d="M14 0h28l14 24.25L42 48.5H14L0 24.25z" fill="none" stroke="#dcc6a0" strokeWidth="0.8" />
           </pattern>
         </defs>
         <rect width="100%" height="100%" fill="url(#hex)" />
@@ -349,13 +350,14 @@ export function FiguresBand() {
       <ParallaxLayer className="absolute inset-0 -z-10" speed={0.15}>
         <Image src="/images/reef-996/amenities/reef-996-sunken-balcony-sunset-16x9.jpg" alt="" fill sizes="100vw" className="object-cover opacity-35" />
       </ParallaxLayer>
-      <div aria-hidden="true" className="absolute inset-0 -z-10 bg-[linear-gradient(90deg,rgba(12,9,9,0.95),rgba(61,12,16,0.75),rgba(12,9,9,0.95))]" />
+      <div aria-hidden="true" className="absolute inset-0 -z-10 bg-[linear-gradient(90deg,rgba(12,9,9,0.95),rgba(79,6,12,0.75),rgba(12,9,9,0.95))]" />
       <Container className="py-[clamp(64px,9vw,120px)]">
         <dl className="grid grid-cols-2 gap-y-12 lg:grid-cols-4">
           {figures.map((f, i) => (
             <FadeUp key={f.label} delay={i * 0.1} className={`flex flex-col ${i > 0 ? "lg:border-l lg:border-rule lg:pl-10" : ""}`}>
-              <dd className="av-display lux-gold-text order-1 text-[clamp(56px,7vw,104px)] font-light leading-none">
+              <dd className="av-display lux-gold-text order-1 pt-[0.12em] text-[clamp(56px,7vw,104px)] font-light leading-[1.05]">
                 <CountUp value={f.value} />
+                {f.suffix}
               </dd>
               <dt className="av-meta order-2 mt-3 text-[11px] text-ink-muted">{f.label}</dt>
             </FadeUp>
@@ -389,7 +391,7 @@ export function AdvisorSection() {
           <Tilt className="rounded-[30px]" max={5}>
             <div className="lux-glass-strong lux-gold-border rounded-[30px] p-6">
               <div className="flex items-center gap-3 border-b border-rule pb-4">
-                <span className="relative flex h-10 w-10 items-center justify-center rounded-full bg-[linear-gradient(135deg,#3d0c10,#7a1622)] text-gold-pale lux-pulse">
+                <span className="relative flex h-10 w-10 items-center justify-center rounded-full bg-[linear-gradient(135deg,#4f060c,#7a0f19)] text-gold-pale lux-pulse">
                   <Sparkles className="h-4 w-4" aria-hidden="true" />
                 </span>
                 <div>
@@ -398,7 +400,7 @@ export function AdvisorSection() {
                 </div>
               </div>
               <div className="mt-5 flex justify-end">
-                <p className="max-w-[80%] rounded-[20px] rounded-br-md [background:var(--gold-sheen)] px-4 py-3 text-[14px] font-medium leading-relaxed text-[#1a0e0f]">
+                <p className="max-w-[80%] rounded-[20px] rounded-br-md [background:var(--gold-sheen)] px-4 py-3 text-[14px] font-medium leading-relaxed text-[#3a0509]">
                   A two-bedroom in Dubai, ready by 2028, with outdoor space I can actually use in summer?
                 </p>
               </div>

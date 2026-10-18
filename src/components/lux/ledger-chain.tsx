@@ -69,7 +69,7 @@ export function LedgerChain() {
               <div className="flex items-center justify-between">
                 <span
                   className={`relative flex h-12 w-12 items-center justify-center rounded-xl ${
-                    b.live ? "bg-[linear-gradient(135deg,#3d0c10,#7a1622)] text-gold-pale lux-pulse" : "bg-white/[0.04] text-ink-disabled"
+                    b.live ? "bg-[linear-gradient(135deg,#4f060c,#7a0f19)] text-gold-pale lux-pulse" : "bg-white/[0.04] text-ink-disabled"
                   }`}
                 >
                   <Icon className="h-5 w-5" aria-hidden="true" />

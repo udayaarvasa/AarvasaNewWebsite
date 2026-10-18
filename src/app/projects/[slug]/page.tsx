@@ -199,7 +199,7 @@ export default async function ProjectPage({
               <Image src={hero} alt={heroAlt} fill sizes="100vw" className="av-kenburns object-cover" priority />
             </div>
           ) : (
-            <div className="absolute inset-0 bg-[radial-gradient(90%_80%_at_70%_20%,#3d0c10,#070505_70%)]" />
+            <div className="absolute inset-0 bg-[radial-gradient(90%_80%_at_70%_20%,#4f060c,#070505_70%)]" />
           )}
           <div aria-hidden="true" className="absolute inset-0 bg-[linear-gradient(180deg,rgba(7,5,5,0.6)_0%,rgba(7,5,5,0.1)_35%,rgba(7,5,5,0.55)_65%,rgba(7,5,5,1)_100%)]" />
           <div aria-hidden="true" className="absolute inset-0 bg-[linear-gradient(90deg,rgba(7,5,5,0.75)_0%,rgba(7,5,5,0)_60%)]" />

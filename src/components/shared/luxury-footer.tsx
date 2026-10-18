@@ -70,7 +70,7 @@ export function LuxuryFooter() {
     <footer data-surface="stage" className="relative isolate overflow-hidden bg-[#070505] text-stage-muted">
       {/* Warm light from below, and the wordmark set huge behind everything */}
       <div aria-hidden="true" className="pointer-events-none absolute inset-0 -z-10">
-        <div className="absolute -bottom-1/3 left-1/2 h-[70%] w-[90%] -translate-x-1/2 rounded-full bg-[radial-gradient(closest-side,rgba(122,22,34,0.45),transparent)] blur-2xl" />
+        <div className="absolute -bottom-1/3 left-1/2 h-[70%] w-[90%] -translate-x-1/2 rounded-full bg-[radial-gradient(closest-side,rgba(122,15,25,0.45),transparent)] blur-2xl" />
       </div>
       <div className="lux-rule" />
 
@@ -109,7 +109,7 @@ export function LuxuryFooter() {
                     target="_blank"
                     rel="noopener noreferrer"
                     aria-label={`Aarvasa on ${s.label}`}
-                    className="flex h-11 w-11 items-center justify-center rounded-full border border-white/12 text-stage-ink/80 transition-all duration-500 hover:-translate-y-1 hover:border-gold hover:bg-gold hover:text-[#1a0e0f] hover:shadow-[0_12px_30px_rgba(214,180,97,0.35)]"
+                    className="flex h-11 w-11 items-center justify-center rounded-full border border-white/12 text-stage-ink/80 transition-all duration-500 hover:-translate-y-1 hover:border-gold hover:bg-gold hover:text-[#3a0509] hover:shadow-[0_12px_30px_rgba(217,194,154,0.35)]"
                   >
                     <svg viewBox="0 0 24 24" fill="currentColor" className="h-[17px] w-[17px]" aria-hidden="true">
                       <path d={s.path} />
@@ -164,7 +164,7 @@ export function LuxuryFooter() {
 
       {/* The wordmark, enormous and quiet */}
       <div aria-hidden="true" className="pointer-events-none select-none overflow-hidden">
-        <p className="av-display -mb-[0.18em] text-center text-[clamp(90px,21vw,330px)] font-light leading-none tracking-[-0.03em] text-transparent [-webkit-text-stroke:1px_rgba(226,196,122,0.22)]">
+        <p className="av-display -mb-[0.18em] text-center text-[clamp(90px,21vw,330px)] font-light leading-none tracking-[-0.03em] text-transparent [-webkit-text-stroke:1px_rgba(217,194,154,0.22)]">
           Aarvasa
         </p>
       </div>

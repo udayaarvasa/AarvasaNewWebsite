@@ -32,13 +32,25 @@ export function railProjects(): RailProject[] {
   });
 }
 
-export function platformFigures() {
+/**
+ * The headline figures. The first three are the business's stated reach,
+ * supplied by Aarvasa (18 Oct 2026) and set here deliberately — they must be
+ * kept true to the partnerships actually in place before they are published.
+ * The last is counted from the listed project records.
+ */
+export const STATED_FIGURES = {
+  projects: 10,
+  countries: 2,
+  developers: 20,
+} as const;
+
+export function platformFigures(): { value: number; suffix: string; label: string }[] {
   const projects = publishedProjects();
   return [
-    { value: projects.length, label: "Projects listed" },
-    { value: new Set(projects.map((p) => p.city)).size, label: "Cities" },
-    { value: new Set(projects.map((p) => p.developer)).size, label: "Developers" },
-    { value: projects.reduce((sum, p) => sum + (p.totalUnits ?? 0), 0), label: "Homes & plots on record" },
+    { value: STATED_FIGURES.projects, suffix: "+", label: "Projects listed" },
+    { value: STATED_FIGURES.countries, suffix: "+", label: "Countries" },
+    { value: STATED_FIGURES.developers, suffix: "+", label: "Developers" },
+    { value: projects.reduce((sum, p) => sum + (p.totalUnits ?? 0), 0), suffix: "", label: "Homes & plots on record" },
   ];
 }
 

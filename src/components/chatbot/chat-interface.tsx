@@ -165,13 +165,21 @@ export function ChatInterface({ initialPrompt }: { initialPrompt?: string }) {
   const [loading, setLoading] = useState(false);
   const [loadingMessage, setLoadingMessage] = useState(LOADING_MESSAGES[0]);
   const bottomRef = useRef<HTMLDivElement>(null);
+  const listRef = useRef<HTMLDivElement>(null);
+  /* Follow new text only while the reader is already at the bottom of the
+     conversation. Scrolling up to reread stops the follow, and the page
+     itself never moves. */
+  const followRef = useRef(true);
   const didSubmitInitial = useRef(false);
   const abortRef = useRef<AbortController | null>(null);
   const loadingIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
-  // Auto-scroll
+  // Auto-scroll the message list only — never the page (scrollIntoView moved
+  // the whole window on every streamed chunk).
   useEffect(() => {
-    bottomRef.current?.scrollIntoView({ behavior: "smooth" });
+    const list = listRef.current;
+    if (!list || !followRef.current) return;
+    list.scrollTo({ top: list.scrollHeight, behavior: "auto" });
   }, [messages, loading]);
 
   // Cycle loading messages
@@ -207,6 +215,7 @@ export function ChatInterface({ initialPrompt }: { initialPrompt?: string }) {
         timestamp: Date.now(),
       };
 
+      followRef.current = true;
       setMessages((prev) => [...prev, userMessage]);
       setInput("");
       setLoading(true);
@@ -374,7 +383,7 @@ export function ChatInterface({ initialPrompt }: { initialPrompt?: string }) {
       </Card>
 
       {/* ── Chat Panel ── */}
-      <Card className="flex min-h-[720px] flex-col overflow-hidden">
+      <Card className="flex h-[min(780px,calc(100svh-120px))] min-h-[520px] flex-col overflow-hidden">
         {/* Header */}
         <div className="border-b border-border p-5">
           <div className="flex items-center gap-3">
@@ -397,7 +406,14 @@ export function ChatInterface({ initialPrompt }: { initialPrompt?: string }) {
         </div>
 
         {/* Messages */}
-        <div className="flex-1 space-y-5 overflow-y-auto p-5">
+        <div
+          ref={listRef}
+          onScroll={(e) => {
+            const el = e.currentTarget;
+            followRef.current = el.scrollHeight - el.scrollTop - el.clientHeight < 80;
+          }}
+          className="min-h-0 flex-1 space-y-5 overflow-y-auto overscroll-contain p-5"
+        >
           {messages.map((message, index) => (
             <div
               key={`${message.role}-${index}-${message.timestamp}`}

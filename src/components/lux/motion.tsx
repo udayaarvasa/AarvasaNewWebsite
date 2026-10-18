@@ -254,7 +254,7 @@ export function ScrollProgress() {
     <motion.div
       aria-hidden="true"
       style={{ scaleX }}
-      className="fixed inset-x-0 top-0 z-[70] h-[2px] origin-left bg-[linear-gradient(90deg,#b08a40,#f3e2b3,#d6b461)]"
+      className="fixed inset-x-0 top-0 z-[70] h-[2px] origin-left bg-[linear-gradient(90deg,#b39669,#f1e6d0,#dcc6a0)]"
     />
   );
 }

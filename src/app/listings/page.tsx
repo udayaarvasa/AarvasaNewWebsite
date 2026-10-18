@@ -1,4 +1,5 @@
 import { Suspense } from "react";
+import { matchesProjectQuery } from "@/lib/project-filter";
 import { PageHero } from "@/components/lux/page-hero";
 import Link from "next/link";
 import { ListingsGrid } from "@/components/property/listings-grid";
@@ -57,9 +58,7 @@ export default async function ListingsPage({
   /* Whether the Projects band has anything to show under this query. Rendering
      its heading and note above an empty grid read as "we have inventory here"
      when we have none. */
-  const matchingProjects = city
-    ? publishedProjects().filter((p) => p.city.toLowerCase() === city.toLowerCase())
-    : publishedProjects();
+  const matchingProjects = publishedProjects().filter((p) => matchesProjectQuery(p, q));
   /* The amenity frame, so the listings lead, the card below it and the project
      page each open on a different picture. */
   const leadImage = lead?.imagery?.gallery[1] ?? null;
@@ -84,7 +83,7 @@ export default async function ListingsPage({
               Showing filtered results{city ? ` for ${city}` : ""}.
               <Link
                 href="/listings"
-                className="rounded-full border border-gold/50 px-4 py-1.5 text-[13px] text-gold transition-colors hover:bg-gold hover:text-[#1a0e0f]"
+                className="rounded-full border border-gold/50 px-4 py-1.5 text-[13px] text-gold transition-colors hover:bg-gold hover:text-[#3a0509]"
               >
                 Clear all filters
               </Link>
@@ -124,7 +123,7 @@ export default async function ListingsPage({
             title={city ? `Developer inventory in ${city}` : "Developer inventory"}
             note="Listed by the developer or their appointed channel partner. Aarvasa holds no inventory and charges buyers nothing."
           />
-          <ProjectCards city={city || undefined} />
+          <ProjectCards query={q} />
         </Wrap>
       )}
 

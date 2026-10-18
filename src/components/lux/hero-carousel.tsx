@@ -57,7 +57,7 @@ export function HeroCarousel({ slides, interval = 6500 }: { slides: HeroSlide[];
       {/* Depth: a dark floor for the type, warm vignette at the edges */}
       <div aria-hidden="true" className="absolute inset-0 bg-[linear-gradient(180deg,rgba(7,5,5,0.55)_0%,rgba(7,5,5,0.15)_30%,rgba(7,5,5,0.35)_60%,rgba(7,5,5,0.96)_100%)]" />
       <div aria-hidden="true" className="absolute inset-0 bg-[linear-gradient(90deg,rgba(7,5,5,0.82)_0%,rgba(7,5,5,0.45)_45%,rgba(7,5,5,0)_75%)]" />
-      <div aria-hidden="true" className="absolute inset-0 bg-[radial-gradient(120%_80%_at_20%_60%,transparent_30%,rgba(61,12,16,0.55)_100%)]" />
+      <div aria-hidden="true" className="absolute inset-0 bg-[radial-gradient(120%_80%_at_20%_60%,transparent_30%,rgba(79,6,12,0.55)_100%)]" />
 
       <div className="absolute bottom-[var(--s-8)] right-[var(--gutter)] z-[4] flex flex-col items-end gap-3">
         <AnimatePresence mode="wait">
