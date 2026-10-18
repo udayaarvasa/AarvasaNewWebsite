@@ -5,22 +5,14 @@ import type { Metadata } from "next";
 import { Button } from "@/components/ui/button";
 import { MotionReveal } from "@/components/layout/motion-reveal";
 import { StageHero } from "@/components/layout/nav-overlay";
-import {
-  CoordinateMarks,
-  DraftingGrid,
-  Grain,
-  MeasureRule,
-  SectionIndex,
-} from "@/components/av/graphics";
-import { Parallax, Reveal, TextReveal } from "@/components/av/motion";
+import { MeasureRule, SectionIndex } from "@/components/av/graphics";
+import { Reveal } from "@/components/av/motion";
 import { Gallery, type GalleryItem } from "@/components/property/gallery";
 import { projectImageSrc } from "@/lib/project-types";
 import {
   CapMark,
   Ledger,
   Note,
-  Plate,
-  RailStrip,
   SectionHead,
   Status,
   StageBand,
@@ -39,6 +31,9 @@ import { ImmersiveTour } from "@/components/property/immersive-tour";
 import { loadImmersiveTour } from "@/lib/services/immersive-tour";
 import { exploreAreaMode } from "@/lib/maps/google-3d";
 import ImmersiveSection from "./immersive-section";
+import { MapPin } from "lucide-react";
+import { FadeUp, LuxHeading } from "@/components/lux/motion";
+import { Container as LuxContainer, GhostButton, GoldButton } from "@/components/lux/primitives";
 
 // Only slugs from generateStaticParams resolve; anything else 404s at the routing
 // layer. Without this, unpublished projects were served as soft-404s: HTTP 200,
@@ -197,91 +192,86 @@ export default async function ProjectPage({
       {/* ── DISCOVER ──────────────────────────────────────────────────────
           Cinematic hero. Photography where it exists, otherwise a typographic
           panel — never a stock photo standing in for the real site. */}
-      <StageHero className="relative">
-        <Plate
-          ratio="auto"
-          scrim={Boolean(hero)}
-          /* Without photography there is nothing to look at, only type: a short
-             panel, not three-quarters of a screen of empty stage. */
-          className={hero ? "h-[74vh] min-h-[460px] bg-stage" : "h-[46vh] min-h-[360px] bg-stage"}
-        >
+      <StageHero className="relative isolate overflow-hidden">
+        <div className={hero ? "relative min-h-[92svh]" : "relative min-h-[64svh]"}>
           {hero ? (
-            <Parallax distance={32} className="absolute inset-0">
-              <Image
-                src={hero}
-                alt={heroAlt}
-                fill
-                sizes="100vw"
-                className="object-cover"
-                priority
-              />
-            </Parallax>
+            <div className="absolute inset-0">
+              <Image src={hero} alt={heroAlt} fill sizes="100vw" className="av-kenburns object-cover" priority />
+            </div>
           ) : (
-            <div className="absolute inset-0 bg-stage" />
+            <div className="absolute inset-0 bg-[radial-gradient(90%_80%_at_70%_20%,#3d0c10,#070505_70%)]" />
           )}
-          <DraftingGrid tone="stage" size={64} fade="top" className="z-[1] opacity-25" />
-          <Grain opacity={0.06} className="z-[1]" />
-          <CoordinateMarks tone="stage" className="z-[2] max-md:hidden" />
+          <div aria-hidden="true" className="absolute inset-0 bg-[linear-gradient(180deg,rgba(7,5,5,0.6)_0%,rgba(7,5,5,0.1)_35%,rgba(7,5,5,0.55)_65%,rgba(7,5,5,1)_100%)]" />
+          <div aria-hidden="true" className="absolute inset-0 bg-[linear-gradient(90deg,rgba(7,5,5,0.75)_0%,rgba(7,5,5,0)_60%)]" />
           {heroOriginNote && (
-            <span className="av-meta absolute right-[var(--gutter)] top-[var(--s-6)] z-[3] rounded-xs border border-stage-rule bg-[rgba(12,11,10,0.66)] px-2 py-1 text-stage-ink backdrop-blur-sm">
+            <span className="av-meta absolute right-[var(--gutter)] top-[calc(var(--nav-h)+16px)] z-[3] rounded-full border border-white/15 bg-black/40 px-3 py-1.5 text-[10px] text-stage-ink backdrop-blur-md">
               {heroOriginNote}
             </span>
           )}
-          <div className="absolute inset-x-0 bottom-0 z-[2] pb-[var(--s-10)]">
-            <Wrap>
-              <span className="av-meta text-gold">
+
+          <LuxContainer className={`relative z-[3] flex flex-col justify-end ${hero ? "min-h-[92svh]" : "min-h-[64svh]"} pb-[var(--s-10)] pt-[calc(var(--nav-h)+40px)]`}>
+            <FadeUp immediate delay={0.1} y={12}>
+              <span className="lux-eyebrow">
                 {project.kind === "plots" ? "Plotted development" : "Residences"} · {project.city}
               </span>
-              <TextReveal
-                as="h1"
-                text={project.name}
-                className="av-display mt-3 max-w-[14ch] text-[clamp(36px,6vw,64px)] leading-[1.0] text-stage-ink"
-              />
-              <p className="av-meta mt-3 text-stage-muted">
-                {project.location} · {project.developer}
-              </p>
-              {produced.length > 0 && (
-                <div className="mt-[var(--s-5)] flex flex-wrap gap-1">
-                  {produced.map((p) => (
-                    <span
-                      key={p}
-                      className="av-meta rounded-xs border border-stage-rule px-[7px] py-[3px] text-stage-ink"
-                    >
-                      {p}
-                    </span>
-                  ))}
-                </div>
-              )}
-            </Wrap>
-          </div>
-        </Plate>
+            </FadeUp>
+            <LuxHeading
+              as="h1"
+              immediate
+              delay={0.2}
+              text={project.name}
+              className="av-display mt-4 text-[clamp(56px,9vw,140px)] font-light leading-[0.9] text-stage-ink"
+            />
+            <FadeUp immediate delay={0.5} className="mt-4 flex flex-wrap items-center gap-x-4 gap-y-2 text-[14px] text-stage-muted">
+              <span className="flex items-center gap-1.5">
+                <MapPin className="h-4 w-4 text-gold" aria-hidden="true" /> {project.location}
+              </span>
+              <span className="hidden h-1 w-1 rounded-full bg-gold/60 sm:block" />
+              <span>{project.developer}</span>
+              {produced.map((p) => (
+                <span key={p} className="av-meta rounded-full border border-gold/40 px-2.5 py-1 text-[10px] text-gold">
+                  {p}
+                </span>
+              ))}
+            </FadeUp>
+
+            {/* The figures that decide it, in glass over the frame */}
+            <FadeUp immediate delay={0.7} className="mt-8">
+              <dl className="lux-glass grid grid-cols-2 gap-px overflow-hidden rounded-[24px] md:grid-cols-4">
+                {railItems.map((item) => (
+                  <div key={item.label} className="px-6 py-5">
+                    <dt className="av-meta text-[10px] text-stage-muted">{item.label}</dt>
+                    <dd className="av-display mt-2 text-[clamp(22px,2.2vw,30px)] leading-none text-stage-ink">{item.value}</dd>
+                  </div>
+                ))}
+              </dl>
+            </FadeUp>
+            <FadeUp immediate delay={0.85} className="mt-6 flex flex-wrap gap-3">
+              <GoldButton href={enquireHref}>Enquire about {project.name}</GoldButton>
+              <GhostButton href="/listings">All properties</GhostButton>
+            </FadeUp>
+          </LuxContainer>
+        </div>
       </StageHero>
 
       {/* Sticky summary bar — price, status and the one action, always reachable */}
-      <div className="sticky top-[var(--nav-h)] z-40 border-b border-rule bg-paper">
-        <Wrap className="flex flex-wrap items-center gap-[var(--s-4)] py-[10px]">
-          <span className="text-[17px] font-semibold">{price.primary}</span>
-          {price.secondary && <span className="text-[13px] text-ink-muted">{price.secondary}</span>}
+      <div className="sticky top-[var(--nav-h)] z-40 mx-3 mt-4 md:mx-auto md:max-w-[1240px]">
+        <div className="lux-glass-strong flex flex-wrap items-center gap-[var(--s-4)] rounded-full px-5 py-2.5 shadow-[0_20px_40px_rgba(0,0,0,0.4)] md:px-6">
+          <span className="av-display text-[22px] leading-none text-ink">{project.name}</span>
+          <span className="hidden h-4 w-px bg-white/15 sm:block" />
+          <span className="text-[15px] font-semibold text-gold-pale">{price.primary}</span>
+          {price.secondary && <span className="hidden text-[13px] text-ink-muted sm:inline">{price.secondary}</span>}
           <Status tone={isPlots ? "ready" : "pending"}>
             {isPlots ? "Selling" : (project.completion ?? "Under construction")}
           </Status>
-          <div className="ml-auto flex items-center gap-[var(--s-3)]">
-            <Link
-              href="/listings"
-              className="av-label hidden text-ink-muted transition-colors hover:text-ink sm:inline"
-            >
-              All listings
-            </Link>
-            <Button asChild size="sm">
-              <Link href={enquireHref}>Enquire</Link>
-            </Button>
-          </div>
-        </Wrap>
+          <Link
+            href={enquireHref}
+            className="av-gold ml-auto rounded-full px-5 py-2.5 text-[11px] font-bold uppercase tracking-[0.14em]"
+          >
+            Enquire
+          </Link>
+        </div>
       </div>
-
-      <Wrap className="pt-[var(--s-6)]">
-        <RailStrip items={railItems} />
-      </Wrap>
 
       {/* ── EXPLORE ───────────────────────────────────────────────────────
           Two experiences, kept apart because they answer different questions.
@@ -578,7 +568,7 @@ export default async function ProjectPage({
               {project.contact.length > 0 && (
                 <p className="av-num mt-4 text-[13.5px] font-medium">{project.contact.join(" · ")}</p>
               )}
-              <Button asChild className="mt-[var(--s-5)] w-full">
+              <Button asChild className="av-gold mt-[var(--s-5)] w-full rounded-full">
                 <Link href={enquireHref}>Request details</Link>
               </Button>
             </div>

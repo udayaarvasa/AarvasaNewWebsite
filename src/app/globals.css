@@ -18,46 +18,60 @@
    ═══════════════════════════════════════════════════════════════════════════ */
 
 :root {
-  /* ── PAPER · the default surface ──────────────────────────────────────── */
-  --paper: #f2efe7;          /* page ground */
-  --paper-raised: #faf8f3;   /* panels, inputs, the filter rail */
-  --paper-sunken: #eae6db;   /* wells, empty media, table heads */
-  --ink: #1f1b17;            /* body copy — 14.8:1 on paper */
-  --ink-muted: #5e564c;      /* supporting copy, labels — 6.3:1 */
-  --ink-disabled: #8a8174;   /* 3.3:1 — disabled marks ONLY, never information */
-  --rule: #dad4c7;           /* hairline */
-  --rule-firm: #b9b1a1;      /* structural rule, input border */
+  /* ═══ OBSIDIAN & GOLD ════════════════════════════════════════════════════
+     The 2026 redesign. The site is now dark throughout: obsidian with a wine
+     undertone, ivory type, brushed gold for every action and accent. The
+     token NAMES are kept from the paper-first system so every component
+     inherits the new palette without being rewritten:
+       paper*  → the obsidian grounds      ink*    → ivory type
+       burgundy → the primary action, now gold (an action must be the
+                  brightest thing on a dark page)
+     ═════════════════════════════════════════════════════════════════════ */
 
-  /* ── STAGE · the dark media surface ───────────────────────────────────── */
-  --stage: #0c0b0a;          /* letterbox, media band, footer */
-  --stage-raised: #171412;   /* viewer chrome */
-  --stage-ink: #f2efe7;      /* 17.1:1 on stage */
-  --stage-muted: #9a9185;    /* 6.3:1 on stage */
-  --stage-rule: #2c2823;
+  /* ── GROUND ───────────────────────────────────────────────────────────── */
+  --paper: #0c0909;          /* page ground: obsidian, wine undertone */
+  --paper-raised: #161011;   /* panels, inputs, cards */
+  --paper-sunken: #110c0d;   /* wells, alternating bands */
+  --ink: #f4ece0;            /* ivory — 16.9:1 on ground */
+  --ink-muted: #b4a897;      /* 8.3:1 */
+  --ink-disabled: #6e655a;   /* disabled marks only */
+  --rule: rgba(226, 196, 122, 0.12);
+  --rule-firm: rgba(226, 196, 122, 0.26);
+
+  /* ── STAGE · media and the deepest bands ──────────────────────────────── */
+  --stage: #070505;
+  --stage-raised: #120c0d;
+  --stage-ink: #f6efe4;
+  --stage-muted: #a99c8c;
+  --stage-rule: rgba(226, 196, 122, 0.14);
 
   /* ── BRAND ────────────────────────────────────────────────────────────── */
-  --burgundy: #50080e;       /* the one primary action — 13.2:1 on paper */
-  --burgundy-deep: #3a060b;  /* hover, pressed */
-  --burgundy-wash: #f6edec;  /* selected filter, note panel */
-  --gold-ink: #7d6019;       /* gold that survives paper — 5.1:1. Labels, rules.
-                                Replaces #d4af37, which reads 1.9:1 on cream. */
-  --gold: #d4af37;           /* gold on STAGE only — 9.3:1. Reticle, active control. */
+  --burgundy: #d6b461;       /* the primary action — gold on obsidian, 10.6:1 */
+  --burgundy-deep: #b8923f;  /* hover, pressed */
+  --burgundy-wash: rgba(214, 180, 97, 0.09);
+  --gold-ink: #dcbd6e;       /* gold labels and rules on the ground */
+  --gold: #e6c87c;           /* gold on stage */
+  --gold-pale: #f3e2b3;
+  --claret: #7a1622;         /* the logo's red, brightened for a dark page */
 
-  /* ── WINE · the third surface ─────────────────────────────────────────────
-     Taken from the brand's own office card: deep burgundy ground, cream type,
-     a brushed-gold action. Used for moments of address — the office, a
-     closing call, the numbers band — never for a whole page. */
-  --wine: #4a0f12;           /* ground — cream type reads 13.4:1 */
-  --wine-raised: #5a161a;    /* a panel on wine */
+  /* ── WINE · the warm surface ──────────────────────────────────────────── */
+  --wine: #3d0c10;
+  --wine-raised: #4e1217;
   --wine-ink: #f6ede4;
-  --wine-muted: #d9c4bb;     /* 8.6:1 on wine */
-  --wine-rule: rgba(246, 237, 228, 0.16);
-  --gold-sheen: linear-gradient(100deg, #d3b553 0%, #c8a84c 42%, #b08a40 100%);
+  --wine-muted: #d9c4bb;
+  --wine-rule: rgba(246, 237, 228, 0.14);
+  --gold-sheen: linear-gradient(100deg, #f1dc9d 0%, #d6b461 38%, #b08a40 72%, #e3c67a 100%);
+  --gold-text: linear-gradient(100deg, #f6e6b4 0%, #e0c171 35%, #b98f3e 65%, #f0d892 100%);
 
-  /* ── SEMANTIC · never the accent, never decoration ────────────────────── */
-  --positive: #2f6b4f;       /* ready to move, better value on a row */
-  --pending: #8a5a1f;        /* under construction, awaiting handover */
-  --neutral: #5e564c;        /* not applicable, not produced */
+  /* ── GLASS ────────────────────────────────────────────────────────────── */
+  --glass: rgba(26, 17, 18, 0.55);
+  --glass-strong: rgba(22, 14, 15, 0.78);
+  --glass-rule: rgba(230, 200, 124, 0.18);
+
+  /* ── SEMANTIC ─────────────────────────────────────────────────────────── */
+  --positive: #7cc79d;
+  --pending: #e0ad62;
+  --neutral: #b4a897;
 
   /* ── SCRIMS · legibility only. The entire gradient budget. ────────────── */
   --scrim-media: linear-gradient(to top, rgba(12, 11, 10, 0.92) 0%, rgba(12, 11, 10, 0.34) 34%, rgba(12, 11, 10, 0) 62%);
@@ -83,13 +97,13 @@
 
   /* ── RADIUS · near-square. The page is drawn, not rounded. ────────────── */
   --r-0: 0px;                /* media frames, plates, bands, rules */
-  --r-1: 2px;                /* buttons, inputs, chips */
-  --r-2: 4px;                /* panels, the rail, the tray, thumbnails */
+  --r-1: 6px;                /* buttons, inputs, chips */
+  --r-2: 14px;               /* panels, cards, thumbnails */
   --r-full: 999px;           /* the live status dot, and nothing else */
 
   /* ── ELEVATION · two shadows exist. On stage there is none. ───────────── */
-  --e-tray: 0 -2px 24px rgba(31, 27, 23, 0.08);
-  --e-over: 0 24px 60px rgba(31, 27, 23, 0.14);
+  --e-tray: 0 -2px 24px rgba(0, 0, 0, 0.5);
+  --e-over: 0 30px 80px rgba(0, 0, 0, 0.55), 0 0 0 1px rgba(226, 196, 122, 0.14);
 
   /* ── MEDIA RATIOS ─────────────────────────────────────────────────────── */
   --ar-cinema: 2.39 / 1;     /* page and property heroes */
@@ -111,7 +125,7 @@
   --gutter: 40px;
   --rail: 248px;             /* listings filter rail */
   --aside: 320px;            /* property right rail */
-  --nav-h: 64px;
+  --nav-h: 84px;
   --measure: 65ch;           /* reading column */
 
   /* ── SEMANTIC BRIDGE ──────────────────────────────────────────────────────
@@ -123,13 +137,13 @@
   --card: var(--paper-raised);
   --card-foreground: var(--ink);
   --primary: var(--burgundy);
-  --primary-foreground: var(--paper);
+  --primary-foreground: #160d0e;
   --secondary: var(--paper-sunken);
   --secondary-foreground: var(--ink-muted);
   --muted: var(--paper-sunken);
   --muted-foreground: var(--ink-muted);
   --accent: var(--gold-ink);
-  --accent-foreground: var(--paper);
+  --accent-foreground: #160d0e;
   --border: var(--rule);
   --input: var(--rule-firm);
   /* Fixes the inherited focus defect: the old ring was gold at 72% alpha,
@@ -188,7 +202,7 @@
   :root { --gutter: 24px; --band: 72px; }
 }
 @media (max-width: 767px) {
-  :root { --gutter: 16px; --band: 48px; --nav-h: 56px; }
+  :root { --gutter: 18px; --band: 56px; --nav-h: 76px; }
 }
 
 @theme inline {
@@ -228,6 +242,8 @@
   --color-burgundy-wash: var(--burgundy-wash);
   --color-gold-ink: var(--gold-ink);
   --color-gold: var(--gold);
+  --color-gold-pale: var(--gold-pale);
+  --color-claret: var(--claret);
   --color-wine: var(--wine);
   --color-wine-raised: var(--wine-raised);
   --color-wine-ink: var(--wine-ink);
@@ -237,8 +253,8 @@
   --color-pending: var(--pending);
 
   /* Type — the faces come from next/font in layout.tsx */
-  --font-display: var(--font-bodoni), "Bodoni Moda", Georgia, serif;
-  --font-sans: var(--font-inter), Inter, ui-sans-serif, system-ui, sans-serif;
+  --font-display: var(--font-bodoni), "Cormorant Garamond", Georgia, serif;
+  --font-sans: var(--font-inter), Manrope, ui-sans-serif, system-ui, sans-serif;
   --font-meta: var(--font-plex-mono), "IBM Plex Mono", ui-monospace, monospace;
   --font-mono: var(--font-plex-mono), "IBM Plex Mono", ui-monospace, monospace;
 
@@ -264,19 +280,20 @@
 html {
   scroll-behavior: smooth;
   background: var(--paper);
+  color-scheme: dark;
 }
 
 body {
   background: var(--paper);
   color: var(--ink);
-  font-family: var(--font-inter), Inter, ui-sans-serif, system-ui, -apple-system, sans-serif;
+  font-family: var(--font-inter), Manrope, ui-sans-serif, system-ui, -apple-system, sans-serif;
   font-size: 15px;
   line-height: 1.65;
 }
 
 ::selection {
-  background: var(--burgundy);
-  color: var(--paper);
+  background: var(--gold);
+  color: #160d0e;
 }
 
 /* One visible focus treatment for the whole application. Solid, 2px, burgundy
@@ -294,10 +311,19 @@ body {
 /* ── Type roles ───────────────────────────────────────────────────────────── */
 
 .av-display {
-  font-family: var(--font-bodoni), "Bodoni Moda", Georgia, serif;
-  font-weight: 400;
-  letter-spacing: -0.015em;
+  font-family: var(--font-bodoni), "Cormorant Garamond", Georgia, serif;
+  font-weight: 500;
+  letter-spacing: -0.01em;
   text-wrap: balance;
+}
+
+/* Gold set in type: the italic accent word in a headline. */
+.lux-gold-text {
+  background: var(--gold-text);
+  background-size: 200% 100%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
 }
 
 .av-label {
@@ -357,7 +383,8 @@ body {
   overflow: hidden;
   isolation: isolate;
   background: var(--gold-sheen);
-  color: var(--wine);
+  background-size: 160% 100%;
+  color: #1a0e0f;
   border-radius: var(--r-2);
   transition: transform var(--d-control) var(--ease-enter), box-shadow var(--d-control) var(--ease-enter);
 }
@@ -426,6 +453,143 @@ body {
 }
 
 /* ═══════════════════════════════════════════════════════════════════════════
+   LUX — the 2026 surface language
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+/* Glass: a panel you can see the architecture through. */
+.lux-glass {
+  background: var(--glass);
+  border: 1px solid var(--glass-rule);
+  backdrop-filter: blur(18px) saturate(140%);
+  -webkit-backdrop-filter: blur(18px) saturate(140%);
+}
+.lux-glass-strong {
+  background: var(--glass-strong);
+  border: 1px solid var(--glass-rule);
+  backdrop-filter: blur(24px) saturate(150%);
+  -webkit-backdrop-filter: blur(24px) saturate(150%);
+}
+
+/* A gold hairline that brightens toward one corner. */
+.lux-gold-border {
+  position: relative;
+}
+.lux-gold-border::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  padding: 1px;
+  background: linear-gradient(135deg, rgba(243, 226, 179, 0.7), rgba(214, 180, 97, 0.12) 40%, rgba(214, 180, 97, 0.05) 60%, rgba(243, 226, 179, 0.45));
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  pointer-events: none;
+}
+
+/* Aurora: slow, warm light moving behind a section. */
+.lux-aurora {
+  position: absolute;
+  inset: -20%;
+  pointer-events: none;
+  background:
+    radial-gradient(40% 35% at 20% 30%, rgba(122, 22, 34, 0.55), transparent 70%),
+    radial-gradient(35% 30% at 80% 20%, rgba(214, 180, 97, 0.22), transparent 70%),
+    radial-gradient(45% 40% at 60% 85%, rgba(61, 12, 16, 0.7), transparent 70%);
+  filter: blur(40px);
+}
+
+/* Spotlight: a soft gold light follows the pointer across a card. The
+   position comes from --mx/--my, set by <Spotlight>. */
+.lux-spotlight {
+  position: relative;
+  isolation: isolate;
+}
+.lux-spotlight::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  border-radius: inherit;
+  opacity: 0;
+  background: radial-gradient(420px circle at var(--mx, 50%) var(--my, 50%), rgba(226, 196, 122, 0.14), transparent 45%);
+  transition: opacity 400ms var(--ease-enter);
+}
+.lux-spotlight:hover::after { opacity: 1; }
+
+/* A thin rule of gold that fades out at both ends. */
+.lux-rule {
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(226, 196, 122, 0.55), transparent);
+}
+
+/* Section eyebrow: a gold dash, then the label. */
+.lux-eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  font-family: var(--font-plex-mono), ui-monospace, monospace;
+  font-size: 11px;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--gold);
+}
+.lux-eyebrow::before {
+  content: "";
+  width: 28px;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--gold));
+}
+
+@keyframes lux-aurora {
+  0% { transform: translate3d(0, 0, 0) rotate(0deg) scale(1); }
+  50% { transform: translate3d(4%, -3%, 0) rotate(8deg) scale(1.08); }
+  100% { transform: translate3d(-3%, 2%, 0) rotate(-6deg) scale(1); }
+}
+@keyframes lux-shimmer {
+  0% { background-position: 0% 50%; }
+  100% { background-position: 200% 50%; }
+}
+@keyframes lux-marquee {
+  to { transform: translateX(-50%); }
+}
+@keyframes lux-pulse-ring {
+  0% { transform: scale(0.8); opacity: 0.7; }
+  100% { transform: scale(2.2); opacity: 0; }
+}
+@keyframes lux-scroll-cue {
+  0% { transform: translateY(-100%); }
+  100% { transform: translateY(200%); }
+}
+@keyframes lux-flow {
+  to { stroke-dashoffset: -40; }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .lux-aurora { animation: lux-aurora 22s ease-in-out infinite alternate; }
+  .lux-gold-text.lux-shimmer { animation: lux-shimmer 6s linear infinite; }
+  .lux-marquee { animation: lux-marquee 40s linear infinite; }
+  .lux-marquee:hover { animation-play-state: paused; }
+  .lux-pulse::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: 999px;
+    border: 1px solid var(--gold);
+    animation: lux-pulse-ring 2.4s ease-out infinite;
+  }
+  .lux-scroll-cue span { animation: lux-scroll-cue 2.2s var(--ease-state) infinite; }
+  .lux-flow { stroke-dasharray: 4 6; animation: lux-flow 1.6s linear infinite; }
+}
+
+/* Inputs on obsidian: native controls follow the dark scheme, and selects get
+   a readable list. */
+select option {
+  background: #161011;
+  color: var(--ink);
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
    LEGACY — still referenced by surfaces this redesign did not cover.
 
    Only what is still used remains: the Button `gold` variant, the serif
@@ -439,7 +603,7 @@ body {
 
 /* Property and project names on pages not yet migrated. Superseded by .av-display. */
 .heading-serif {
-  font-family: var(--font-bodoni), "Bodoni Moda", Georgia, serif;
+  font-family: var(--font-bodoni), "Cormorant Garamond", Georgia, serif;
   font-weight: 400;
   letter-spacing: -0.015em;
 }

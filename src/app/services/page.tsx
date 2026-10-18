@@ -1,24 +1,21 @@
-import Link from "next/link";
-import { Compass, ScanSearch, Scale, ArrowRight, PieChart, FileCheck2, Landmark } from "lucide-react";
+import { PageHero } from "@/components/lux/page-hero";
+import { GoldButton as LuxGold, GhostButton as LuxGhost } from "@/components/lux/primitives";
+import { Compass, ScanSearch, Scale, PieChart, FileCheck2, Landmark } from "lucide-react";
 import { FramedImage } from "@/components/av/framed-image";
 import { Ledger, Note, SectionHead, Wrap } from "@/components/av/primitives";
 import {
   ContourField,
   DraftingGrid,
   ElevationMotif,
-  Grain,
-  MeasureRule,
   PlanMotif,
-  SectionIndex,
-} from "@/components/av/graphics";
-import { Reveal, RevealGroup, RevealItem, TextReveal } from "@/components/av/motion";
+  SectionIndex } from "@/components/av/graphics";
+import { Reveal, RevealGroup, RevealItem } from "@/components/av/motion";
 import { StatementBanner } from "@/components/av/banner";
 
 export const metadata = {
   title: "Services | Aarvasa",
   description:
-    "What Aarvasa does for buyers, owners, builders and channel partners — and what is still in development.",
-};
+    "What Aarvasa does for buyers, owners, builders and channel partners — and what is still in development." };
 
 /**
  * Rewritten around what the platform actually does.
@@ -55,8 +52,7 @@ const audiences: {
       ["Direct enquiry", "Routed to the developer or their appointed channel partner"],
     ],
     motif: "elevation",
-    image: { src: "/images/reef-996/gallery/showapt-living-3x2.jpg", alt: "A furnished show apartment living room at REEF 996", caption: "Show apartment · REEF 996" },
-  },
+    image: { src: "/images/reef-996/gallery/showapt-living-3x2.jpg", alt: "A furnished show apartment living room at REEF 996", caption: "Show apartment · REEF 996" } },
   {
     label: "For owners and occupiers",
     title: "Information that survives scrutiny",
@@ -68,8 +64,7 @@ const audiences: {
       ["Layout drawings", "Published as drawings and labelled as such, never as photography"],
     ],
     motif: "plan",
-    image: { src: "/images/reef-996/architecture/reef-996-facade-detail-3x2.jpg", alt: "Facade detail of REEF 996", caption: "Developer render · REEF 996" },
-  },
+    image: { src: "/images/reef-996/architecture/reef-996-facade-detail-3x2.jpg", alt: "Facade detail of REEF 996", caption: "Developer render · REEF 996" } },
   {
     label: "For builders",
     title: "Show the building properly",
@@ -81,8 +76,7 @@ const audiences: {
       ["Enquiry routing", "Enquiries delivered with the context the buyer already gave"],
     ],
     motif: "contour",
-    image: { src: "/images/reef-996/architecture/reef-996-tower-elevation-day-3x2.jpg", alt: "REEF 996 tower elevation in daylight", caption: "Developer render · REEF 996" },
-  },
+    image: { src: "/images/reef-996/architecture/reef-996-tower-elevation-day-3x2.jpg", alt: "REEF 996 tower elevation in daylight", caption: "Developer render · REEF 996" } },
   {
     label: "For channel partners",
     title: "One place to send a serious buyer",
@@ -94,8 +88,7 @@ const audiences: {
       ["Agent network", "A listed presence on the Aarvasa agents directory"],
     ],
     motif: "plan",
-    image: { src: "/images/reef-996/amenities/reef-996-pool-cabanas-3x2.jpg", alt: "Pool cabanas at REEF 996", caption: "Developer render · REEF 996" },
-  },
+    image: { src: "/images/reef-996/amenities/reef-996-pool-cabanas-3x2.jpg", alt: "Pool cabanas at REEF 996", caption: "Developer render · REEF 996" } },
 ];
 
 function Motif({ kind, tone }: { kind: Motif; tone: "paper" | "stage" }) {
@@ -119,59 +112,19 @@ const process = [
 export default function ServicesPage() {
   return (
     <div className="pb-[var(--s-24)]">
-      <section className="relative isolate overflow-hidden bg-paper-sunken pb-[var(--band)] pt-[var(--s-10)]">
-        <DraftingGrid size={44} fade="radial" className="opacity-25" />
-        <Grain opacity={0.04} />
-        <Wrap className="relative z-[2] grid items-center gap-[var(--s-14)] lg:grid-cols-[1.05fr_0.95fr]">
-          <div>
-            <span className="av-label text-gold-ink">Services</span>
-            <TextReveal
-              as="h1"
-              text="Four people use Aarvasa. It is built for all four."
-              className="av-display mt-2 max-w-[20ch] text-[clamp(32px,4.6vw,56px)] leading-[1.02]"
-            />
-            <p className="mt-[var(--s-4)] max-w-[54ch] text-[17px] leading-relaxed text-ink-muted">
-              Buyers and occupiers on one side, builders and their channel partners on the other. The
-              same captured project serves both.
-            </p>
-            <div className="mt-[var(--s-6)] max-w-[440px]">
-              <MeasureRule />
-            </div>
-            <div className="mt-[var(--s-8)] flex flex-wrap gap-[var(--s-3)]">
-              <Link href="/listings" className="av-gold av-label inline-flex items-center gap-2 px-6 py-[13px]">
-                Browse properties <ArrowRight className="h-4 w-4" aria-hidden="true" />
-              </Link>
-              <Link
-                href="/contact"
-                className="av-label rounded-xs border border-rule-firm px-6 py-[13px] text-ink transition-colors hover:bg-paper"
-              >
-                Talk to the desk
-              </Link>
-            </div>
-          </div>
-
-          {/* Two frames of one real project: the tower, and a room inside it. */}
-          <div className="relative mx-auto h-[380px] w-full max-w-[520px] sm:h-[460px]">
-            <FramedImage
-              src="/images/reef-996/hero/reef-996-tower-aerial-4x5.jpg"
-              alt="REEF 996 from the air"
-              caption="Developer render · REEF 996"
-              sizes="(min-width: 1024px) 340px, 70vw"
-              priority
-              captionAt="top"
-              className="absolute right-0 top-0 h-[78%] w-[66%]"
-            />
-            <FramedImage
-              src="/images/reef-996/gallery/showapt-bedroom-4x5.jpg"
-              alt="Bedroom of the REEF 996 show apartment"
-              caption="Show apartment"
-              sizes="(min-width: 1024px) 240px, 50vw"
-              offset="tl"
-              className="av-float absolute bottom-0 left-0 h-[56%] w-[48%] shadow-[0_24px_60px_rgba(31,27,23,0.22)]"
-            />
-          </div>
-        </Wrap>
-      </section>
+      <PageHero
+        eyebrow="Services"
+        title="Four people use Aarvasa. It is built for *all four.*"
+        body="Buyers and occupiers on one side, builders and their channel partners on the other. The same captured project serves both."
+        image="/images/reef-996/hero/reef-996-tower-aerial-16x9.jpg"
+        caption="REEF 996 · Developer render"
+        size="tall"
+      >
+        <div className="flex flex-wrap gap-3">
+          <LuxGold href="/listings">Browse properties</LuxGold>
+          <LuxGhost href="/contact">Talk to the desk</LuxGhost>
+        </div>
+      </PageHero>
 
       {/* How it works — on wine, the brand's own ground */}
       <section data-surface="wine" className="relative isolate overflow-hidden py-[var(--band)]">
@@ -257,8 +210,7 @@ export default function ServicesPage() {
             backdrop: "/images/reef-996/banners/reef-996-tower-facade-night-16x9.jpg",
             inset: "/images/reef-997/interiors/reef-997-bedroom-4x5.jpg",
             alt: "A REEF 997 bedroom",
-            caption: "Developer render · REEF 997",
-          }}
+            caption: "Developer render · REEF 997" }}
         />
       </div>
 

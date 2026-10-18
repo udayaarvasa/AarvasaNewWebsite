@@ -4,49 +4,50 @@ import Image from "next/image";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { FormEvent, useEffect, useState } from "react";
-import { LayoutDashboard, LogOut, Search, Shield, X } from "lucide-react";
+import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
+import { ArrowUpRight, LayoutDashboard, LogOut, Menu, Search, Shield, X } from "lucide-react";
 import { useSession } from "next-auth/react";
 import { cn } from "@/lib/utils";
 import { useNavOverlay } from "./nav-overlay";
 
 /**
- * Global navigation — one bar, three states.
+ * Global navigation — a floating glass bar.
  *
- *   default   solid paper, hairline rule
- *   overlay   transparent over a stage hero, until 40px of scroll
- *   drawer    full-screen paper navigation on small viewports
+ *   over a hero   clear glass, wide, until the page scrolls
+ *   scrolled      denser glass, drawn in toward the centre
+ *   mobile        a full-screen menu over warm light, links cascading in
  *
- * There is no mega-menu and no persistent bottom tab bar: contextual actions
- * belong to the page, not to the shell.
+ * Blockchain stays unlinked from the main bar: it is roadmap, not product.
+ * Agents is unlinked: the route requires sign-in, so in the public navigation
+ * it sent every visitor to a login wall.
  */
 
 type NavLink = { href: string; label: string; match?: string[] };
 
-// Blockchain stays routable but is unlinked: it is roadmap, not product.
-// Agents is likewise unlinked: the route requires sign-in, so in the public
-// navigation it sent every visitor to a login wall.
 const navLinks: NavLink[] = [
   { href: "/listings", label: "Properties", match: ["/listings", "/properties", "/property", "/projects"] },
   { href: "/reef", label: "REEF Collection" },
   { href: "/ai-chat", label: "Advisor" },
-  { href: "/about", label: "About" },
   { href: "/services", label: "Services" },
+  { href: "/about", label: "About" },
   { href: "/contact", label: "Contact" },
 ];
 
+const EASE = [0.16, 1, 0.3, 1] as const;
+
 function isActivePath(pathname: string, link: NavLink) {
   const paths = link.match ?? [link.href];
-  return paths.some((path) =>
-    path === "/" ? pathname === "/" : pathname === path || pathname.startsWith(`${path}/`),
-  );
+  return paths.some((path) => (path === "/" ? pathname === "/" : pathname === path || pathname.startsWith(`${path}/`)));
 }
 
 export function Navbar() {
   const pathname = usePathname();
   const router = useRouter();
+  const reduced = useReducedMotion();
   const { overlay } = useNavOverlay();
   const [scrolled, setScrolled] = useState(false);
   const [open, setOpen] = useState(false);
+  const [searchOpen, setSearchOpen] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const { data: session, status } = useSession();
@@ -71,6 +72,7 @@ export function Navbar() {
     setLastPath(pathname);
     setProfileOpen(false);
     setOpen(false);
+    setSearchOpen(false);
   }
 
   useEffect(() => {
@@ -85,13 +87,14 @@ export function Navbar() {
       if (event.key === "Escape") {
         setOpen(false);
         setProfileOpen(false);
+        setSearchOpen(false);
       }
     };
     window.addEventListener("keydown", onKeyDown);
     return () => window.removeEventListener("keydown", onKeyDown);
   }, []);
 
-  // The drawer is a full screen: stop the page behind it from scrolling.
+  // The menu is a full screen: stop the page behind it from scrolling.
   useEffect(() => {
     if (!open) return;
     const previous = document.body.style.overflow;
@@ -110,41 +113,38 @@ export function Navbar() {
     const query = searchQuery.trim();
     router.push(query ? `/listings?search=${encodeURIComponent(query)}` : "/listings");
     setOpen(false);
+    setSearchOpen(false);
   };
+
+  const initial = user?.name ? user.name.charAt(0).toUpperCase() : "A";
 
   return (
     <>
-      <header
-        data-surface={floating ? "stage" : undefined}
-        className={cn(
-          "sticky top-0 z-50 border-b transition-colors duration-300",
-          // Floating over a photograph: a soft stage gradient keeps the white
-          // logo and links legible however bright the frame beneath them is.
-          floating
-            ? "border-transparent bg-transparent bg-gradient-to-b from-[rgba(12,11,10,0.62)] to-transparent"
-            : "border-rule bg-paper",
-        )}
-      >
-        <div className="mx-auto flex h-[var(--nav-h)] max-w-[var(--container)] items-center gap-6 px-[var(--gutter)]">
-          <Link
-            href="/"
-            aria-label="Aarvasa home"
-            className="flex flex-shrink-0 items-center"
-          >
-            {/* Over a photograph the light lockup: cream mark, burgundy glyph.
-                Inverting the burgundy one to white filled the mark in solid. */}
+      <header data-surface="stage" className="sticky top-0 z-50 h-[var(--nav-h)]">
+        <motion.div
+          initial={reduced ? false : { y: -40, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          transition={{ duration: 0.9, ease: EASE }}
+          className={cn(
+            "mx-3 flex items-center gap-4 transition-all duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] md:mx-auto",
+            floating
+              ? "mt-4 h-[64px] max-w-[1360px] rounded-full border border-white/10 bg-black/20 px-5 backdrop-blur-md md:px-7"
+              : "mt-3 h-[60px] max-w-[1240px] rounded-full border border-[var(--glass-rule)] bg-[rgba(14,9,10,0.82)] px-5 shadow-[0_20px_50px_rgba(0,0,0,0.45)] backdrop-blur-xl md:px-6",
+          )}
+        >
+          <Link href="/" aria-label="Aarvasa home" className="flex flex-shrink-0 items-center">
             <Image
-              src={floating ? "/aarvasa-navbar-logo-light.png" : "/aarvasa-navbar-logo.png"}
+              src="/aarvasa-navbar-logo-light.png"
               alt="Aarvasa"
               width={652}
               height={143}
-              sizes="(max-width: 767px) 132px, 160px"
-              className="h-8 w-auto"
+              sizes="140px"
+              className="h-[30px] w-auto"
               priority
             />
           </Link>
 
-          <nav className="ml-4 hidden items-center gap-5 lg:flex">
+          <nav className="ml-auto hidden items-center gap-1 lg:flex">
             {navLinks.map((link) => {
               const active = isActivePath(pathname, link);
               return (
@@ -153,47 +153,34 @@ export function Navbar() {
                   href={link.href}
                   aria-current={active ? "page" : undefined}
                   className={cn(
-                    "border-b border-transparent pb-[3px] text-[13px] font-medium transition-colors duration-200",
-                    floating
-                      ? "text-stage-ink/80 hover:text-stage-ink"
-                      : "text-ink-muted hover:text-ink",
-                    active && (floating ? "border-gold text-stage-ink" : "border-gold-ink text-ink"),
+                    "group relative isolate rounded-full px-3.5 py-2 text-[13px] font-medium transition-colors duration-300",
+                    active ? "text-gold" : "text-stage-ink/80 hover:text-stage-ink",
                   )}
                 >
+                  {active && (
+                    <motion.span
+                      layoutId="nav-active"
+                      className="absolute inset-0 -z-10 rounded-full border border-gold/30 bg-gold/[0.08]"
+                      transition={{ type: "spring", stiffness: 300, damping: 30 }}
+                    />
+                  )}
                   {link.label}
+                  <span className="absolute inset-x-3.5 bottom-1 h-px origin-left scale-x-0 bg-gold/70 transition-transform duration-500 group-hover:scale-x-100" />
                 </Link>
               );
             })}
           </nav>
 
-          <div className="ml-auto flex items-center gap-3">
-            <form
-              onSubmit={handleSearch}
-              className={cn(
-                "hidden items-center gap-2 rounded-xs border px-3 py-[7px] xl:flex",
-                floating ? "border-stage-ink/30 bg-stage-ink/10" : "border-rule bg-paper-raised",
-              )}
+          <div className="ml-auto flex items-center gap-2 lg:ml-3">
+            <button
+              type="button"
+              onClick={() => setSearchOpen((v) => !v)}
+              aria-label="Search properties"
+              aria-expanded={searchOpen}
+              className="flex h-10 w-10 items-center justify-center rounded-full border border-white/10 text-stage-ink/80 transition-colors hover:border-gold hover:text-gold"
             >
-              <Search
-                className={cn("h-3.5 w-3.5 flex-shrink-0", floating ? "text-stage-muted" : "text-ink-muted")}
-                aria-hidden="true"
-              />
-              <label htmlFor="navbar-search" className="sr-only">
-                Search properties
-              </label>
-              <input
-                id="navbar-search"
-                value={searchQuery}
-                onChange={(event) => setSearchQuery(event.target.value)}
-                placeholder="City, project or developer"
-                className={cn(
-                  "w-[200px] min-w-0 bg-transparent text-[13px] outline-none",
-                  floating
-                    ? "text-stage-ink placeholder:text-stage-muted"
-                    : "text-ink placeholder:text-ink-muted",
-                )}
-              />
-            </form>
+              <Search className="h-4 w-4" aria-hidden="true" />
+            </button>
 
             {!authLoading && user ? (
               <div id="user-profile-menu" className="relative hidden lg:block">
@@ -202,112 +189,132 @@ export function Navbar() {
                   onClick={() => setProfileOpen((prev) => !prev)}
                   aria-label="Account menu"
                   aria-expanded={profileOpen}
-                  className="flex h-9 w-9 items-center justify-center rounded-full bg-burgundy text-[13px] font-semibold text-paper"
+                  className="av-gold flex h-10 w-10 items-center justify-center rounded-full text-[14px] font-bold"
                 >
-                  {user.name ? user.name.charAt(0).toUpperCase() : "A"}
+                  {initial}
                 </button>
-
-                {profileOpen && (
-                  <div className="absolute right-0 top-[calc(100%+8px)] z-50 w-60 rounded-sm border border-rule bg-paper-raised p-2 shadow-over">
-                    <div className="px-3 py-2">
-                      <p className="av-label text-ink-muted">Signed in as</p>
-                      <p className="truncate text-sm font-semibold text-ink">{user.name || "User"}</p>
-                      <p className="truncate text-xs text-ink-muted">{user.email}</p>
-                    </div>
-                    <div className="my-1 border-t border-rule" />
-                    <Link
-                      href="/dashboard"
-                      onClick={() => setProfileOpen(false)}
-                      className="flex items-center gap-2.5 rounded-xs px-3 py-2 text-sm text-ink transition-colors hover:bg-paper-sunken"
+                <AnimatePresence>
+                  {profileOpen && (
+                    <motion.div
+                      initial={{ opacity: 0, y: -8, scale: 0.97 }}
+                      animate={{ opacity: 1, y: 0, scale: 1 }}
+                      exit={{ opacity: 0, y: -8, scale: 0.97 }}
+                      transition={{ duration: 0.25, ease: EASE }}
+                      className="lux-glass-strong absolute right-0 top-[calc(100%+12px)] z-50 w-64 rounded-2xl p-2 shadow-over"
                     >
-                      <LayoutDashboard className="h-4 w-4 text-ink-muted" />
-                      Dashboard
-                    </Link>
-                    {role === "ADMIN" && (
-                      <Link
-                        href="/admin"
-                        onClick={() => setProfileOpen(false)}
-                        className="flex items-center gap-2.5 rounded-xs px-3 py-2 text-sm text-ink transition-colors hover:bg-paper-sunken"
-                      >
-                        <Shield className="h-4 w-4 text-ink-muted" />
-                        Admin panel
+                      <div className="px-3 py-2">
+                        <p className="av-meta text-[10px] text-ink-muted">Signed in as</p>
+                        <p className="truncate text-sm font-semibold text-ink">{user.name || "User"}</p>
+                        <p className="truncate text-xs text-ink-muted">{user.email}</p>
+                      </div>
+                      <div className="my-1 border-t border-rule" />
+                      <Link href="/dashboard" onClick={() => setProfileOpen(false)} className="flex items-center gap-2.5 rounded-xl px-3 py-2 text-sm text-ink transition-colors hover:bg-white/5">
+                        <LayoutDashboard className="h-4 w-4 text-gold" /> Dashboard
                       </Link>
-                    )}
-                    <div className="my-1 border-t border-rule" />
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setProfileOpen(false);
-                        handleLogout();
-                      }}
-                      className="flex w-full items-center gap-2.5 rounded-xs px-3 py-2 text-sm text-ink transition-colors hover:bg-paper-sunken"
-                    >
-                      <LogOut className="h-4 w-4 text-ink-muted" />
-                      Sign out
-                    </button>
-                  </div>
-                )}
+                      {role === "ADMIN" && (
+                        <Link href="/admin" onClick={() => setProfileOpen(false)} className="flex items-center gap-2.5 rounded-xl px-3 py-2 text-sm text-ink transition-colors hover:bg-white/5">
+                          <Shield className="h-4 w-4 text-gold" /> Admin panel
+                        </Link>
+                      )}
+                      <div className="my-1 border-t border-rule" />
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setProfileOpen(false);
+                          handleLogout();
+                        }}
+                        className="flex w-full items-center gap-2.5 rounded-xl px-3 py-2 text-sm text-ink transition-colors hover:bg-white/5"
+                      >
+                        <LogOut className="h-4 w-4 text-gold" /> Sign out
+                      </button>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
               </div>
             ) : !authLoading ? (
-              <Link
-                href="/login"
-                className={cn(
-                  "av-label hidden rounded-xs border px-4 py-2.5 transition-colors duration-300 lg:inline-flex",
-                  floating
-                    ? "border-stage-ink/35 text-stage-ink hover:border-stage-ink"
-                    : "border-rule-firm text-ink hover:bg-paper-sunken",
-                )}
-              >
+              <Link href="/login" className="hidden rounded-full px-4 py-2 text-[13px] font-medium text-stage-ink/80 transition-colors hover:text-gold lg:inline-flex">
                 Sign in
               </Link>
             ) : null}
+
+            <Link
+              href="/listings"
+              className="av-gold hidden items-center gap-2 rounded-full px-5 py-2.5 text-[12px] font-bold uppercase tracking-[0.12em] md:inline-flex"
+            >
+              Explore <ArrowUpRight className="h-3.5 w-3.5" aria-hidden="true" />
+            </Link>
 
             <button
               type="button"
               onClick={() => setOpen(true)}
               aria-label="Open navigation"
               aria-expanded={open}
-              className={cn(
-                "av-label lg:hidden",
-                floating ? "text-stage-ink" : "text-ink",
-              )}
+              className="flex h-10 w-10 items-center justify-center rounded-full border border-white/10 text-stage-ink lg:hidden"
             >
-              Menu
+              <Menu className="h-4 w-4" aria-hidden="true" />
             </button>
           </div>
-        </div>
+        </motion.div>
+
+        {/* Search drops down beneath the bar */}
+        <AnimatePresence>
+          {searchOpen && (
+            <motion.form
+              onSubmit={handleSearch}
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -10 }}
+              transition={{ duration: 0.3, ease: EASE }}
+              className="lux-glass-strong mx-3 mt-3 flex max-w-[720px] items-center gap-3 rounded-full p-2 pl-5 shadow-over md:mx-auto"
+            >
+              <Search className="h-4 w-4 shrink-0 text-gold" aria-hidden="true" />
+              <label htmlFor="navbar-search" className="sr-only">
+                Search properties
+              </label>
+              <input
+                id="navbar-search"
+                autoFocus
+                value={searchQuery}
+                onChange={(event) => setSearchQuery(event.target.value)}
+                placeholder="City, project or developer"
+                className="min-w-0 flex-1 bg-transparent text-[15px] text-ink outline-none placeholder:text-ink-muted"
+              />
+              <button type="submit" className="av-gold rounded-full px-6 py-3 text-[12px] font-bold uppercase tracking-[0.12em]">
+                Search
+              </button>
+            </motion.form>
+          )}
+        </AnimatePresence>
       </header>
 
-      {/* ── Full-screen drawer ─────────────────────────────────────────────
-          Mobile navigation is its own screen, not a squeezed desktop menu. */}
-      {open && (
-        <div className="fixed inset-0 z-[60] flex flex-col overflow-y-auto bg-paper lg:hidden">
-          <div className="flex items-center justify-between border-b border-rule px-[var(--gutter)] py-4">
-            <Image
-              src="/aarvasa-navbar-logo.png"
-              alt="Aarvasa"
-              width={653}
-              height={169}
-              sizes="132px"
-              className="h-8 w-auto"
-            />
-            <button
-              type="button"
-              onClick={() => setOpen(false)}
-              aria-label="Close navigation"
-              className="av-label flex items-center gap-2 text-ink"
-            >
-              Close
-              <X className="h-4 w-4" />
-            </button>
-          </div>
+      {/* ── Full-screen menu ─────────────────────────────────────────────── */}
+      <AnimatePresence>
+        {open && (
+          <motion.div
+            data-surface="stage"
+            initial={{ clipPath: "circle(0% at 92% 4%)" }}
+            animate={{ clipPath: "circle(150% at 92% 4%)" }}
+            exit={{ clipPath: "circle(0% at 92% 4%)" }}
+            transition={{ duration: reduced ? 0 : 0.7, ease: EASE }}
+            className="fixed inset-0 z-[60] flex flex-col overflow-y-auto bg-[#0a0707] lg:hidden"
+          >
+            <div aria-hidden="true" className="pointer-events-none absolute inset-0 overflow-hidden">
+              <div className="lux-aurora" />
+            </div>
+            <div className="relative flex items-center justify-between px-[var(--gutter)] py-5">
+              <Image src="/aarvasa-navbar-logo-light.png" alt="Aarvasa" width={652} height={143} sizes="132px" className="h-8 w-auto" />
+              <button
+                type="button"
+                onClick={() => setOpen(false)}
+                aria-label="Close navigation"
+                className="flex h-11 w-11 items-center justify-center rounded-full border border-white/15 text-stage-ink"
+              >
+                <X className="h-5 w-5" />
+              </button>
+            </div>
 
-          <div className="px-[var(--gutter)] pt-5">
-            <form
-              onSubmit={handleSearch}
-              className="flex items-center gap-2 rounded-xs border border-rule-firm bg-paper-raised px-3 py-3"
-            >
-              <Search className="h-4 w-4 flex-shrink-0 text-ink-muted" aria-hidden="true" />
+            <form onSubmit={handleSearch} className="relative mx-[var(--gutter)] mt-2 flex items-center gap-3 rounded-full border border-white/15 bg-white/5 px-5 py-3.5">
+              <Search className="h-4 w-4 flex-shrink-0 text-gold" aria-hidden="true" />
               <label htmlFor="drawer-search" className="sr-only">
                 Search properties
               </label>
@@ -316,91 +323,88 @@ export function Navbar() {
                 value={searchQuery}
                 onChange={(event) => setSearchQuery(event.target.value)}
                 placeholder="City, project or developer"
-                className="min-w-0 flex-1 bg-transparent text-sm text-ink outline-none placeholder:text-ink-muted"
+                className="min-w-0 flex-1 bg-transparent text-[15px] text-stage-ink outline-none placeholder:text-stage-muted"
               />
             </form>
-          </div>
 
-          <nav className="flex-1 px-[var(--gutter)] py-6">
-            {navLinks.map((link) => {
-              const active = isActivePath(pathname, link);
-              return (
-                <Link
-                  key={link.href}
-                  href={link.href}
-                  onClick={() => setOpen(false)}
-                  aria-current={active ? "page" : undefined}
-                  className={cn(
-                    "av-display block border-b border-rule py-3.5 text-[30px] leading-[1.25]",
-                    active ? "text-burgundy" : "text-ink",
-                  )}
-                >
-                  {link.label}
-                </Link>
-              );
-            })}
-          </nav>
-
-          <div className="border-t border-rule px-[var(--gutter)] py-5">
-            {!authLoading && user ? (
-              <div className="flex flex-col gap-3">
-                <div className="flex items-center gap-3">
-                  <span className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-full bg-burgundy text-[13px] font-semibold text-paper">
-                    {user.name ? user.name.charAt(0).toUpperCase() : "A"}
-                  </span>
-                  <span className="min-w-0">
-                    <span className="block truncate text-sm font-semibold text-ink">{user.name || "User"}</span>
-                    <span className="block truncate text-xs text-ink-muted">{user.email}</span>
-                  </span>
-                </div>
-                <div className="flex flex-wrap gap-2">
-                  <Link
-                    href="/dashboard"
-                    onClick={() => setOpen(false)}
-                    className="av-label rounded-xs border border-rule-firm px-4 py-2.5 text-ink"
+            <motion.nav
+              className="relative flex-1 px-[var(--gutter)] py-8"
+              initial="hidden"
+              animate="shown"
+              variants={{ hidden: {}, shown: { transition: { staggerChildren: 0.06, delayChildren: 0.25 } } }}
+            >
+              {navLinks.map((link, i) => {
+                const active = isActivePath(pathname, link);
+                return (
+                  <motion.div
+                    key={link.href}
+                    variants={{ hidden: { opacity: 0, x: -30 }, shown: { opacity: 1, x: 0, transition: { duration: 0.7, ease: EASE } } }}
                   >
-                    Dashboard
-                  </Link>
-                  {role === "ADMIN" && (
                     <Link
-                      href="/admin"
+                      href={link.href}
                       onClick={() => setOpen(false)}
-                      className="av-label rounded-xs border border-rule-firm px-4 py-2.5 text-ink"
+                      aria-current={active ? "page" : undefined}
+                      className="group flex items-baseline gap-4 border-b border-white/10 py-4"
                     >
-                      Admin panel
+                      <span className="av-meta text-[10px] text-gold/70">0{i + 1}</span>
+                      <span className={cn("av-display text-[40px] font-light leading-none", active ? "lux-gold-text italic" : "text-stage-ink")}>
+                        {link.label}
+                      </span>
+                      <ArrowUpRight className="ml-auto h-5 w-5 text-stage-muted transition-transform group-hover:rotate-45 group-hover:text-gold" aria-hidden="true" />
                     </Link>
-                  )}
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setOpen(false);
-                      handleLogout();
-                    }}
-                    className="av-label rounded-xs border border-rule-firm px-4 py-2.5 text-ink"
-                  >
-                    Sign out
-                  </button>
-                </div>
-              </div>
-            ) : !authLoading ? (
-              <Link
-                href="/login"
-                onClick={() => setOpen(false)}
-                className="av-label inline-flex rounded-xs bg-burgundy px-5 py-3 text-paper"
-              >
-                Sign in
-              </Link>
-            ) : null}
-          </div>
+                  </motion.div>
+                );
+              })}
+            </motion.nav>
 
-          <div data-surface="stage" className="bg-stage px-[var(--gutter)] py-5">
-            <p className="av-meta text-gold">Discover · Explore · Evaluate</p>
-            <p className="mt-2 text-[13px] leading-relaxed text-stage-muted">
-              Investment and ownership services are in development and are not offered today.
-            </p>
-          </div>
-        </div>
-      )}
+            <div className="relative px-[var(--gutter)] pb-8">
+              {!authLoading && user ? (
+                <div className="flex flex-col gap-4">
+                  <div className="flex items-center gap-3">
+                    <span className="av-gold flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full text-[14px] font-bold">{initial}</span>
+                    <span className="min-w-0">
+                      <span className="block truncate text-sm font-semibold text-stage-ink">{user.name || "User"}</span>
+                      <span className="block truncate text-xs text-stage-muted">{user.email}</span>
+                    </span>
+                  </div>
+                  <div className="flex flex-wrap gap-2">
+                    <Link href="/dashboard" onClick={() => setOpen(false)} className="rounded-full border border-white/15 px-5 py-2.5 text-[13px] text-stage-ink">
+                      Dashboard
+                    </Link>
+                    {role === "ADMIN" && (
+                      <Link href="/admin" onClick={() => setOpen(false)} className="rounded-full border border-white/15 px-5 py-2.5 text-[13px] text-stage-ink">
+                        Admin panel
+                      </Link>
+                    )}
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setOpen(false);
+                        handleLogout();
+                      }}
+                      className="rounded-full border border-white/15 px-5 py-2.5 text-[13px] text-stage-ink"
+                    >
+                      Sign out
+                    </button>
+                  </div>
+                </div>
+              ) : !authLoading ? (
+                <div className="flex gap-3">
+                  <Link href="/listings" onClick={() => setOpen(false)} className="av-gold flex-1 rounded-full px-5 py-3.5 text-center text-[12px] font-bold uppercase tracking-[0.14em]">
+                    Explore properties
+                  </Link>
+                  <Link href="/login" onClick={() => setOpen(false)} className="rounded-full border border-white/15 px-5 py-3.5 text-[13px] text-stage-ink">
+                    Sign in
+                  </Link>
+                </div>
+              ) : null}
+              <p className="mt-6 text-[12px] leading-relaxed text-stage-muted">
+                Investment and ownership services are in development and are not offered today.
+              </p>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </>
   );
 }

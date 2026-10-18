@@ -1,28 +1,30 @@
 import type { Metadata } from "next";
-import { Bodoni_Moda, IBM_Plex_Mono, Inter } from "next/font/google";
+import { Cormorant_Garamond, IBM_Plex_Mono, Manrope } from "next/font/google";
 import { Navbar } from "@/components/layout/navbar";
 import { NavOverlayProvider } from "@/components/layout/nav-overlay";
 import { LuxuryFooter } from "@/components/shared/luxury-footer";
 import { SessionProvider } from "@/components/auth/session-provider";
 import { FloatingActions } from "@/components/shared/floating-actions";
 import { Toaster } from "react-hot-toast";
+import { ScrollProgress } from "@/components/lux/motion";
 import "./globals.css";
 
 /* Three faces, three jobs.
-   Bodoni  — property and project identity, page titles, the hero line.
-   Inter   — every interface surface and all running copy.
-   Plex Mono — restrained metadata: slugs, capability marks, level counts. */
-const bodoni = Bodoni_Moda({
+   Cormorant — the display voice: titles, project names, the gold italics.
+   Manrope   — every interface surface and all running copy.
+   Plex Mono — the ledger: metadata, record numbers, capability marks.
+   The CSS variable names are kept so every existing component inherits. */
+const bodoni = Cormorant_Garamond({
   subsets: ["latin"],
-  weight: ["400", "600"],
+  weight: ["300", "400", "500", "600"],
   style: ["normal", "italic"],
   display: "swap",
   variable: "--font-bodoni",
 });
 
-const inter = Inter({
+const inter = Manrope({
   subsets: ["latin"],
-  weight: ["400", "500", "600"],
+  weight: ["400", "500", "600", "700"],
   display: "swap",
   variable: "--font-inter",
 });
@@ -54,6 +56,7 @@ export default function RootLayout({
       <body className="flex min-h-screen flex-col antialiased">
         <SessionProvider>
           <NavOverlayProvider>
+            <ScrollProgress />
             <Navbar />
             <main className="flex-1">{children}</main>
             <LuxuryFooter />

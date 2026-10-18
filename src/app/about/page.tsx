@@ -1,8 +1,9 @@
 import Image from "next/image";
+import { PageHero } from "@/components/lux/page-hero";
 import Link from "next/link";
 import { Ledger, Note, Plate, SectionHead, Wrap } from "@/components/av/primitives";
-import { DraftingGrid, Grain, MeasureRule, SectionIndex } from "@/components/av/graphics";
-import { RevealGroup, RevealItem, TextReveal } from "@/components/av/motion";
+import { SectionIndex } from "@/components/av/graphics";
+import { RevealGroup, RevealItem } from "@/components/av/motion";
 import { CinematicBanner, StatementBanner } from "@/components/av/banner";
 import { projectImageSrc } from "@/lib/project-types";
 import { publishedProjects } from "@/lib/projects";
@@ -10,8 +11,7 @@ import { publishedProjects } from "@/lib/projects";
 export const metadata = {
   title: "About | Aarvasa",
   description:
-    "Aarvasa publishes what the developer files, shows a property in three dimensions where it has been captured, and lets you compare what you found.",
-};
+    "Aarvasa publishes what the developer files, shows a property in three dimensions where it has been captured, and lets you compare what you found." };
 
 /**
  * Team names, roles, bios and social links are reproduced verbatim.
@@ -37,8 +37,7 @@ const team = [
     bio: "Uday Sahu leads Aarvasa as CEO, driving growth, partnerships, and market expansion. With expertise in business networking and real estate sales, he strengthens stakeholder relations and positions Aarvasa as a key player in property investment.",
     image: "/images/team/uday.png",
     linkedin: "https://www.linkedin.com/in/udayprakashsahu/",
-    instagram: "https://www.instagram.com/uday.sahu_10?igsh=MWVzNW85dTRydndpdg%3D%3D",
-  },
+    instagram: "https://www.instagram.com/uday.sahu_10?igsh=MWVzNW85dTRydndpdg%3D%3D" },
   {
     name: "Ansh Dubey",
     role: "Co-Founder & COO",
@@ -46,8 +45,7 @@ const team = [
     bio: "Ansh Dubey, COO of Aarvasa, oversees operations, workflow optimization, and product delivery. Focused on efficiency, he ensures smooth platform functionality, from listings to customer experience, translating ideas into scalable, real-world execution.",
     image: "/images/team/ansh.png",
     linkedin: "https://www.linkedin.com/in/ansh-dubey-526325273/",
-    instagram: "https://www.instagram.com/_ansh_.dubey/",
-  },
+    instagram: "https://www.instagram.com/_ansh_.dubey/" },
   {
     name: "Anirudh Saxena",
     role: "Co-Founder & CTO",
@@ -55,8 +53,7 @@ const team = [
     bio: "Anirudh Saxena, CTO of Aarvasa, drives AI tools, smart contracts, and infrastructure development. He ensures a secure, scalable tech foundation, shaping the digital systems that power Aarvasa’s platform and future growth.",
     image: "/images/team/anirudh.png",
     linkedin: "https://www.linkedin.com/in/anirudh-saxena-481ba2245/",
-    instagram: "https://www.instagram.com/_anirudh__.07?igsh=MTJocm1va3VtZDV0bw%3D%3D",
-  },
+    instagram: "https://www.instagram.com/_anirudh__.07?igsh=MTJocm1va3VtZDV0bw%3D%3D" },
   {
     name: "Sriaditya S",
     role: "VP of IT Operations",
@@ -64,8 +61,7 @@ const team = [
     bio: "Sriaditya S leads IT Operations at Aarvasa, managing the company’s digital infrastructure, cloud systems, and cybersecurity. He ensures platform stability, secure workflows, and drives Aarvasa’s tech innovations for scalable business growth.",
     image: "/images/team/sriaditya.png",
     linkedin: "https://www.linkedin.com/in/sriadityas/",
-    instagram: "https://www.instagram.com/sriaditya_kamikaze?igsh=amdnbDR4MG82cDFh",
-  },
+    instagram: "https://www.instagram.com/sriaditya_kamikaze?igsh=amdnbDR4MG82cDFh" },
 ];
 
 const offices = [
@@ -110,21 +106,13 @@ export default function AboutPage() {
 
   return (
     <div className="pb-[var(--s-24)]">
-      <section className="relative isolate overflow-hidden bg-paper-sunken pb-[var(--band-tight)] pt-[var(--s-10)]">
-        <DraftingGrid size={44} fade="radial" className="opacity-25" />
-        <Grain opacity={0.04} />
-        <Wrap className="relative z-[2]">
-          <span className="av-label text-gold-ink">About</span>
-          <TextReveal
-            as="h1"
-            text="Most property is sold on a brochure. We think it should be read like a drawing."
-            className="av-display mt-2 max-w-[20ch] text-[clamp(32px,4.8vw,58px)] leading-[1.02]"
-          />
-          <div className="mt-[var(--s-6)] max-w-[460px]">
-            <MeasureRule />
-          </div>
-        </Wrap>
-      </section>
+      <PageHero
+        eyebrow="About Aarvasa"
+        title="Property should be read like a *drawing,* not sold like a brochure."
+        image="/images/reef-996/architecture/reef-996-facade-detail-3x2.jpg"
+        caption="REEF 996 · Developer render"
+        size="tall"
+      />
 
       <Wrap read className="pt-[var(--band-tight)]">
         <p className="text-[19px] leading-[1.75]">
@@ -171,18 +159,15 @@ export default function AboutPage() {
             {
               term: "Filed, not written",
               value:
-                "Specification comes from the developer’s filing. Where a figure has not been filed, the row reads “—” rather than an estimate.",
-            },
+                "Specification comes from the developer’s filing. Where a figure has not been filed, the row reads “—” rather than an estimate." },
             {
               term: "Produced, not promised",
               value:
-                "An immersive format appears only when the asset exists. We do not show a 3D control that opens a photograph.",
-            },
+                "An immersive format appears only when the asset exists. We do not show a 3D control that opens a photograph." },
             {
               term: "No forecasts",
               value:
-                "We publish no yields, no return projections and no price predictions. Investment and ownership services are in development and are not offered today.",
-            },
+                "We publish no yields, no return projections and no price predictions. Investment and ownership services are in development and are not offered today." },
           ]}
         />
       </Wrap>
@@ -274,8 +259,7 @@ export default function AboutPage() {
             backdrop: "/images/reef-998/amenities/reef-998-garden-terrace-16x9.jpg",
             inset: "/images/reef-997/amenities/reef-997-garden-terrace-4x5.jpg",
             alt: "REEF 997 garden terrace",
-            caption: "Developer render · REEF 997",
-          }}
+            caption: "Developer render · REEF 997" }}
         />
       </div>
 

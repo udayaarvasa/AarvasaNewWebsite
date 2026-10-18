@@ -1,16 +1,16 @@
-import Image from "next/image";
+import { PageHero } from "@/components/lux/page-hero";
+import { GoldButton as LuxGold, GhostButton as LuxGhost } from "@/components/lux/primitives";
 import { Mail, MapPin, Phone, PenLine, Send, Building2 } from "lucide-react";
 import { ContactForm } from "./contact-form";
 import { FramedImage } from "@/components/av/framed-image";
 import { Note, Wrap } from "@/components/av/primitives";
-import { ContourField, CoordinateMarks, DraftingGrid, Grain } from "@/components/av/graphics";
-import { Reveal, TextReveal } from "@/components/av/motion";
+import { ContourField, DraftingGrid } from "@/components/av/graphics";
+import { Reveal } from "@/components/av/motion";
 
 export const metadata = {
   title: "Contact | Aarvasa",
   description:
-    "Talk to the Aarvasa desk. A property enquiry reaches the developer directly; anything else reaches us.",
-};
+    "Talk to the Aarvasa desk. A property enquiry reaches the developer directly; anything else reaches us." };
 
 /**
  * Contact details are reproduced exactly as filed.
@@ -34,50 +34,18 @@ export const metadata = {
 export default function ContactPage() {
   return (
     <div className="pb-[var(--s-24)]">
-      <section
-        data-surface="stage"
-        className="relative isolate overflow-hidden bg-stage pb-[var(--s-14)] pt-[var(--s-18)]"
+      <PageHero
+        eyebrow="Contact"
+        title="Talk to *the desk.*"
+        body="A property enquiry reaches the developer or their appointed channel partner directly. Anything else reaches us."
+        image="/images/reef-996/gallery/showapt-terrace-16x9.jpg"
+        caption="Show apartment terrace · REEF 996"
       >
-        <div className="absolute inset-0 -z-10">
-          <Image
-            src="/images/reef-996/gallery/showapt-terrace-16x9.jpg"
-            alt=""
-            fill
-            priority
-            sizes="100vw"
-            className="av-kenburns object-cover opacity-60"
-          />
-          <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(12,11,10,0.92)_0%,rgba(12,11,10,0.7)_50%,rgba(74,15,18,0.35)_100%)]" />
+        <div className="flex flex-wrap gap-3">
+          <LuxGold href="mailto:contact@aarvasa.com" external>Email the desk</LuxGold>
+          <LuxGhost href="tel:+916382083873">+91 63820 83873</LuxGhost>
         </div>
-        <Grain opacity={0.06} />
-        <CoordinateMarks tone="stage" className="z-[2] max-md:hidden" />
-        <span className="av-meta absolute right-[var(--gutter)] top-[var(--s-5)] z-[3] hidden rounded-xs border border-stage-rule bg-[rgba(12,11,10,0.66)] px-2 py-1 text-stage-ink backdrop-blur-sm md:block">
-          Show apartment terrace · REEF 996
-        </span>
-        <Wrap className="relative z-[3]">
-          <span className="av-label text-gold">Contact</span>
-          <TextReveal
-            as="h1"
-            text="Talk to the desk"
-            className="av-display mt-2 text-[clamp(34px,5vw,64px)] leading-[1.02] text-stage-ink"
-          />
-          <p className="mt-[var(--s-4)] max-w-[52ch] text-[17px] leading-relaxed text-stage-muted">
-            A property enquiry reaches the developer or their appointed channel partner directly.
-            Anything else reaches us.
-          </p>
-          <div className="mt-[var(--s-8)] flex flex-wrap gap-[var(--s-3)]">
-            <a href="mailto:contact@aarvasa.com" className="av-gold av-label inline-flex items-center gap-2 px-6 py-[13px]">
-              <Mail className="h-4 w-4" aria-hidden="true" /> Email the desk
-            </a>
-            <a
-              href="tel:+916382083873"
-              className="av-label inline-flex items-center gap-2 rounded-sm border border-stage-ink/35 px-6 py-[13px] text-stage-ink transition-colors hover:border-stage-ink hover:bg-white/5"
-            >
-              <Phone className="h-4 w-4" aria-hidden="true" /> +91 63820 83873
-            </a>
-          </div>
-        </Wrap>
-      </section>
+      </PageHero>
 
       <Wrap className="pt-[var(--band-tight)]">
         <div className="grid grid-cols-1 items-start gap-[var(--s-10)] lg:grid-cols-[1.25fr_0.75fr]">

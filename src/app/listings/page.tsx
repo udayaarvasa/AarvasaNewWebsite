@@ -1,12 +1,12 @@
 import { Suspense } from "react";
+import { PageHero } from "@/components/lux/page-hero";
 import Link from "next/link";
 import { ListingsGrid } from "@/components/property/listings-grid";
 import { ProjectCards } from "@/components/property/project-cards";
 import { PropertyGridSkeleton } from "@/components/property/property-skeleton";
 import { CompareProvider } from "@/components/property/compare-store";
 import { SectionHead, Wrap } from "@/components/av/primitives";
-import { DraftingGrid, Grain, MeasureRule, SectionIndex } from "@/components/av/graphics";
-import { TextReveal } from "@/components/av/motion";
+import { SectionIndex } from "@/components/av/graphics";
 import { CinematicBanner } from "@/components/av/banner";
 import { projectImageSrc } from "@/lib/project-types";
 import { publishedProjects } from "@/lib/projects";
@@ -14,8 +14,7 @@ import { publishedProjects } from "@/lib/projects";
 export const metadata = {
   title: "Properties | Aarvasa",
   description:
-    "Browse premium homes, plots and offices. Filter on specification, explore what has been captured in 3D and 360°, and compare a shortlist side by side.",
-};
+    "Browse premium homes, plots and offices. Filter on specification, explore what has been captured in 3D and 360°, and compare a shortlist side by side." };
 
 /** Filters that change WHICH results are asked for. `sortBy` only reorders the
  *  same set, so it does not count as a search intent. */
@@ -46,8 +45,7 @@ type Query = Partial<Record<(typeof RESULT_FILTERS)[number] | "sortBy" | "page",
  * search intent leads and promotional content stands down.
  */
 export default async function ListingsPage({
-  searchParams,
-}: {
+  searchParams }: {
   searchParams: Promise<Query>;
 }) {
   const q = await searchParams;
@@ -74,39 +72,28 @@ export default async function ListingsPage({
 
   return (
     <div className="pb-[var(--s-24)]">
-      <section className="relative isolate overflow-hidden bg-paper-sunken pb-[var(--band-tight)] pt-[var(--s-10)]">
-        <DraftingGrid size={40} fade="radial" className="opacity-25" />
-        <Grain opacity={0.04} />
-        <Wrap className="relative z-[2]">
-          <span className="av-label text-gold-ink">Discover</span>
-          <TextReveal
-            as="h1"
-            text={city ? `Properties in ${city}` : "Premium property, examined properly"}
-            className="av-display mt-2 text-[clamp(32px,4.4vw,52px)] leading-[1.04]"
-          />
-          {isFiltered ? (
-            <div className="mt-[var(--s-4)] flex flex-wrap items-center gap-[var(--s-3)]">
-              <p className="text-[15px] text-ink-muted">
-                Showing filtered results{city ? ` for ${city}` : ""}.
-              </p>
+      <PageHero
+        eyebrow="Discover"
+        title={city ? `Properties in *${city}*` : "Every address, *examined.*"}
+        image="/images/reef-997/hero/reef-997-pool-deck-16x9.jpg"
+        caption="REEF 997 · Developer render"
+        size="compact"
+        body={
+          isFiltered ? (
+            <span className="flex flex-wrap items-center gap-3">
+              Showing filtered results{city ? ` for ${city}` : ""}.
               <Link
                 href="/listings"
-                className="av-label rounded-xs border border-rule-firm bg-paper-raised px-3 py-[6px] text-ink transition-colors hover:border-burgundy hover:text-burgundy"
+                className="rounded-full border border-gold/50 px-4 py-1.5 text-[13px] text-gold transition-colors hover:bg-gold hover:text-[#1a0e0f]"
               >
                 Clear all filters
               </Link>
-            </div>
+            </span>
           ) : (
-            <p className="mt-[var(--s-4)] max-w-[52ch] text-[17px] leading-relaxed text-ink-muted">
-              Filter on the specification that decides it, open the formats a project has actually
-              produced, and put a shortlist of three side by side before you travel.
-            </p>
-          )}
-          <div className="mt-[var(--s-6)] max-w-[420px]">
-            <MeasureRule />
-          </div>
-        </Wrap>
-      </section>
+            "Filter on the specification that decides it, open the formats a project has actually produced, and put a shortlist of three side by side before you travel."
+          )
+        }
+      />
 
       {/* A large visual lead, on an unfiltered browse only. The frame differs
           from the project page hero, and says whether it is a photograph or a

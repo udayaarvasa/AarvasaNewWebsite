@@ -1,7 +1,7 @@
 import Link from "next/link";
+import { PageHero } from "@/components/lux/page-hero";
+import { LedgerChain } from "@/components/lux/ledger-chain";
 import { Wrap } from "@/components/av/primitives";
-import { DraftingGrid, Grain, MeasureRule } from "@/components/av/graphics";
-import { TextReveal } from "@/components/av/motion";
 
 /**
  * Blockchain — statement of intent, not a product page.
@@ -27,32 +27,19 @@ export const metadata = {
   description:
     "Where Aarvasa intends to take verifiable property records. Nothing described here is available today.",
   // Not a capability we offer; it should not be surfaced as one in search.
-  robots: { index: false, follow: true },
-};
+  robots: { index: false, follow: true } };
 
 export default function BlockchainPage() {
   return (
     <div className="pb-[var(--s-24)]">
-      <section className="relative isolate overflow-hidden bg-paper-sunken pb-[var(--band-tight)] pt-[var(--s-10)]">
-        <DraftingGrid size={40} fade="radial" className="opacity-25" />
-        <Grain opacity={0.04} />
-        <Wrap className="relative z-[2]">
-          <span className="av-label text-gold-ink">Roadmap</span>
-          <TextReveal
-            as="h1"
-            text="Not available today."
-            className="av-display mt-2 text-[clamp(32px,4.4vw,52px)] leading-[1.04]"
-          />
-          <p className="mt-[var(--s-4)] max-w-[56ch] text-[17px] leading-relaxed text-ink-muted">
-            Aarvasa does not offer blockchain-based ownership, tokenised property,
-            fractional investment instruments, on-chain title transfer or smart-contract
-            escrow. None of it is built, and none of it is for sale.
-          </p>
-          <div className="mt-[var(--s-6)] max-w-[420px]">
-            <MeasureRule />
-          </div>
-        </Wrap>
-      </section>
+      <PageHero
+        eyebrow="Roadmap · Blockchain"
+        title="On-chain title is *coming.* It is not here *yet.*"
+        body="Aarvasa does not offer blockchain-based ownership, tokenised property, fractional investment instruments, on-chain title transfer or smart-contract escrow. None of it is built, and none of it is for sale."
+        size="tall"
+      >
+        <LedgerChain />
+      </PageHero>
 
       <Wrap read className="pt-[var(--band-tight)]">
         <p className="text-[19px] leading-[1.75]">

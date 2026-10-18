@@ -1,9 +1,10 @@
 import Image from "next/image";
+import { PageHero } from "@/components/lux/page-hero";
 import Link from "next/link";
 import { ArrowUpRight } from "lucide-react";
 import { SectionHead, Plate, Status, Wrap } from "@/components/av/primitives";
-import { CoordinateMarks, DraftingGrid, Grain, MeasureRule, SectionIndex } from "@/components/av/graphics";
-import { RevealGroup, RevealItem, TextReveal, Reveal } from "@/components/av/motion";
+import { MeasureRule, SectionIndex } from "@/components/av/graphics";
+import { RevealGroup, RevealItem, Reveal } from "@/components/av/motion";
 import { projectImageSrc } from "@/lib/project-types";
 import { reefCollection } from "@/lib/reef-collection";
 import { formatCurrency, inrEstimate } from "@/lib/currency";
@@ -23,8 +24,7 @@ import { formatCurrency, inrEstimate } from "@/lib/currency";
 export const metadata = {
   title: "The REEF Collection | Aarvasa",
   description:
-    "REEF Luxury Developments' numbered towers in Dubai — what is listed, what is under construction, and what each one has actually produced.",
-};
+    "REEF Luxury Developments' numbered towers in Dubai — what is listed, what is under construction, and what each one has actually produced." };
 
 export default function ReefCollectionPage() {
   const entries = reefCollection();
@@ -34,52 +34,20 @@ export default function ReefCollectionPage() {
   return (
     <div className="pb-[var(--s-24)]">
       {/* ── Stage: the collection announces itself ─────────────────────── */}
-      <section
-        data-surface="stage"
-        className="relative isolate overflow-hidden bg-stage pb-[var(--band)] pt-[var(--s-14)]"
+      <PageHero
+        eyebrow="REEF Luxury Developments"
+        title="The REEF *Collection.*"
+        body="Five numbered towers across Dubai, built by one developer to one idea: outdoor space that stays usable in summer. Three are listed here with the specification their developer filed. Two are under way, and say so."
+        image="/images/reef-996/amenities/reef-996-sunken-balcony-sunset-16x9.jpg"
+        caption="REEF 996 sunken balcony · Developer render"
+        size="tall"
       >
-        {/* The collection's own architecture behind the title, not a stock city. */}
-        <div className="absolute inset-0 -z-10">
-          <Image
-            src="/images/reef-996/amenities/reef-996-sunken-balcony-sunset-16x9.jpg"
-            alt=""
-            fill
-            priority
-            sizes="100vw"
-            className="av-kenburns object-cover object-[50%_45%] opacity-90"
-          />
-          <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(12,11,10,0.9)_0%,rgba(12,11,10,0.6)_45%,rgba(74,15,18,0.15)_100%)]" />
-          <div className="absolute inset-0 bg-[linear-gradient(to_top,rgba(12,11,10,0.9)_0%,rgba(12,11,10,0)_40%)]" />
-        </div>
-        <DraftingGrid tone="stage" size={56} fade="top" className="opacity-20" />
-        <Grain opacity={0.06} />
-        <CoordinateMarks tone="stage" className="z-[2] max-md:hidden" />
-        <span className="av-meta absolute right-[var(--gutter)] top-[var(--s-5)] z-[3] hidden rounded-xs border border-stage-rule bg-[rgba(12,11,10,0.66)] px-2 py-1 text-stage-ink backdrop-blur-sm md:block">
-          Developer render · REEF 996 sunken balcony
-        </span>
-        <Wrap className="relative z-[3]">
-          <span className="av-label text-gold">REEF Luxury Developments</span>
-          <TextReveal
-            as="h1"
-            text="The REEF Collection"
-            className="av-display mt-2 max-w-[16ch] text-[clamp(36px,6vw,74px)] leading-[1.0] text-stage-ink"
-          />
-          <p className="mt-[var(--s-5)] max-w-[56ch] text-[17px] leading-relaxed text-stage-muted">
-            Five numbered towers across Dubai, built by one developer to one idea:
-            outdoor space that stays usable in summer. Three are listed here with the
-            specification their developer filed. Two are under way, and say so.
-          </p>
-
-          {/* The family as an index: five equal columns, each the same height,
-              so a long community name wraps inside its own tile instead of
-              pushing its neighbours apart. */}
-          <ol className="mt-[var(--s-10)] grid grid-cols-2 gap-px overflow-hidden border border-stage-rule bg-stage-rule sm:grid-cols-5">
-            {entries.map((e, i) => (
+          <ol className="mt-[var(--s-10)] grid grid-cols-2 gap-px overflow-hidden rounded-[26px] border border-[var(--glass-rule)] bg-[var(--glass-rule)] sm:grid-cols-5">
+            {entries.map((e) => (
               <li
                 key={e.number}
-                className="av-rise bg-[rgba(12,11,10,0.62)] backdrop-blur-md last:col-span-2 sm:last:col-span-1"
-                style={{ animationDelay: `${120 + i * 90}ms` }}
-              >
+                className="bg-[rgba(12,9,9,0.55)] backdrop-blur-xl last:col-span-2 sm:last:col-span-1"
+                              >
                 {e.project ? (
                   <Link
                     href={`/projects/${e.project.slug}`}
@@ -118,8 +86,7 @@ export default function ReefCollectionPage() {
               </li>
             ))}
           </ol>
-        </Wrap>
-      </section>
+      </PageHero>
 
       {/* ── Paper: the listed projects, read as data ───────────────────── */}
       <Wrap className="pt-[var(--band)]">

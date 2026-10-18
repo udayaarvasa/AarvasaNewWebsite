@@ -30,17 +30,15 @@ const config = {
         "gold-sm": "0 1px 2px rgba(31, 27, 23, 0.05)",
       },
       borderRadius: {
-        /* Near-square: the page is drawn, not rounded. */
+        /* 2026: soft, generous corners on glass; hairline-square on media. */
         none: "0",
-        xs: "2px",
-        sm: "4px",
-        /* DEPRECATED — the old 1.25/1.5rem card radii, pulled in to 4px so
-           un-migrated pages stop looking like a different product. */
-        md: "4px",
-        lg: "4px",
-        xl: "4px",
-        "2xl": "4px",
-        "3xl": "4px",
+        xs: "4px",
+        sm: "8px",
+        md: "12px",
+        lg: "16px",
+        xl: "20px",
+        "2xl": "26px",
+        "3xl": "34px",
       },
     },
   },
