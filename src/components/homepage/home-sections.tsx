@@ -18,13 +18,14 @@ import {
   MeasureRule,
   SectionIndex,
 } from "@/components/av/graphics";
-import { ImageReveal, Parallax, Reveal, RevealGroup, RevealItem, TextReveal } from "@/components/av/motion";
+import { ImageReveal, Parallax, Reveal, RevealGroup, RevealItem, SlideIn, TextReveal } from "@/components/av/motion";
 import { ProjectCards } from "@/components/property/project-cards";
 import { projectImageSrc } from "@/lib/project-types";
 import { publishedProjects } from "@/lib/projects";
 import { formatCompact, inrEstimate } from "@/lib/currency";
 import { projectsWithModel } from "@/lib/services/project-models";
 import { CountUp } from "@/components/av/count-up";
+import { Compass, FileText, KeyRound, Lock, MapPinned, Scale, ScanSearch, Sparkles } from "lucide-react";
 
 /**
  * The homepage, composed from real project data only.
@@ -304,26 +305,36 @@ const JOURNEY = [
   {
     name: "Discover",
     live: true,
+    icon: ScanSearch,
+    image: "/images/reef-996/hero/reef-996-tower-aerial-3x2.jpg",
     body: "Search on city, budget, configuration and specification — filters that hold, and a URL you can share.",
   },
   {
     name: "Explore",
     live: true,
+    icon: Compass,
+    image: "/images/reef-996/gallery/showapt-living-dining-3x2.jpg",
     body: "Open the developer's imagery and measured plans. Where a building has been captured in 3D or 360°, it appears on its page — and nowhere else.",
   },
   {
     name: "Evaluate",
     live: true,
+    icon: Scale,
+    image: "/images/reef-996/amenities/reef-996-pool-cabanas-3x2.jpg",
     body: "Put a shortlist of three side by side on price, specification and locality, then send one enquiry.",
   },
   {
     name: "Invest",
     live: false,
+    icon: Lock,
+    image: null,
     body: "Fractional participation and digital records of title. In development — not available today.",
   },
   {
     name: "Own",
     live: false,
+    icon: KeyRound,
+    image: null,
     body: "Ownership, documents and resale in one place. In development — not available today.",
   },
 ];
@@ -340,31 +351,60 @@ export function HowAarvasaWorks({ n = 5, total = 8 }: SectionPosition = {}) {
       <div className="mb-[var(--s-5)]">
         <MeasureRule ticks={60} />
       </div>
-      <div className="grid border-t border-rule-firm md:grid-cols-3 lg:grid-cols-5">
-        {JOURNEY.map((step, i) => (
-          <div
-            key={step.name}
-            className={`border-b border-rule py-[var(--s-5)] pr-[var(--s-5)] lg:border-b-0 lg:border-r lg:last:border-r-0 ${
-              step.live ? "" : "bg-[repeating-linear-gradient(-45deg,transparent_0_7px,rgba(80,8,14,0.04)_7px_8px)]"
-            }`}
-          >
-            <span className={`av-meta ${step.live ? "text-gold-ink" : "text-ink-disabled"}`}>
-              {String(i + 1).padStart(2, "0")} / 05
-            </span>
-            <h3
-              className={`av-display mt-2 text-[26px] ${step.live ? "" : "text-ink-disabled"}`}
-            >
-              {step.name}
-            </h3>
-            <p className="mt-2 text-[13px] leading-relaxed text-ink-muted">{step.body}</p>
-            {!step.live && (
-              <span className="av-meta mt-3 inline-block rounded-xs border border-dashed border-rule-firm px-2 py-1 text-ink-muted">
-                In development
-              </span>
-            )}
-          </div>
-        ))}
-      </div>
+      <RevealGroup className="grid gap-[var(--s-4)] md:grid-cols-3 lg:grid-cols-5">
+        {JOURNEY.map((step, i) => {
+          const Icon = step.icon;
+          return (
+            <RevealItem key={step.name}>
+              <div
+                className={`group flex h-full flex-col overflow-hidden rounded-sm border transition-all duration-500 ${
+                  step.live
+                    ? "border-rule bg-paper-raised hover:-translate-y-1.5 hover:shadow-[var(--e-over)]"
+                    : "border-dashed border-rule-firm bg-[repeating-linear-gradient(-45deg,transparent_0_7px,rgba(80,8,14,0.04)_7px_8px)]"
+                }`}
+              >
+                <div className="relative aspect-[3/2] overflow-hidden bg-paper-sunken">
+                  {step.image ? (
+                    <>
+                      <Image
+                        src={step.image}
+                        alt=""
+                        fill
+                        sizes="(min-width: 1024px) 230px, (min-width: 768px) 33vw, 100vw"
+                        className="object-cover transition-transform duration-[1200ms] ease-[var(--ease-enter)] group-hover:scale-110"
+                      />
+                      <span className="absolute inset-0 bg-gradient-to-t from-[rgba(12,11,10,0.5)] to-transparent" />
+                    </>
+                  ) : (
+                    <div className="absolute inset-0 flex items-center justify-center">
+                      <ContourField seed={i + 3} className="opacity-60" />
+                    </div>
+                  )}
+                  <span
+                    className={`absolute bottom-3 left-3 flex h-10 w-10 items-center justify-center rounded-full transition-transform duration-500 group-hover:rotate-[10deg] group-hover:scale-110 ${
+                      step.live ? "bg-wine text-gold" : "border border-rule-firm bg-paper text-ink-disabled"
+                    }`}
+                  >
+                    <Icon className="h-[18px] w-[18px]" aria-hidden="true" />
+                  </span>
+                </div>
+                <div className="flex flex-1 flex-col p-[var(--s-5)]">
+                  <span className={`av-meta ${step.live ? "text-gold-ink" : "text-ink-disabled"}`}>
+                    {String(i + 1).padStart(2, "0")} / 05
+                  </span>
+                  <h3 className={`av-display mt-1 text-[26px] ${step.live ? "" : "text-ink-disabled"}`}>{step.name}</h3>
+                  <p className="mt-2 text-[13px] leading-relaxed text-ink-muted">{step.body}</p>
+                  {!step.live && (
+                    <span className="av-meta mt-auto inline-block self-start rounded-xs border border-dashed border-rule-firm px-2 py-1 pt-1 text-ink-muted">
+                      In development
+                    </span>
+                  )}
+                </div>
+              </div>
+            </RevealItem>
+          );
+        })}
+      </RevealGroup>
     </Wrap>
   );
 }
@@ -379,7 +419,7 @@ export function AdvisorPanel({ n = 6, total = 8 }: SectionPosition = {}) {
         label="Property intelligence"
         note="The advisor sits in the margin of the page, where a good editor sits."
       />
-      <div className="grid grid-cols-1 items-start gap-[var(--s-14)] lg:grid-cols-[minmax(0,1fr)_340px]">
+      <div className="grid grid-cols-1 items-start gap-[var(--s-14)] lg:grid-cols-[minmax(0,1fr)_400px]">
         <div>
           <p className="av-display max-w-[24ch] text-[clamp(24px,2.8vw,34px)] italic leading-[1.26] text-burgundy">
             “A two-bedroom near a metro line in Gurugram, ready to move, under ₹4 Cr.”
@@ -396,17 +436,65 @@ export function AdvisorPanel({ n = 6, total = 8 }: SectionPosition = {}) {
             Open the advisor
           </Link>
         </div>
-        <div className="border-t border-rule-firm">
-          {[
-            ["Reads", "Specification sheets, developer filings, locality data"],
-            ["Answers", "In plain sentences, with its sources shown"],
-            ["Will not", "Forecast a price, quote a yield, or give investment advice"],
-          ].map(([term, value]) => (
-            <div key={term} className="border-b border-rule py-[9px]">
-              <span className="av-meta block text-gold-ink">{term}</span>
-              <span className="text-[13px] text-ink-muted">{value}</span>
+        <div>
+          {/* An illustration of the advisor, not a transcript: the question,
+              the advisor at work, and the kinds of source it cites. */}
+          <div
+            data-surface="wine"
+            className="relative isolate overflow-hidden rounded-sm p-[var(--s-5)] shadow-[0_30px_70px_rgba(74,15,18,0.22)]"
+          >
+            <ContourField tone="stage" seed={19} className="opacity-25" />
+            <div className="relative z-[2]">
+              <div className="flex items-center gap-2 border-b border-wine-rule pb-3">
+                <span className="flex h-8 w-8 items-center justify-center rounded-full bg-gold/15 text-gold">
+                  <Sparkles className="h-4 w-4" aria-hidden="true" />
+                </span>
+                <span className="text-[13px] font-semibold text-wine-ink">Aarvasa advisor</span>
+                <span className="av-meta ml-auto text-wine-muted">Illustration</span>
+              </div>
+              <SlideIn from="right" className="mt-4 flex justify-end">
+                <p className="max-w-[85%] rounded-sm rounded-br-none bg-wine-ink px-3 py-2 text-[13px] leading-relaxed text-wine">
+                  Two-bedroom near a metro line, ready to move, under ₹4 Cr?
+                </p>
+              </SlideIn>
+              <SlideIn from="left" delay={0.35} className="mt-3">
+                <div className="max-w-[90%] rounded-sm rounded-bl-none border border-wine-rule bg-wine-raised px-3 py-3">
+                  <span className="flex items-center gap-1.5 text-[13px] text-wine-muted">
+                    Reading the filings
+                    <span className="av-dots inline-flex gap-1" aria-hidden="true">
+                      <i /><i /><i />
+                    </span>
+                  </span>
+                  <span className="mt-3 flex flex-wrap gap-1.5">
+                    {[
+                      [FileText, "Specification sheet"],
+                      [Scale, "Developer filing"],
+                      [MapPinned, "Locality data"],
+                    ].map(([ChipIcon, label]) => {
+                      const I = ChipIcon as typeof FileText;
+                      return (
+                        <span key={label as string} className="av-meta inline-flex items-center gap-1 rounded-xs border border-gold/40 px-2 py-1 text-gold">
+                          <I className="h-3 w-3" aria-hidden="true" /> {label as string}
+                        </span>
+                      );
+                    })}
+                  </span>
+                </div>
+              </SlideIn>
             </div>
-          ))}
+          </div>
+          <div className="mt-[var(--s-5)] border-t border-rule-firm">
+            {[
+              ["Reads", "Specification sheets, developer filings, locality data"],
+              ["Answers", "In plain sentences, with its sources shown"],
+              ["Will not", "Forecast a price, quote a yield, or give investment advice"],
+            ].map(([term, value]) => (
+              <div key={term} className="border-b border-rule py-[9px]">
+                <span className="av-meta block text-gold-ink">{term}</span>
+                <span className="text-[13px] text-ink-muted">{value}</span>
+              </div>
+            ))}
+          </div>
         </div>
       </div>
     </Wrap>

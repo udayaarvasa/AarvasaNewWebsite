@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Compass, ScanSearch, Scale, ArrowRight } from "lucide-react";
+import { Compass, ScanSearch, Scale, ArrowRight, PieChart, FileCheck2, Landmark } from "lucide-react";
 import { FramedImage } from "@/components/av/framed-image";
 import { Ledger, Note, SectionHead, Wrap } from "@/components/av/primitives";
 import {
@@ -11,7 +11,7 @@ import {
   PlanMotif,
   SectionIndex,
 } from "@/components/av/graphics";
-import { Reveal, TextReveal } from "@/components/av/motion";
+import { Reveal, RevealGroup, RevealItem, TextReveal } from "@/components/av/motion";
 import { StatementBanner } from "@/components/av/banner";
 
 export const metadata = {
@@ -253,6 +253,12 @@ export default function ServicesPage() {
           eyebrow="What we do not do"
           title="No yields. No forecasts. No ownership claims."
           body="Aarvasa is a property discovery and marketing platform. Everything below is in development and is not offered today."
+          image={{
+            backdrop: "/images/reef-996/banners/reef-996-tower-facade-night-16x9.jpg",
+            inset: "/images/reef-997/interiors/reef-997-bedroom-4x5.jpg",
+            alt: "A REEF 997 bedroom",
+            caption: "Developer render · REEF 997",
+          }}
         />
       </div>
 
@@ -262,14 +268,28 @@ export default function ServicesPage() {
           title="Not offered today"
           note="Listed here so the roadmap is visible without being sold anywhere else on the site."
         />
-        <Ledger
-          className="-mt-[var(--s-6)]"
-          rows={[
-            ["Fractional participation", "A way to take a share in a property rather than the whole of it."],
-            ["Digital records of title", "Verifiable ownership records and transfer history."],
-            ["Escrow automation", "Automated, milestone-linked release of funds."],
-          ].map(([t, d]) => ({ term: t, value: d }))}
-        />
+        {/* Roadmap as cards, each plainly marked as not yet offered */}
+        <RevealGroup className="-mt-[var(--s-6)] grid gap-[var(--s-5)] md:grid-cols-3">
+          {[
+            { icon: PieChart, title: "Fractional participation", body: "A way to take a share in a property rather than the whole of it." },
+            { icon: FileCheck2, title: "Digital records of title", body: "Verifiable ownership records and transfer history." },
+            { icon: Landmark, title: "Escrow automation", body: "Automated, milestone-linked release of funds." },
+          ].map(({ icon: Icon, title, body }) => (
+            <RevealItem key={title}>
+              <div className="group relative h-full overflow-hidden rounded-sm border border-rule bg-paper-raised p-[var(--s-6)] transition-all duration-500 hover:-translate-y-1 hover:border-gold-ink/40 hover:shadow-[var(--e-over)]">
+                <div aria-hidden="true" className="absolute -right-6 -top-6 h-28 w-28 rounded-full bg-burgundy-wash transition-transform duration-700 group-hover:scale-150" />
+                <div className="relative flex items-center justify-between">
+                  <span className="flex h-11 w-11 items-center justify-center rounded-full bg-wine text-gold">
+                    <Icon className="h-5 w-5" aria-hidden="true" />
+                  </span>
+                  <span className="av-meta rounded-xs border border-rule-firm px-2 py-[3px] text-ink-muted">In development</span>
+                </div>
+                <h3 className="relative mt-[var(--s-5)] text-[17px] font-semibold">{title}</h3>
+                <p className="relative mt-1 text-[14px] leading-relaxed text-ink-muted">{body}</p>
+              </div>
+            </RevealItem>
+          ))}
+        </RevealGroup>
         <Note className="mt-[var(--s-5)] max-w-none">
           Aarvasa is a property discovery and marketing platform. It does not offer investment
           products, fractional ownership, tokenised title or any financial service, and it does not
@@ -278,31 +298,6 @@ export default function ServicesPage() {
         </Note>
       </Wrap>
 
-      <Wrap className="pt-[var(--band)]">
-        <div data-surface="wine" className="relative isolate overflow-hidden rounded-sm px-[var(--s-8)] py-[var(--s-14)] text-center shadow-[0_30px_70px_rgba(74,15,18,0.25)]">
-          <ContourField tone="stage" seed={11} className="opacity-20" />
-          <div className="relative z-[2]">
-            <span className="av-label text-gold">Start here</span>
-            <p className="av-display mx-auto mt-3 max-w-[22ch] text-[clamp(26px,3.4vw,42px)] leading-[1.1] text-wine-ink">
-              Start with one building.
-            </p>
-            <p className="mx-auto mt-3 max-w-[48ch] text-[15px] leading-relaxed text-wine-muted">
-              Browse what is listed, or tell the desk what you are looking for.
-            </p>
-            <div className="mt-[var(--s-8)] flex flex-wrap justify-center gap-[var(--s-3)]">
-              <Link href="/listings" className="av-gold av-label inline-flex items-center gap-2 px-7 py-[14px]">
-                Browse properties <ArrowRight className="h-4 w-4" aria-hidden="true" />
-              </Link>
-              <Link
-                href="/contact"
-                className="av-label rounded-sm border border-wine-ink/30 px-7 py-[14px] text-wine-ink transition-colors hover:border-wine-ink hover:bg-wine-raised"
-              >
-                Talk to the desk
-              </Link>
-            </div>
-          </div>
-        </div>
-      </Wrap>
     </div>
   );
 }

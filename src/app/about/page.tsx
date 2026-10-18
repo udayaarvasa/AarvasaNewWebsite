@@ -270,6 +270,12 @@ export default function AboutPage() {
           eyebrow="How we are paid"
           title="We hold no inventory and take no fee from buyers."
           body="Developers pay Aarvasa when an enquiry becomes a sale. That is the whole business model, and it is why the specification on this site is the developer's own filing rather than a sales description."
+          image={{
+            backdrop: "/images/reef-998/amenities/reef-998-garden-terrace-16x9.jpg",
+            inset: "/images/reef-997/amenities/reef-997-garden-terrace-4x5.jpg",
+            alt: "REEF 997 garden terrace",
+            caption: "Developer render · REEF 997",
+          }}
         />
       </div>
 

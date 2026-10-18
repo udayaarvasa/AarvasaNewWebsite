@@ -239,3 +239,79 @@ export function HoverLift({ children, className }: { children: React.ReactNode; 
     </motion.div>
   );
 }
+
+/* ── SlideIn · a frame that arrives from the side ────────────────────── */
+
+export function SlideIn({
+  children,
+  className,
+  from = "right",
+  delay = 0,
+}: {
+  children: React.ReactNode;
+  className?: string;
+  from?: "left" | "right" | "bottom";
+  delay?: number;
+}) {
+  const reduced = useReducedMotion();
+  if (reduced) return <div className={className}>{children}</div>;
+  const offset = from === "bottom" ? { y: 48 } : { x: from === "left" ? -56 : 56 };
+  return (
+    <motion.div
+      initial={{ opacity: 0, ...offset }}
+      whileInView={{ opacity: 1, x: 0, y: 0 }}
+      viewport={{ once: true, margin: "-60px" }}
+      transition={{ duration: 0.9, ease: EASE_ENTER, delay }}
+      className={className}
+    >
+      {children}
+    </motion.div>
+  );
+}
+
+/* ── DrawnTower · an elevation that draws itself in ──────────────────── */
+
+/**
+ * A tower elevation in line: plinth, shaft, floor plates, the curved balcony
+ * bands REEF is known for, and a crown. Each line draws in turn as the
+ * drawing scrolls into view. Decorative — hidden from assistive technology.
+ */
+export function DrawnTower({ className, tone = "paper" }: { className?: string; tone?: "paper" | "stage" | "wine" }) {
+  const reduced = useReducedMotion();
+  const stroke = tone === "paper" ? "var(--gold-ink)" : "var(--gold)";
+  const faint = tone === "paper" ? "var(--rule-firm)" : "rgba(246,237,228,0.28)";
+  const floors = Array.from({ length: 14 }, (_, i) => 70 + i * 22);
+  const draw = (i: number) =>
+    reduced
+      ? {}
+      : {
+          initial: { pathLength: 0, opacity: 0 },
+          whileInView: { pathLength: 1, opacity: 1 },
+          viewport: { once: true },
+          transition: { duration: 1.4, ease: EASE_ENTER, delay: 0.08 * i },
+        };
+
+  return (
+    <svg aria-hidden="true" viewBox="0 0 240 420" fill="none" className={cn("h-full w-full", className)}>
+      {/* ground and plinth */}
+      <motion.path d="M10 400 H230" stroke={faint} strokeWidth="1" {...draw(0)} />
+      <motion.path d="M50 400 V380 H190 V400" stroke={stroke} strokeWidth="1.2" {...draw(1)} />
+      {/* shaft */}
+      <motion.path d="M66 380 V60 Q66 40 86 40 H154 Q174 40 174 60 V380" stroke={stroke} strokeWidth="1.4" {...draw(2)} />
+      {/* crown */}
+      <motion.path d="M80 40 Q120 10 160 40" stroke={stroke} strokeWidth="1.2" {...draw(3)} />
+      {/* floor plates, with REEF's wave balconies */}
+      {floors.map((y, i) => (
+        <motion.path
+          key={y}
+          d={`M58 ${y} C78 ${y - 7} 96 ${y + 7} 120 ${y} S162 ${y - 7} 182 ${y}`}
+          stroke={i % 4 === 1 ? stroke : faint}
+          strokeWidth="1"
+          {...draw(4 + i * 0.5)}
+        />
+      ))}
+      {/* dimension line */}
+      <motion.path d="M206 40 V380 M200 40 H212 M200 380 H212" stroke={faint} strokeWidth="1" {...draw(12)} />
+    </svg>
+  );
+}

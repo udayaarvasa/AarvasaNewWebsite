@@ -2,7 +2,8 @@ import Image from "next/image";
 import Link from "next/link";
 import { Wrap } from "./primitives";
 import { ContourField, CoordinateMarks, DraftingGrid, ElevationMotif, Grain, MeasureRule } from "./graphics";
-import { Parallax, TextReveal } from "./motion";
+import { DrawnTower, ImageReveal, Parallax, SlideIn, TextReveal } from "./motion";
+import { FramedImage } from "./framed-image";
 import { cn } from "@/lib/utils";
 
 /**
@@ -107,14 +108,28 @@ export function StatementBanner({
   title,
   body,
   footnote,
+  image,
 }: {
   eyebrow?: string;
   title: string;
   body?: string;
   footnote?: string;
+  /** A backdrop and an inset frame. `caption` states what the picture is. */
+  image?: { backdrop: string; inset?: string; alt: string; caption: string };
 }) {
   return (
     <section data-surface="stage" className="relative isolate overflow-hidden bg-stage py-[var(--band)]">
+      {image && (
+        <>
+          <Parallax distance={40} className="absolute inset-0 -z-10">
+            <Image src={image.backdrop} alt="" fill sizes="100vw" className="object-cover opacity-45" />
+          </Parallax>
+          <div
+            aria-hidden="true"
+            className="absolute inset-0 -z-10 bg-[linear-gradient(90deg,rgba(12,11,10,0.95)_0%,rgba(12,11,10,0.82)_50%,rgba(12,11,10,0.45)_100%)]"
+          />
+        </>
+      )}
       <ContourField tone="stage" seed={4} className="opacity-60" />
       <DraftingGrid tone="stage" size={64} fade="radial" className="opacity-40" />
       <Grain opacity={0.05} />
@@ -136,6 +151,22 @@ export function StatementBanner({
         </div>
         {footnote && <p className="av-meta mt-[var(--s-4)] text-stage-muted">{footnote}</p>}
       </Wrap>
+
+      {image?.inset && (
+        <SlideIn
+          from="right"
+          className="absolute right-[var(--gutter)] top-1/2 z-[2] hidden h-[340px] w-[270px] -translate-y-1/2 xl:block"
+        >
+          <FramedImage
+            src={image.inset}
+            alt={image.alt}
+            caption={image.caption}
+            sizes="270px"
+            offset="tl"
+            className="av-float h-full w-full"
+          />
+        </SlideIn>
+      )}
     </section>
   );
 }
@@ -148,12 +179,15 @@ export function TextureBanner({
   body,
   tone = "paper",
   motif = "elevation",
+  image,
 }: {
   eyebrow?: string;
   title: string;
   body?: string;
   tone?: "paper" | "stage";
   motif?: "elevation" | "contour";
+  /** A framed picture beside the drawing. */
+  image?: { src: string; alt: string; caption: string };
 }) {
   const stage = tone === "stage";
   return (
@@ -194,10 +228,29 @@ export function TextureBanner({
             )}
           </div>
 
-          {motif === "elevation" && (
-            <div aria-hidden="true" className="h-[260px] md:h-[320px]">
-              <ElevationMotif tone={tone} storeys={16} accentRow={5} />
+          {image ? (
+            /* The drawing and the building it describes, side by side: the
+               elevation draws itself in, the render is revealed beside it. */
+            <div className="relative grid h-[340px] grid-cols-[0.8fr_1fr] items-end gap-[var(--s-6)] md:h-[400px]">
+              <div className="h-full py-2">
+                <DrawnTower tone={tone} />
+              </div>
+              <ImageReveal className="h-full">
+                <FramedImage
+                  src={image.src}
+                  alt={image.alt}
+                  caption={image.caption}
+                  sizes="(min-width: 1024px) 300px, 55vw"
+                  className="h-full w-full"
+                />
+              </ImageReveal>
             </div>
+          ) : (
+            motif === "elevation" && (
+              <div aria-hidden="true" className="h-[260px] md:h-[320px]">
+                <ElevationMotif tone={tone} storeys={16} accentRow={5} />
+              </div>
+            )
           )}
         </div>
       </Wrap>

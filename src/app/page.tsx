@@ -57,6 +57,12 @@ export default async function Home() {
           title="A building is a document before it is a photograph."
           body="Structure, plot, ceiling heights, approvals, payment schedules, handover. Aarvasa publishes what the developer filed and sets it as data you can read across — because the things that decide a purchase are rarely the things a brochure photographs."
           footnote="Filed, not written · Produced, not promised · No forecasts"
+          image={{
+            backdrop: "/images/reef-997/hero/reef-997-pool-sunset-16x9.jpg",
+            inset: "/images/reef-998/hero/reef-998-pool-facade-4x5.jpg",
+            alt: "REEF 998 pool and facade",
+            caption: "Developer render · REEF 998",
+          }}
         />
       </div>
 
@@ -69,6 +75,11 @@ export default async function Home() {
           title="Read the elevation, not the adjective."
           body="Every project page carries the specification as a drawing schedule: a ledger of what was filed, with the gaps left visible rather than estimated."
           motif="elevation"
+          image={{
+            src: "/images/reef-996/architecture/reef-996-facade-detail-4x5.jpg",
+            alt: "Facade detail of REEF 996",
+            caption: "Developer render · REEF 996",
+          }}
         />
       </div>
 
