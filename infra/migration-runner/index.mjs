@@ -45,8 +45,11 @@ async function prisma(args, env) {
   }
 }
 
-export async function handler() {
+export async function handler(event) {
   const steps = [];
+  /* `{ "mode": "status" }` reads and reports, and writes nothing: the plan can
+     be inspected before anything is applied. Any other invocation migrates. */
+  const statusOnly = event?.mode === "status";
   const note = (step, ok, detail) => steps.push({ step, ok, detail: mask(detail).slice(0, 900) });
 
   // ── 1. Credential ──────────────────────────────────────────────────────
@@ -64,6 +67,13 @@ export async function handler() {
   } catch (err) {
     note("read secret", false, err.message);
     return { ok: false, steps };
+  }
+
+  if (statusOnly) {
+    // migrate status exits non-zero when migrations are pending; the output is the answer either way.
+    const status = await prisma(["migrate", "status", "--schema", SCHEMA], { DATABASE_URL: databaseUrl });
+    note("migrate status (read-only)", true, status.out);
+    return { ok: true, mode: "status", steps };
   }
 
   // ── 2. Create the database if it is missing ────────────────────────────
