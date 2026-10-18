@@ -1,4 +1,6 @@
 import Link from "next/link";
+import { Compass, ScanSearch, Scale, ArrowRight } from "lucide-react";
+import { FramedImage } from "@/components/av/framed-image";
 import { Ledger, Note, SectionHead, Wrap } from "@/components/av/primitives";
 import {
   ContourField,
@@ -40,6 +42,7 @@ const audiences: {
   body: string;
   includes: [string, string][];
   motif: Motif;
+  image: { src: string; alt: string; caption: string };
 }[] = [
   {
     label: "For buyers",
@@ -52,6 +55,7 @@ const audiences: {
       ["Direct enquiry", "Routed to the developer or their appointed channel partner"],
     ],
     motif: "elevation",
+    image: { src: "/images/reef-996/gallery/showapt-living-3x2.jpg", alt: "A furnished show apartment living room at REEF 996", caption: "Show apartment · REEF 996" },
   },
   {
     label: "For owners and occupiers",
@@ -64,6 +68,7 @@ const audiences: {
       ["Layout drawings", "Published as drawings and labelled as such, never as photography"],
     ],
     motif: "plan",
+    image: { src: "/images/reef-996/architecture/reef-996-facade-detail-3x2.jpg", alt: "Facade detail of REEF 996", caption: "Developer render · REEF 996" },
   },
   {
     label: "For builders",
@@ -76,6 +81,7 @@ const audiences: {
       ["Enquiry routing", "Enquiries delivered with the context the buyer already gave"],
     ],
     motif: "contour",
+    image: { src: "/images/reef-996/architecture/reef-996-tower-elevation-day-3x2.jpg", alt: "REEF 996 tower elevation in daylight", caption: "Developer render · REEF 996" },
   },
   {
     label: "For channel partners",
@@ -88,6 +94,7 @@ const audiences: {
       ["Agent network", "A listed presence on the Aarvasa agents directory"],
     ],
     motif: "plan",
+    image: { src: "/images/reef-996/amenities/reef-996-pool-cabanas-3x2.jpg", alt: "Pool cabanas at REEF 996", caption: "Developer render · REEF 996" },
   },
 ];
 
@@ -101,43 +108,101 @@ function Motif({ kind, tone }: { kind: Motif; tone: "paper" | "stage" }) {
   );
 }
 
+const PROCESS_ICONS = [ScanSearch, Compass, Scale];
+
 const process = [
   ["Discover", "Search the platform on the specification that decides it, or describe what you want to the advisor."],
-  ["Explore", "Open the 3D model, the 360° tour or the measured plans — wherever those assets have been produced."],
+  ["Explore", "Open the developer's imagery and measured plans. 3D and 360° captures appear wherever they have been produced."],
   ["Evaluate", "Compare a shortlist of three, then send one enquiry to the developer."],
 ];
 
 export default function ServicesPage() {
   return (
     <div className="pb-[var(--s-24)]">
-      <section className="relative isolate overflow-hidden bg-paper-sunken pb-[var(--band-tight)] pt-[var(--s-10)]">
+      <section className="relative isolate overflow-hidden bg-paper-sunken pb-[var(--band)] pt-[var(--s-10)]">
         <DraftingGrid size={44} fade="radial" className="opacity-25" />
         <Grain opacity={0.04} />
-        <Wrap className="relative z-[2]">
-        <span className="av-label text-gold-ink">Services</span>
-        <TextReveal
-          as="h1"
-          text="Four people use Aarvasa. It is built for all four."
-          className="av-display mt-2 max-w-[20ch] text-[clamp(32px,4.6vw,56px)] leading-[1.02]"
-        />
-        <p className="mt-[var(--s-4)] max-w-[54ch] text-[17px] leading-relaxed text-ink-muted">
-          Buyers and occupiers on one side, builders and their channel partners on the other. The
-          same captured project serves both.
-        </p>
-        <div className="mt-[var(--s-6)] max-w-[440px]">
-          <MeasureRule />
-        </div>
+        <Wrap className="relative z-[2] grid items-center gap-[var(--s-14)] lg:grid-cols-[1.05fr_0.95fr]">
+          <div>
+            <span className="av-label text-gold-ink">Services</span>
+            <TextReveal
+              as="h1"
+              text="Four people use Aarvasa. It is built for all four."
+              className="av-display mt-2 max-w-[20ch] text-[clamp(32px,4.6vw,56px)] leading-[1.02]"
+            />
+            <p className="mt-[var(--s-4)] max-w-[54ch] text-[17px] leading-relaxed text-ink-muted">
+              Buyers and occupiers on one side, builders and their channel partners on the other. The
+              same captured project serves both.
+            </p>
+            <div className="mt-[var(--s-6)] max-w-[440px]">
+              <MeasureRule />
+            </div>
+            <div className="mt-[var(--s-8)] flex flex-wrap gap-[var(--s-3)]">
+              <Link href="/listings" className="av-gold av-label inline-flex items-center gap-2 px-6 py-[13px]">
+                Browse properties <ArrowRight className="h-4 w-4" aria-hidden="true" />
+              </Link>
+              <Link
+                href="/contact"
+                className="av-label rounded-xs border border-rule-firm px-6 py-[13px] text-ink transition-colors hover:bg-paper"
+              >
+                Talk to the desk
+              </Link>
+            </div>
+          </div>
+
+          {/* Two frames of one real project: the tower, and a room inside it. */}
+          <div className="relative mx-auto h-[380px] w-full max-w-[520px] sm:h-[460px]">
+            <FramedImage
+              src="/images/reef-996/hero/reef-996-tower-aerial-4x5.jpg"
+              alt="REEF 996 from the air"
+              caption="Developer render · REEF 996"
+              sizes="(min-width: 1024px) 340px, 70vw"
+              priority
+              captionAt="top"
+              className="absolute right-0 top-0 h-[78%] w-[66%]"
+            />
+            <FramedImage
+              src="/images/reef-996/gallery/showapt-bedroom-4x5.jpg"
+              alt="Bedroom of the REEF 996 show apartment"
+              caption="Show apartment"
+              sizes="(min-width: 1024px) 240px, 50vw"
+              offset="tl"
+              className="av-float absolute bottom-0 left-0 h-[56%] w-[48%] shadow-[0_24px_60px_rgba(31,27,23,0.22)]"
+            />
+          </div>
         </Wrap>
       </section>
 
-      <Wrap className="pt-[var(--band)]">
-        <SectionHead
-          label="How it works"
-          title="Discover, explore, evaluate"
-          note="Three steps that exist today. Investment and ownership are in development and are not offered."
-        />
-        <Ledger className="-mt-[var(--s-6)]" rows={process.map(([t, d]) => ({ term: t, value: d }))} />
-      </Wrap>
+      {/* How it works — on wine, the brand's own ground */}
+      <section data-surface="wine" className="relative isolate overflow-hidden py-[var(--band)]">
+        <ContourField tone="stage" seed={5} className="opacity-25" />
+        <Wrap className="relative z-[2]">
+          <span className="av-label text-gold">How it works</span>
+          <h2 className="av-display mt-2 text-[clamp(28px,3.6vw,44px)] leading-[1.05] text-wine-ink">
+            Discover, explore, evaluate
+          </h2>
+          <p className="mt-3 max-w-[60ch] text-[15px] leading-relaxed text-wine-muted">
+            Three steps that exist today. Investment and ownership are in development and are not offered.
+          </p>
+          <ol className="mt-[var(--s-10)] grid gap-px overflow-hidden border border-wine-rule bg-wine-rule md:grid-cols-3">
+            {process.map(([t, d], i) => {
+              const Icon = PROCESS_ICONS[i];
+              return (
+                <li key={t} className="group bg-wine p-[var(--s-8)] transition-colors duration-300 hover:bg-wine-raised">
+                  <div className="flex items-center justify-between">
+                    <span className="flex h-11 w-11 items-center justify-center rounded-full border border-gold/50 text-gold transition-transform duration-500 group-hover:rotate-[8deg] group-hover:scale-105">
+                      <Icon className="h-5 w-5" aria-hidden="true" />
+                    </span>
+                    <span className="av-display text-[44px] leading-none text-gold/35">0{i + 1}</span>
+                  </div>
+                  <h3 className="av-display mt-[var(--s-6)] text-[26px] text-wine-ink">{t}</h3>
+                  <p className="mt-2 text-[14.5px] leading-relaxed text-wine-muted">{d}</p>
+                </li>
+              );
+            })}
+          </ol>
+        </Wrap>
+      </section>
 
       {audiences.map((a, i) => (
         <section
@@ -151,7 +216,7 @@ export default function ServicesPage() {
           {i % 2 === 1 && <DraftingGrid size={40} fade="radial" className="opacity-20" />}
           <Wrap className="relative z-[2]">
             <Reveal>
-              <SectionIndex n={i + 2} total={audiences.length + 2} className="mb-[var(--s-3)]" />
+              <SectionIndex n={i + 1} total={audiences.length} className="mb-[var(--s-3)]" />
               <SectionHead label={a.label} title={a.title} />
               <div className="-mt-[var(--s-6)] grid grid-cols-1 items-center gap-[var(--s-10)] lg:grid-cols-[1fr_0.85fr]">
                 <div className={i % 2 === 1 ? "lg:order-2" : undefined}>
@@ -160,11 +225,22 @@ export default function ServicesPage() {
                     <Ledger rows={a.includes.map(([t, d]) => ({ term: t, value: d }))} />
                   </div>
                 </div>
-                <div
-                  aria-hidden="true"
-                  className={`relative h-[300px] md:h-[400px] ${i % 2 === 1 ? "lg:order-1" : ""}`}
-                >
-                  <Motif kind={a.motif} tone="paper" />
+                <div className={`relative h-[300px] md:h-[400px] ${i % 2 === 1 ? "lg:order-1" : ""}`}>
+                  <FramedImage
+                    src={a.image.src}
+                    alt={a.image.alt}
+                    caption={a.image.caption}
+                    sizes="(min-width: 1024px) 45vw, 100vw"
+                    offset={i % 2 === 1 ? "bl" : "br"}
+                    className="h-full w-full"
+                  />
+                  {/* The drawing behind the picture: the site's own line work */}
+                  <div
+                    aria-hidden="true"
+                    className={`pointer-events-none absolute -bottom-8 hidden h-[46%] w-[40%] opacity-70 md:block ${i % 2 === 1 ? "-right-10" : "-left-10"}`}
+                  >
+                    <Motif kind={a.motif} tone="paper" />
+                  </div>
                 </div>
               </div>
             </Reveal>
@@ -203,23 +279,27 @@ export default function ServicesPage() {
       </Wrap>
 
       <Wrap className="pt-[var(--band)]">
-        <div className="flex flex-wrap items-center gap-[var(--s-4)] border-t border-rule-firm pt-[var(--s-8)]">
-          <p className="av-display max-w-[22ch] text-[clamp(24px,3vw,36px)] leading-[1.1]">
-            Start with one building.
-          </p>
-          <div className="ml-auto flex flex-wrap gap-[var(--s-3)]">
-            <Link
-              href="/listings"
-              className="av-label rounded-xs bg-burgundy px-6 py-[13px] text-paper transition-colors hover:bg-burgundy-deep"
-            >
-              Browse properties
-            </Link>
-            <Link
-              href="/contact"
-              className="av-label rounded-xs border border-rule-firm px-6 py-[13px] text-ink transition-colors hover:bg-paper-sunken"
-            >
-              Talk to the desk
-            </Link>
+        <div data-surface="wine" className="relative isolate overflow-hidden rounded-sm px-[var(--s-8)] py-[var(--s-14)] text-center shadow-[0_30px_70px_rgba(74,15,18,0.25)]">
+          <ContourField tone="stage" seed={11} className="opacity-20" />
+          <div className="relative z-[2]">
+            <span className="av-label text-gold">Start here</span>
+            <p className="av-display mx-auto mt-3 max-w-[22ch] text-[clamp(26px,3.4vw,42px)] leading-[1.1] text-wine-ink">
+              Start with one building.
+            </p>
+            <p className="mx-auto mt-3 max-w-[48ch] text-[15px] leading-relaxed text-wine-muted">
+              Browse what is listed, or tell the desk what you are looking for.
+            </p>
+            <div className="mt-[var(--s-8)] flex flex-wrap justify-center gap-[var(--s-3)]">
+              <Link href="/listings" className="av-gold av-label inline-flex items-center gap-2 px-7 py-[14px]">
+                Browse properties <ArrowRight className="h-4 w-4" aria-hidden="true" />
+              </Link>
+              <Link
+                href="/contact"
+                className="av-label rounded-sm border border-wine-ink/30 px-7 py-[14px] text-wine-ink transition-colors hover:border-wine-ink hover:bg-wine-raised"
+              >
+                Talk to the desk
+              </Link>
+            </div>
           </div>
         </div>
       </Wrap>

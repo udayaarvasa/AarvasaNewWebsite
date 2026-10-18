@@ -131,13 +131,15 @@ export function Navbar() {
             aria-label="Aarvasa home"
             className="flex flex-shrink-0 items-center"
           >
+            {/* Over a photograph the light lockup: cream mark, burgundy glyph.
+                Inverting the burgundy one to white filled the mark in solid. */}
             <Image
-              src="/aarvasa-navbar-logo.png"
+              src={floating ? "/aarvasa-navbar-logo-light.png" : "/aarvasa-navbar-logo.png"}
               alt="Aarvasa"
-              width={653}
-              height={169}
+              width={652}
+              height={143}
               sizes="(max-width: 767px) 132px, 160px"
-              className={cn("h-8 w-auto", floating && "brightness-0 invert")}
+              className="h-8 w-auto"
               priority
             />
           </Link>

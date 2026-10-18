@@ -24,6 +24,7 @@ import { projectImageSrc } from "@/lib/project-types";
 import { publishedProjects } from "@/lib/projects";
 import { formatCompact, inrEstimate } from "@/lib/currency";
 import { projectsWithModel } from "@/lib/services/project-models";
+import { CountUp } from "@/components/av/count-up";
 
 /**
  * The homepage, composed from real project data only.
@@ -64,7 +65,7 @@ export function HomeHero() {
                 alt={`${feature.name}, ${feature.location}`}
                 fill
                 sizes="100vw"
-                className="object-cover object-[50%_35%] md:object-[50%_28%]"
+                className="av-kenburns object-cover object-[50%_35%] md:object-[50%_28%]"
                 priority
               />
             </Parallax>
@@ -97,7 +98,7 @@ export function HomeHero() {
           <div className="mt-[var(--s-6)] flex flex-wrap gap-[var(--s-3)]">
             <Link
               href="/listings"
-              className="av-label rounded-xs border border-gold bg-gold px-6 py-[14px] text-stage transition-colors duration-300 hover:bg-transparent hover:text-gold"
+              className="av-gold av-label px-6 py-[14px]"
             >
               Browse properties
             </Link>
@@ -480,7 +481,7 @@ export function ClosingCTA({ n = 8, total = 8 }: SectionPosition = {}) {
       <Plate ratio="auto" scrim={Boolean(cover)} className="min-h-[460px] bg-stage">
         {cover && (
           <Parallax distance={30} className="absolute inset-0">
-            <Image src={cover} alt="" fill sizes="100vw" className="object-cover object-[50%_35%]" />
+            <Image src={cover} alt="" fill sizes="100vw" className="av-kenburns object-cover object-[50%_35%]" />
           </Parallax>
         )}
         <DraftingGrid tone="stage" size={64} fade="bottom" className="z-[1] opacity-25" />
@@ -501,7 +502,7 @@ export function ClosingCTA({ n = 8, total = 8 }: SectionPosition = {}) {
             <div className="mt-[var(--s-5)] flex flex-wrap gap-[var(--s-3)]">
               <Link
                 href="/listings"
-                className="av-label rounded-xs border border-gold bg-gold px-6 py-[14px] text-stage transition-colors hover:bg-transparent hover:text-gold"
+                className="av-gold av-label px-6 py-[14px]"
               >
                 Browse properties
               </Link>
@@ -520,3 +521,59 @@ export function ClosingCTA({ n = 8, total = 8 }: SectionPosition = {}) {
 }
 
 export { Status };
+
+/* ── Numbers and ticker · the wine band ───────────────────────────────── */
+
+/**
+ * What is on the platform, counted from the project records themselves —
+ * listings, cities, developers and the homes and plots those listings hold.
+ * No figure here is typed in; each is derived, so it can never drift from
+ * what a visitor can actually open.
+ */
+export function NumbersBand() {
+  const projects = publishedProjects();
+  const figures = [
+    { value: projects.length, label: "Projects listed" },
+    { value: new Set(projects.map((p) => p.city)).size, label: "Cities" },
+    { value: new Set(projects.map((p) => p.developer)).size, label: "Developers" },
+    {
+      value: projects.reduce((sum, p) => sum + (p.totalUnits ?? 0), 0),
+      label: "Homes and plots on record",
+    },
+  ];
+  const ticker = projects.map((p) => `${p.name} · ${p.location.split(",")[0]}, ${p.city}`);
+
+  return (
+    <section data-surface="wine" className="relative isolate mt-[var(--band)] overflow-hidden">
+      <ContourField tone="stage" seed={13} className="opacity-25" />
+      <Wrap className="relative z-[2] py-[var(--band-tight)]">
+        <dl className="grid grid-cols-2 gap-y-[var(--s-8)] lg:grid-cols-4">
+          {figures.map((f, i) => (
+            <div
+              key={f.label}
+              className={`flex flex-col ${i > 0 ? "border-wine-rule lg:border-l lg:pl-[var(--s-8)]" : ""}`}
+            >
+              <dt className="av-label order-2 mt-2 text-wine-muted">{f.label}</dt>
+              <dd className="av-display order-1 text-[clamp(44px,5.4vw,72px)] leading-none text-wine-ink">
+                <CountUp value={f.value} />
+                <span className="text-gold">.</span>
+              </dd>
+            </div>
+          ))}
+        </dl>
+      </Wrap>
+
+      {/* The listings, moving past: hover holds it still */}
+      <div className="relative z-[2] overflow-hidden border-t border-wine-rule py-4" aria-hidden="true">
+        <div className="av-ticker flex w-max gap-10 whitespace-nowrap">
+          {[...ticker, ...ticker].map((t, i) => (
+            <span key={i} className="av-meta flex items-center gap-10 text-[12px] text-wine-muted">
+              {t}
+              <span className="inline-block h-1.5 w-1.5 rotate-45 bg-gold" />
+            </span>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}

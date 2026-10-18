@@ -43,6 +43,17 @@
                                 Replaces #d4af37, which reads 1.9:1 on cream. */
   --gold: #d4af37;           /* gold on STAGE only — 9.3:1. Reticle, active control. */
 
+  /* ── WINE · the third surface ─────────────────────────────────────────────
+     Taken from the brand's own office card: deep burgundy ground, cream type,
+     a brushed-gold action. Used for moments of address — the office, a
+     closing call, the numbers band — never for a whole page. */
+  --wine: #4a0f12;           /* ground — cream type reads 13.4:1 */
+  --wine-raised: #5a161a;    /* a panel on wine */
+  --wine-ink: #f6ede4;
+  --wine-muted: #d9c4bb;     /* 8.6:1 on wine */
+  --wine-rule: rgba(246, 237, 228, 0.16);
+  --gold-sheen: linear-gradient(100deg, #d3b553 0%, #c8a84c 42%, #b08a40 100%);
+
   /* ── SEMANTIC · never the accent, never decoration ────────────────────── */
   --positive: #2f6b4f;       /* ready to move, better value on a row */
   --pending: #8a5a1f;        /* under construction, awaiting handover */
@@ -153,6 +164,22 @@
   color: var(--stage-ink);
 }
 
+/* The wine scope: the same re-resolution as stage, on burgundy. */
+[data-surface="wine"] {
+  --background: var(--wine);
+  --foreground: var(--wine-ink);
+  --card: var(--wine-raised);
+  --card-foreground: var(--wine-ink);
+  --primary: var(--gold);
+  --primary-foreground: var(--wine);
+  --muted-foreground: var(--wine-muted);
+  --accent: var(--gold);
+  --border: var(--wine-rule);
+  --ring: var(--wine-ink);
+  background: var(--wine);
+  color: var(--wine-ink);
+}
+
 /* Gutters step down with the viewport; the container never touches an edge. */
 @media (max-width: 1279px) {
   :root { --gutter: 32px; --band: 80px; }
@@ -201,6 +228,11 @@
   --color-burgundy-wash: var(--burgundy-wash);
   --color-gold-ink: var(--gold-ink);
   --color-gold: var(--gold);
+  --color-wine: var(--wine);
+  --color-wine-raised: var(--wine-raised);
+  --color-wine-ink: var(--wine-ink);
+  --color-wine-muted: var(--wine-muted);
+  --color-wine-rule: var(--wine-rule);
   --color-positive: var(--positive);
   --color-pending: var(--pending);
 
@@ -316,6 +348,61 @@ body {
   .av-rise {
     animation: av-rise var(--d-enter) var(--ease-enter) both;
   }
+}
+
+/* The brushed-gold action, from the office card. A light passes across it on
+   hover; at rest it is still. */
+.av-gold {
+  position: relative;
+  overflow: hidden;
+  isolation: isolate;
+  background: var(--gold-sheen);
+  color: var(--wine);
+  border-radius: var(--r-2);
+  transition: transform var(--d-control) var(--ease-enter), box-shadow var(--d-control) var(--ease-enter);
+}
+.av-gold::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: linear-gradient(110deg, transparent 30%, rgba(255, 248, 225, 0.55) 50%, transparent 70%);
+  transform: translateX(-120%);
+}
+.av-gold:hover { transform: translateY(-1px); box-shadow: 0 10px 28px rgba(74, 15, 18, 0.28); }
+
+/* Slow drift on a hero image: a building is looked at, not flicked past. */
+@keyframes av-kenburns {
+  from { transform: scale(1.02) translate3d(0, 0, 0); }
+  to { transform: scale(1.12) translate3d(-1.5%, -1%, 0); }
+}
+@keyframes av-sheen {
+  to { transform: translateX(120%); }
+}
+@keyframes av-ticker {
+  to { transform: translateX(-50%); }
+}
+@keyframes av-draw {
+  from { stroke-dashoffset: var(--len, 1200); }
+  to { stroke-dashoffset: 0; }
+}
+@keyframes av-float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-8px); }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .av-kenburns { animation: av-kenburns 24s var(--ease-state) infinite alternate; will-change: transform; }
+  .av-gold:hover::after { animation: av-sheen 900ms var(--ease-enter); }
+  .av-ticker { animation: av-ticker 48s linear infinite; }
+  .av-ticker:hover { animation-play-state: paused; }
+  .av-draw path, .av-draw rect, .av-draw line, .av-draw circle {
+    stroke-dasharray: var(--len, 1200);
+    animation: av-draw 2.4s var(--ease-enter) both;
+  }
+  .av-float { animation: av-float 7s ease-in-out infinite; }
+  .av-lift { transition: transform var(--d-control) var(--ease-enter), box-shadow var(--d-control) var(--ease-enter); }
+  .av-lift:hover { transform: translateY(-4px); box-shadow: var(--e-over); }
 }
 
 @media (prefers-reduced-motion: reduce) {

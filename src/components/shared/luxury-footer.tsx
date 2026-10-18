@@ -67,12 +67,12 @@ export function LuxuryFooter() {
           <div>
             <Link href="/" aria-label="Aarvasa home" className="inline-block">
               <Image
-                src="/aarvasa-navbar-logo.png"
+                src="/aarvasa-navbar-logo-light.png"
                 alt="Aarvasa"
-                width={653}
-                height={169}
+                width={652}
+                height={143}
                 sizes="160px"
-                className="h-9 w-auto brightness-0 invert"
+                className="h-9 w-auto"
               />
             </Link>
             <p className="mt-5 max-w-[34ch] text-[13px] leading-relaxed">

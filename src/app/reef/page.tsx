@@ -36,11 +36,27 @@ export default function ReefCollectionPage() {
       {/* ── Stage: the collection announces itself ─────────────────────── */}
       <section
         data-surface="stage"
-        className="relative isolate overflow-hidden bg-stage pb-[var(--band)] pt-[var(--s-16)]"
+        className="relative isolate overflow-hidden bg-stage pb-[var(--band)] pt-[var(--s-14)]"
       >
-        <DraftingGrid tone="stage" size={56} fade="top" className="opacity-25" />
+        {/* The collection's own architecture behind the title, not a stock city. */}
+        <div className="absolute inset-0 -z-10">
+          <Image
+            src="/images/reef-996/amenities/reef-996-sunken-balcony-sunset-16x9.jpg"
+            alt=""
+            fill
+            priority
+            sizes="100vw"
+            className="av-kenburns object-cover object-[50%_45%] opacity-90"
+          />
+          <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(12,11,10,0.9)_0%,rgba(12,11,10,0.6)_45%,rgba(74,15,18,0.15)_100%)]" />
+          <div className="absolute inset-0 bg-[linear-gradient(to_top,rgba(12,11,10,0.9)_0%,rgba(12,11,10,0)_40%)]" />
+        </div>
+        <DraftingGrid tone="stage" size={56} fade="top" className="opacity-20" />
         <Grain opacity={0.06} />
         <CoordinateMarks tone="stage" className="z-[2] max-md:hidden" />
+        <span className="av-meta absolute right-[var(--gutter)] top-[var(--s-5)] z-[3] hidden rounded-xs border border-stage-rule bg-[rgba(12,11,10,0.66)] px-2 py-1 text-stage-ink backdrop-blur-sm md:block">
+          Developer render · REEF 996 sunken balcony
+        </span>
         <Wrap className="relative z-[3]">
           <span className="av-label text-gold">REEF Luxury Developments</span>
           <TextReveal
@@ -54,29 +70,49 @@ export default function ReefCollectionPage() {
             specification their developer filed. Two are under way, and say so.
           </p>
 
-          {/* The family, as a row of numbers */}
-          <ol className="mt-[var(--s-10)] flex flex-wrap items-end gap-[var(--s-6)]">
-            {entries.map((e) => (
-              <li key={e.number}>
+          {/* The family as an index: five equal columns, each the same height,
+              so a long community name wraps inside its own tile instead of
+              pushing its neighbours apart. */}
+          <ol className="mt-[var(--s-10)] grid grid-cols-2 gap-px overflow-hidden border border-stage-rule bg-stage-rule sm:grid-cols-5">
+            {entries.map((e, i) => (
+              <li
+                key={e.number}
+                className="av-rise bg-[rgba(12,11,10,0.62)] backdrop-blur-md last:col-span-2 sm:last:col-span-1"
+                style={{ animationDelay: `${120 + i * 90}ms` }}
+              >
                 {e.project ? (
                   <Link
                     href={`/projects/${e.project.slug}`}
-                    className="group block"
+                    className="group flex h-full min-h-[168px] flex-col justify-between p-[var(--s-5)] transition-colors duration-300 hover:bg-[rgba(80,8,14,0.55)]"
                     data-hov
                   >
-                    <span className="av-display block text-[clamp(38px,6vw,66px)] leading-none text-stage-ink transition-colors duration-300 group-hover:text-gold">
-                      {e.number}
+                    <span className="flex items-center justify-between">
+                      <span className="av-meta text-gold">Listed</span>
+                      <ArrowUpRight
+                        className="h-4 w-4 text-stage-muted transition-transform duration-300 group-hover:-translate-y-0.5 group-hover:translate-x-0.5 group-hover:text-gold"
+                        aria-hidden="true"
+                      />
                     </span>
-                    <span className="av-meta mt-2 block text-stage-muted">
-                      {e.project.location}
+                    <span>
+                      <span className="av-display block text-[clamp(40px,4.4vw,60px)] leading-none text-stage-ink transition-colors duration-300 group-hover:text-gold">
+                        {e.number}
+                      </span>
+                      <span className="mt-3 block min-h-[2.6em] text-[12.5px] leading-snug text-stage-muted">
+                        {e.project.location}
+                      </span>
                     </span>
                   </Link>
                 ) : (
-                  <div>
-                    <span className="av-display block text-[clamp(38px,6vw,66px)] leading-none text-[#6f6558]">
-                      {e.number}
+                  <div className="flex h-full min-h-[168px] flex-col justify-between p-[var(--s-5)]">
+                    <span className="av-meta text-[#8a7f70]">In progress</span>
+                    <span>
+                      <span className="av-display block text-[clamp(40px,4.4vw,60px)] leading-none text-[#6f6558]">
+                        {e.number}
+                      </span>
+                      <span className="mt-3 block min-h-[2.6em] text-[12.5px] leading-snug text-[#8a7f70]">
+                        Not yet listed
+                      </span>
                     </span>
-                    <span className="av-meta mt-2 block text-[#6f6558]">In progress</span>
                   </div>
                 )}
               </li>

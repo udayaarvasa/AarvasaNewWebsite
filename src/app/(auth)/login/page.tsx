@@ -22,10 +22,11 @@ export default function LoginPage() {
           <Link href="/" className="flex items-center gap-2">
             <span className="relative h-10 w-44 sm:h-12 sm:w-52">
               <Image
-                src="/aarvasa-logo.png"
+                src="/aarvasa-navbar-logo-light.png"
                 alt="Aarvasa"
                 fill
-                className="object-contain brightness-0 invert opacity-90"
+                sizes="208px"
+                className="object-contain object-left"
                 priority
               />
             </span>

@@ -6,6 +6,7 @@ import {
   FeaturedProject,
   HomeHero,
   HowAarvasaWorks,
+  NumbersBand,
   ImmersiveHome,
   homeImmersiveFeature,
   TrustPartners,
@@ -48,6 +49,7 @@ export default async function Home() {
       <FeaturedProject {...at("featured")} />
       <ImmersiveHome {...at("immersive")} />
       <CuratedProjects {...at("curated")} />
+      <NumbersBand />
 
       <div className="mt-[var(--band)]">
         <StatementBanner
