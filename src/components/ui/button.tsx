@@ -10,8 +10,8 @@ const buttonVariants = cva(
       variant: {
         /* Obsidian & gold: the primary action is brushed gold on every page. */
         default:
-          "av-gold rounded-full text-[#3a0509] shadow-[0_10px_30px_rgba(217,194,154,0.22)] hover:-translate-y-0.5",
-        gold: "av-gold rounded-full text-[#3a0509] font-bold hover:-translate-y-0.5",
+          "av-gold rounded-full text-[var(--action-ink)] shadow-[0_10px_30px_rgba(217,194,154,0.22)] hover:-translate-y-0.5",
+        gold: "av-gold rounded-full text-[var(--action-ink)] font-bold hover:-translate-y-0.5",
         secondary:
           "rounded-full border border-[var(--glass-rule)] bg-white/[0.04] text-ink backdrop-blur-md hover:border-gold hover:text-gold",
         ghost: "rounded-full text-ink hover:bg-white/5 hover:text-gold",

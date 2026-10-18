@@ -37,8 +37,10 @@ export function projectViewerConfig(
   if (!media) return null;
   if (media.review !== "approved" && nodeEnv === "production") return null;
 
-  // Development: the DEV media CDN. Production has no media origin yet, so nothing is shown.
-  const origin = nodeEnv === "production" ? null : MEDIA_CDN_ORIGIN;
+  // A reviewed asset hosted with the site is served from /media on the same
+  // origin. Otherwise: the DEV media CDN in development, nothing in production.
+  const siteHosted = media.hosting === "site" && media.review === "approved";
+  const origin = siteHosted ? "/media" : nodeEnv === "production" ? null : MEDIA_CDN_ORIGIN;
   if (!origin) return null;
 
   // The data is hand-copied from a manifest, so re-check it against the storage
@@ -73,7 +75,8 @@ export function projectViewerConfig(
         }
       : null,
     // The same published URL the 3D viewer loads, re-checked against the media policy.
-    xr: xrExperienceFor({
+    // AR/VR is offered from the media CDN only; a site-hosted model is viewer-only.
+    xr: siteHosted ? null : xrExperienceFor({
       source,
       modes: media.xr?.modes ?? [],
       scale: media.xr?.scale,

@@ -83,7 +83,7 @@ export default async function ListingsPage({
               Showing filtered results{city ? ` for ${city}` : ""}.
               <Link
                 href="/listings"
-                className="rounded-full border border-gold/50 px-4 py-1.5 text-[13px] text-gold transition-colors hover:bg-gold hover:text-[#3a0509]"
+                className="rounded-full border border-gold/50 px-4 py-1.5 text-[13px] text-gold transition-colors hover:bg-gold hover:text-[var(--action-ink)]"
               >
                 Clear all filters
               </Link>

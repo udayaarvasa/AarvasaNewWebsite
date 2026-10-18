@@ -25,7 +25,8 @@ export async function loadProjectModel(
 ): Promise<ProjectViewerConfig | null> {
   // No media origin in this build means no project can show a model at all, so
   // there is nothing to look up. Production is currently such a build.
-  if (!MEDIA_CDN_ORIGIN) return null;
+  // No media CDN in this build: only a site-hosted, reviewed model can show.
+  if (!MEDIA_CDN_ORIGIN) return projectViewerConfig(project);
   try {
     const published = toPublishedModel(
       await prisma.mediaAsset.findFirst(publishedModelQuery(project.slug, options)),

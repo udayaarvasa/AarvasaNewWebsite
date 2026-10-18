@@ -65,7 +65,7 @@ export function ProjectRail({ projects }: { projects: RailProject[] }) {
             onClick={() => step(dir as 1 | -1)}
             disabled={dir === -1 ? atStart : atEnd}
             aria-label={dir === -1 ? "Previous projects" : "Next projects"}
-            className="flex h-14 w-14 items-center justify-center rounded-full border border-[var(--glass-rule)] text-ink transition-all duration-300 hover:border-gold hover:bg-gold hover:text-[#3a0509] disabled:cursor-default disabled:opacity-30 disabled:hover:bg-transparent disabled:hover:text-ink"
+            className="flex h-14 w-14 items-center justify-center rounded-full border border-[var(--glass-rule)] text-ink transition-all duration-300 hover:border-gold hover:bg-gold hover:text-[var(--action-ink)] disabled:cursor-default disabled:opacity-30 disabled:hover:bg-transparent disabled:hover:text-ink"
           >
             {dir === -1 ? <ArrowLeft className="h-5 w-5" aria-hidden="true" /> : <ArrowRight className="h-5 w-5" aria-hidden="true" />}
           </button>
@@ -148,7 +148,7 @@ function RailCard({ project: p, index }: { project: RailProject; index: number }
                 <div className="mt-1 text-[20px] font-semibold text-gold-pale">{p.price}</div>
                 {p.priceNote && <div className="text-[12px] text-stage-muted">{p.priceNote}</div>}
               </div>
-              <span className="flex h-12 w-12 items-center justify-center rounded-full border border-gold/50 text-gold transition-all duration-500 group-hover:rotate-45 group-hover:bg-gold group-hover:text-[#3a0509]">
+              <span className="flex h-12 w-12 items-center justify-center rounded-full border border-gold/50 text-gold transition-all duration-500 group-hover:rotate-45 group-hover:bg-gold group-hover:text-[var(--action-ink)]">
                 <ArrowUpRight className="h-5 w-5" aria-hidden="true" />
               </span>
             </div>

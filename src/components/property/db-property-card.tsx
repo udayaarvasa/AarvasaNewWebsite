@@ -177,7 +177,7 @@ export function DbPropertyCard({
           className={cn(
             "flex h-9 w-9 items-center justify-center rounded-full border backdrop-blur-md transition-colors",
             selected
-              ? "border-gold bg-gold text-[#3a0509]"
+              ? "border-gold bg-gold text-[var(--action-ink)]"
               : "border-white/20 bg-black/45 text-stage-ink hover:border-gold hover:text-gold",
             !selected && compare.full && "cursor-not-allowed opacity-50",
           )}

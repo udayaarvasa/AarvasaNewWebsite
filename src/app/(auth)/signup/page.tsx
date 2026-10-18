@@ -8,7 +8,7 @@ export const metadata = {
 
 export default function SignupPage() {
   return (
-    <div className="min-h-screen flex bg-[#0A0A0A] relative overflow-hidden">
+    <div data-surface="stage" className="min-h-screen flex bg-[#12070a] relative overflow-hidden">
       {/* Background elements */}
       <div className="absolute top-0 left-0 w-full h-full z-0 overflow-hidden pointer-events-none">
         <div className="absolute -bottom-[20%] -right-[10%] w-[50%] h-[50%] rounded-full bg-claret/20 blur-[120px]" />

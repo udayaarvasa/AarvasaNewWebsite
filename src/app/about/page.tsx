@@ -175,7 +175,7 @@ export default function AboutPage() {
       </section>
 
       {/* ── Principles, on the logo's burgundy ─────────────────────────── */}
-      <section className="relative isolate overflow-hidden bg-[radial-gradient(120%_100%_at_50%_0%,#4f060c_0%,#1a0709_55%,#0e0709_100%)] py-[clamp(72px,10vw,140px)]">
+      <section data-surface="stage" className="relative isolate overflow-hidden bg-[radial-gradient(120%_100%_at_50%_0%,#4f060c_0%,#1a0709_55%,#12070a_100%)] py-[clamp(72px,10vw,140px)]">
         <Noise />
         <LuxContainer>
           <SectionTitle eyebrow="What we publish" title="Three rules we *do not bend.*" note="They are the reason the site is worth reading." />
@@ -236,7 +236,7 @@ export default function AboutPage() {
                           target="_blank"
                           rel="noopener noreferrer"
                           aria-label={`${person.name} on ${l.label}`}
-                          className="flex h-9 w-9 items-center justify-center rounded-full border border-rule text-ink-muted transition-all duration-300 hover:border-gold hover:bg-gold hover:text-[#3a0509]"
+                          className="flex h-9 w-9 items-center justify-center rounded-full border border-rule text-ink-muted transition-all duration-300 hover:border-gold hover:bg-gold hover:text-[var(--action-ink)]"
                         >
                           <svg viewBox="0 0 24 24" fill="currentColor" className="h-4 w-4" aria-hidden="true">
                             <path d={l.path} />

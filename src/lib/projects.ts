@@ -249,9 +249,35 @@ const SPLAT_BY_SLUG: Readonly<Record<string, ProjectSplatMedia>> = {
   "reef-996-dubai-production-city": REEF_996_PILOT_SPLAT,
 };
 
+/**
+ * REEF 998: Aarvasa's reference-based reconstruction of the tower, built from
+ * the developer's supplied films and validated in the viewer lab (sha256
+ * 0756752510fe54e4…, 1,132,676 bytes, 28,290 triangles; regenerated
+ * byte-identically by tools/reef-998-massing.py). Approved for the project page
+ * by Aarvasa on 19 Oct 2026 and shipped with the site under /media until a
+ * production media CDN exists. Labelled as an Aarvasa reconstruction — not an
+ * official developer model — wherever it is shown.
+ */
+const REEF_998_RECONSTRUCTION: ProjectImmersiveMedia = {
+  mediaId: "3eecb8df7d61b40c456ee53d",
+  kind: "MODEL",
+  format: "GLB",
+  storageKey: "m/3eecb8df7d61b40c456ee53d/0756752510fe54e4",
+  entryFile: "scene.glb",
+  contentHash: "0756752510fe54e4b41d325682bcb27461d68952df1f0de2dfa22fdea3958f7d",
+  sizeBytes: 1_132_676,
+  poster: null,
+  processingVersion: "1.0.0/passthrough-v1",
+  altText: "REEF 998, reconstructed by Aarvasa from the developer's films: the tower's massing, sunken balconies and podium. Not an official developer model.",
+  review: "approved",
+  hosting: "site",
+  provenance: "AARVASA_RECONSTRUCTION",
+};
+
 // reef-projects.ts is generated, so immersive media is attached here instead.
 const IMMERSIVE_BY_SLUG: Readonly<Record<string, ProjectImmersiveMedia>> = {
   "reef-996-dubai-production-city": REEF_996_PILOT_MEDIA,
+  "reef-998-dlrc": REEF_998_RECONSTRUCTION,
 };
 
 /**

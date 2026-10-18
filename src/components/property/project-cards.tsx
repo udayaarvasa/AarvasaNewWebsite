@@ -89,7 +89,7 @@ export async function ProjectCards({ query = {} }: { query?: ProjectQuery } = {}
                     3D
                   </span>
                 )}
-                <span className="absolute bottom-4 right-4 flex h-11 w-11 items-center justify-center rounded-full border border-gold/50 bg-black/40 text-gold backdrop-blur-md transition-all duration-500 group-hover:rotate-45 group-hover:bg-gold group-hover:text-[#3a0509]">
+                <span className="absolute bottom-4 right-4 flex h-11 w-11 items-center justify-center rounded-full border border-gold/50 bg-black/40 text-gold backdrop-blur-md transition-all duration-500 group-hover:rotate-45 group-hover:bg-gold group-hover:text-[var(--action-ink)]">
                   <ArrowUpRight className="h-4 w-4" aria-hidden="true" />
                 </span>
               </div>

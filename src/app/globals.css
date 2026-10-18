@@ -28,50 +28,56 @@
                   brightest thing on a dark page)
      ═════════════════════════════════════════════════════════════════════ */
 
-  /* ── GROUND ───────────────────────────────────────────────────────────── */
-  --paper: #0e0709;          /* page ground: obsidian, the logo's burgundy undertone */
-  --paper-raised: #1a0d10;   /* panels, inputs, cards */
-  --paper-sunken: #13090b;   /* wells, alternating bands */
-  --ink: #f3ebde;            /* the logo's cream, lifted for type — 16.5:1 */
-  --ink-muted: #b8a99a;      /* 8.4:1 */
-  --ink-disabled: #6e655a;   /* disabled marks only */
-  --rule: rgba(217, 205, 180, 0.12);
-  --rule-firm: rgba(217, 205, 180, 0.26);
+  /* ── GROUND · warm ivory, the logo's cream lifted to a page ─────────── */
+  --paper: #f8f3ea;          /* page ground */
+  --paper-raised: #fffcf6;   /* panels, inputs, cards */
+  --paper-sunken: #f1e8da;   /* wells, alternating bands */
+  --ink: #2a0d11;            /* burgundy-black type — 15.9:1 on ground */
+  --ink-muted: #6d5650;      /* 6.6:1 */
+  --ink-disabled: #a8968c;   /* disabled marks only */
+  --rule: rgba(79, 6, 12, 0.10);
+  --rule-firm: rgba(79, 6, 12, 0.22);
 
-  /* ── STAGE · media and the deepest bands ──────────────────────────────── */
-  --stage: #080405;
-  --stage-raised: #140a0c;
-  --stage-ink: #f6efe4;
-  --stage-muted: #a99c8c;
-  --stage-rule: rgba(217, 205, 180, 0.14);
+  /* ── STAGE · media and the deep bands ─────────────────────────────────── */
+  --stage: #12070a;
+  --stage-raised: #1d0b0f;
+  --stage-ink: #f6eee2;
+  --stage-muted: #c7b6a8;
+  --stage-rule: rgba(217, 205, 180, 0.16);
 
   /* ── BRAND ────────────────────────────────────────────────────────────── */
-  --burgundy: #d9c29a;       /* the primary action — champagne from the logo's cream, 11.2:1 */
-  --burgundy-deep: #bfa577;  /* hover, pressed */
-  --burgundy-wash: rgba(217, 194, 154, 0.09);
-  --gold-ink: #d9c29a;       /* champagne labels and rules on the ground */
-  --gold: #dcc6a0;           /* champagne — the logo's cream, given a metallic lift */
+  --burgundy: #4f060c;       /* the logo's burgundy — the primary action, 14:1 on ivory */
+  --burgundy-deep: #3a0409;  /* hover, pressed */
+  --burgundy-wash: rgba(79, 6, 12, 0.06);
+  --gold-ink: #8c6a3c;       /* bronze-champagne labels on ivory — 4.9:1 */
+  --gold: #a07c46;           /* champagne-bronze accents on ivory */
   --gold-pale: #f1e6d0;
-  --claret: #7a0f19;         /* the logo's burgundy, brightened for a dark page */
+  --claret: #7a0f19;
 
-  /* ── WINE · the warm surface ──────────────────────────────────────────── */
-  --wine: #4f060c;           /* the logo's burgundy, exactly */
+  /* ── WINE · the logo's burgundy as a surface ──────────────────────────── */
+  --wine: #4f060c;
   --wine-raised: #620a12;
   --wine-ink: #f6ede4;
-  --wine-muted: #d9c4bb;
-  --wine-rule: rgba(246, 237, 228, 0.14);
-  --gold-sheen: linear-gradient(100deg, #f4ead6 0%, #dcc6a0 38%, #b89d72 72%, #e8d8b8 100%);
-  --gold-text: linear-gradient(100deg, #f6eddc 0%, #dcc6a0 35%, #b39669 65%, #efe2c6 100%);
+  --wine-muted: #dcc6bb;
+  --wine-rule: rgba(246, 237, 228, 0.16);
 
-  /* ── GLASS ────────────────────────────────────────────────────────────── */
-  --glass: rgba(32, 12, 16, 0.55);
-  --glass-strong: rgba(26, 10, 13, 0.8);
-  --glass-rule: rgba(217, 205, 180, 0.18);
+  /* The primary action on ivory: burgundy, cream type, a champagne hairline. */
+  --action: linear-gradient(110deg, #3a0409 0%, #5d0911 45%, #7a0f19 100%);
+  --action-ink: #f6eee2;
+  --action-ring: rgba(217, 194, 154, 0.55);
+  --gold-sheen: var(--action);
+  /* Gold set in type on ivory: deep champagne-bronze. */
+  --gold-text: linear-gradient(100deg, #6e4a1f 0%, #a07c46 40%, #7a0f19 75%, #8c6a3c 100%);
+
+  /* ── GLASS · frosted ivory ────────────────────────────────────────────── */
+  --glass: rgba(255, 251, 244, 0.72);
+  --glass-strong: rgba(255, 251, 244, 0.9);
+  --glass-rule: rgba(79, 6, 12, 0.12);
 
   /* ── SEMANTIC ─────────────────────────────────────────────────────────── */
-  --positive: #7cc79d;
-  --pending: #e0ad62;
-  --neutral: #b4a897;
+  --positive: #2f6b4f;
+  --pending: #8a5a1f;
+  --neutral: #6d5650;
 
   /* ── SCRIMS · legibility only. The entire gradient budget. ────────────── */
   --scrim-media: linear-gradient(to top, rgba(12, 11, 10, 0.92) 0%, rgba(12, 11, 10, 0.34) 34%, rgba(12, 11, 10, 0) 62%);
@@ -102,8 +108,8 @@
   --r-full: 999px;           /* the live status dot, and nothing else */
 
   /* ── ELEVATION · two shadows exist. On stage there is none. ───────────── */
-  --e-tray: 0 -2px 24px rgba(0, 0, 0, 0.5);
-  --e-over: 0 30px 80px rgba(0, 0, 0, 0.55), 0 0 0 1px rgba(226, 196, 122, 0.14);
+  --e-tray: 0 -2px 24px rgba(79, 6, 12, 0.08);
+  --e-over: 0 30px 70px rgba(79, 6, 12, 0.16), 0 0 0 1px rgba(79, 6, 12, 0.08);
 
   /* ── MEDIA RATIOS ─────────────────────────────────────────────────────── */
   --ar-cinema: 2.39 / 1;     /* page and property heroes */
@@ -137,13 +143,13 @@
   --card: var(--paper-raised);
   --card-foreground: var(--ink);
   --primary: var(--burgundy);
-  --primary-foreground: #160d0e;
+  --primary-foreground: var(--paper);
   --secondary: var(--paper-sunken);
   --secondary-foreground: var(--ink-muted);
   --muted: var(--paper-sunken);
   --muted-foreground: var(--ink-muted);
   --accent: var(--gold-ink);
-  --accent-foreground: #160d0e;
+  --accent-foreground: var(--paper);
   --border: var(--rule);
   --input: var(--rule-firm);
   /* Fixes the inherited focus defect: the old ring was gold at 72% alpha,
@@ -159,6 +165,26 @@
    readViewerTheme() — picks up the stage palette with no change to viewer
    code. */
 [data-surface="stage"] {
+  /* Dark bands re-resolve the ground tokens, so every component placed on
+     them (cards, text, glass, the gold action) turns with them. */
+  --paper: #12070a;
+  --paper-raised: #1d0b0f;
+  --paper-sunken: #170809;
+  --ink: #f6eee2;
+  --ink-muted: #c7b6a8;
+  --ink-disabled: #85746a;
+  --rule: rgba(217, 205, 180, 0.13);
+  --rule-firm: rgba(217, 205, 180, 0.26);
+  --gold: #dcc6a0;
+  --gold-ink: #dcc6a0;
+  --glass: rgba(26, 9, 12, 0.55);
+  --glass-strong: rgba(22, 8, 11, 0.82);
+  --glass-rule: rgba(217, 205, 180, 0.18);
+  --action: linear-gradient(100deg, #f4ead6 0%, #dcc6a0 38%, #b89d72 72%, #e8d8b8 100%);
+  --action-ink: #3a0509;
+  --gold-sheen: var(--action);
+  --gold-text: linear-gradient(100deg, #f6eddc 0%, #dcc6a0 35%, #b39669 65%, #efe2c6 100%);
+  color-scheme: dark;
   --background: var(--stage);
   --foreground: var(--stage-ink);
   --card: var(--stage-raised);
@@ -180,6 +206,26 @@
 
 /* The wine scope: the same re-resolution as stage, on burgundy. */
 [data-surface="wine"] {
+  /* Dark bands re-resolve the ground tokens, so every component placed on
+     them (cards, text, glass, the gold action) turns with them. */
+  --paper: #4f060c;
+  --paper-raised: #620a12;
+  --paper-sunken: #170809;
+  --ink: #f6eee2;
+  --ink-muted: #c7b6a8;
+  --ink-disabled: #85746a;
+  --rule: rgba(217, 205, 180, 0.13);
+  --rule-firm: rgba(217, 205, 180, 0.26);
+  --gold: #dcc6a0;
+  --gold-ink: #dcc6a0;
+  --glass: rgba(26, 9, 12, 0.55);
+  --glass-strong: rgba(22, 8, 11, 0.82);
+  --glass-rule: rgba(217, 205, 180, 0.18);
+  --action: linear-gradient(100deg, #f4ead6 0%, #dcc6a0 38%, #b89d72 72%, #e8d8b8 100%);
+  --action-ink: #3a0509;
+  --gold-sheen: var(--action);
+  --gold-text: linear-gradient(100deg, #f6eddc 0%, #dcc6a0 35%, #b39669 65%, #efe2c6 100%);
+  color-scheme: dark;
   --background: var(--wine);
   --foreground: var(--wine-ink);
   --card: var(--wine-raised);
@@ -280,7 +326,7 @@
 html {
   scroll-behavior: smooth;
   background: var(--paper);
-  color-scheme: dark;
+  color-scheme: light;
 }
 
 body {
@@ -292,8 +338,8 @@ body {
 }
 
 ::selection {
-  background: var(--gold);
-  color: #160d0e;
+  background: var(--burgundy);
+  color: #f6eee2;
 }
 
 /* One visible focus treatment for the whole application. Solid, 2px, burgundy
@@ -382,9 +428,10 @@ body {
   position: relative;
   overflow: hidden;
   isolation: isolate;
-  background: var(--gold-sheen);
+  background: var(--action);
   background-size: 160% 100%;
-  color: #3a0509;
+  color: var(--action-ink);
+  box-shadow: inset 0 0 0 1px var(--action-ring, transparent);
   border-radius: var(--r-2);
   transition: transform var(--d-control) var(--ease-enter), box-shadow var(--d-control) var(--ease-enter);
 }
@@ -396,7 +443,7 @@ body {
   background: linear-gradient(110deg, transparent 30%, rgba(255, 248, 225, 0.55) 50%, transparent 70%);
   transform: translateX(-120%);
 }
-.av-gold:hover { transform: translateY(-1px); box-shadow: 0 12px 32px rgba(122, 15, 25, 0.45); }
+.av-gold:hover { transform: translateY(-1px); box-shadow: inset 0 0 0 1px var(--action-ring, transparent), 0 14px 34px rgba(122, 15, 25, 0.28); }
 
 /* Slow drift on a hero image: a building is looked at, not flicked past. */
 @keyframes av-kenburns {
@@ -493,9 +540,9 @@ body {
   inset: -20%;
   pointer-events: none;
   background:
-    radial-gradient(40% 35% at 20% 30%, rgba(122, 15, 25, 0.6), transparent 70%),
-    radial-gradient(35% 30% at 80% 20%, rgba(217, 194, 154, 0.14), transparent 70%),
-    radial-gradient(45% 40% at 60% 85%, rgba(79, 6, 12, 0.8), transparent 70%);
+    radial-gradient(40% 35% at 20% 30%, rgba(122, 15, 25, 0.10), transparent 70%),
+    radial-gradient(35% 30% at 80% 20%, rgba(217, 194, 154, 0.35), transparent 70%),
+    radial-gradient(45% 40% at 60% 85%, rgba(160, 124, 70, 0.14), transparent 70%);
   filter: blur(40px);
 }
 
@@ -585,8 +632,8 @@ body {
 /* Inputs on obsidian: native controls follow the dark scheme, and selects get
    a readable list. */
 select option {
-  background: #161011;
-  color: var(--ink);
+  background: #fffcf6;
+  color: #2a0d11;
 }
 
 /* ═══════════════════════════════════════════════════════════════════════════

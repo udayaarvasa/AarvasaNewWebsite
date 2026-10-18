@@ -312,7 +312,7 @@ export function Pillars() {
 
 export function LedgerSection() {
   return (
-    <section className="relative isolate overflow-hidden bg-[radial-gradient(120%_90%_at_50%_0%,#3a060b_0%,#0c0909_60%)] py-[clamp(80px,12vw,160px)]">
+    <section data-surface="stage" className="relative isolate overflow-hidden bg-[radial-gradient(120%_90%_at_50%_0%,#4f060c_0%,#12070a_62%)] py-[clamp(80px,12vw,160px)]">
       {/* A hex lattice, faint, like a ledger's grid */}
       <svg aria-hidden="true" className="absolute inset-0 -z-10 h-full w-full opacity-[0.07]">
         <defs>
@@ -346,7 +346,7 @@ export function LedgerSection() {
 export function FiguresBand() {
   const figures = platformFigures();
   return (
-    <section className="relative isolate overflow-hidden">
+    <section data-surface="stage" className="relative isolate overflow-hidden">
       <ParallaxLayer className="absolute inset-0 -z-10" speed={0.15}>
         <Image src="/images/reef-996/amenities/reef-996-sunken-balcony-sunset-16x9.jpg" alt="" fill sizes="100vw" className="object-cover opacity-35" />
       </ParallaxLayer>
@@ -400,7 +400,7 @@ export function AdvisorSection() {
                 </div>
               </div>
               <div className="mt-5 flex justify-end">
-                <p className="max-w-[80%] rounded-[20px] rounded-br-md [background:var(--gold-sheen)] px-4 py-3 text-[14px] font-medium leading-relaxed text-[#3a0509]">
+                <p className="max-w-[80%] rounded-[20px] rounded-br-md [background:var(--gold-sheen)] px-4 py-3 text-[14px] font-medium leading-relaxed text-[var(--action-ink)]">
                   A two-bedroom in Dubai, ready by 2028, with outdoor space I can actually use in summer?
                 </p>
               </div>
@@ -487,7 +487,7 @@ export function PartnersBand() {
 
 export function ClosingInvitation() {
   return (
-    <section className="relative isolate overflow-hidden">
+    <section data-surface="stage" className="relative isolate overflow-hidden">
       <ParallaxLayer className="absolute inset-0 -z-10" speed={0.18}>
         <Image src="/images/reef-996/banners/reef-996-tower-facade-night-16x9.jpg" alt="" fill sizes="100vw" className="object-cover" />
       </ParallaxLayer>

@@ -53,6 +53,12 @@ export type ProjectImmersiveMedia = {
    */
   review: "placeholder" | "approved";
   /**
+   * "site": the file ships with the site under /media/{storageKey}, for a
+   * reviewed asset that must be visible before a production media CDN exists.
+   * Absent: served from the media CDN (development only, until one exists).
+   */
+  hosting?: "site";
+  /**
    * How the model was produced, for the label shown beside it. Carried from the
    * MediaAsset row; absent on the hand-authored pilot, which `review` already
    * marks as a placeholder.

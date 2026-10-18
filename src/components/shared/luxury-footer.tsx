@@ -109,7 +109,7 @@ export function LuxuryFooter() {
                     target="_blank"
                     rel="noopener noreferrer"
                     aria-label={`Aarvasa on ${s.label}`}
-                    className="flex h-11 w-11 items-center justify-center rounded-full border border-white/12 text-stage-ink/80 transition-all duration-500 hover:-translate-y-1 hover:border-gold hover:bg-gold hover:text-[#3a0509] hover:shadow-[0_12px_30px_rgba(217,194,154,0.35)]"
+                    className="flex h-11 w-11 items-center justify-center rounded-full border border-white/12 text-stage-ink/80 transition-all duration-500 hover:-translate-y-1 hover:border-gold hover:bg-gold hover:text-[var(--action-ink)] hover:shadow-[0_12px_30px_rgba(217,194,154,0.35)]"
                   >
                     <svg viewBox="0 0 24 24" fill="currentColor" className="h-[17px] w-[17px]" aria-hidden="true">
                       <path d={s.path} />
