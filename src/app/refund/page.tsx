@@ -1,4 +1,5 @@
 import { Metadata } from "next";
+import { PageHero } from "@/components/lux/page-hero";
 
 export const metadata: Metadata = {
   title: "Refund and Cancellation Policy | Aarvasa",
@@ -7,17 +8,13 @@ export const metadata: Metadata = {
 
 export default function RefundPolicyPage() {
   return (
-    <div className="min-h-screen bg-[#F2F1ED] pt-32 pb-24">
-      <div className="mx-auto max-w-4xl px-6 sm:px-10">
-        <div className="mb-12 text-center">
-          <h1 className="heading-serif text-4xl sm:text-5xl text-[#50080E] mb-4">
-            Refund and Cancellation Policy
-          </h1>
-        </div>
+    <div className="pb-24">
+      <PageHero eyebrow="Aarvasa Innovations Pvt. Ltd." title="Refund and Cancellation Policy" size="compact" />
+      <div className="mx-auto mt-4 max-w-4xl rounded-[28px] border border-rule bg-paper-raised/60 px-6 py-12 sm:px-12">
 
-        <div className="prose prose-lg max-w-none text-[#50080E]/80">
+        <div className="prose prose-lg max-w-none text-ink-muted">
           <section className="mb-10">
-            <h2 className="heading-serif text-2xl text-[#50080E] mb-4 border-b border-[#DCCDCE] pb-2">
+            <h2 className="heading-serif text-2xl text-ink mb-4 border-b border-rule pb-2">
               Moneyback Packages
             </h2>
             <div className="space-y-4 text-sm sm:text-base leading-relaxed">
@@ -37,7 +34,7 @@ export default function RefundPolicyPage() {
           </section>
 
           <section className="mb-10">
-            <h2 className="heading-serif text-2xl text-[#50080E] mb-4 border-b border-[#DCCDCE] pb-2">
+            <h2 className="heading-serif text-2xl text-ink mb-4 border-b border-rule pb-2">
               Payment Policy
             </h2>
             <div className="space-y-4 text-sm sm:text-base leading-relaxed">
@@ -56,7 +53,7 @@ export default function RefundPolicyPage() {
           </section>
 
           <section className="mb-10">
-            <h2 className="heading-serif text-2xl text-[#50080E] mb-4 border-b border-[#DCCDCE] pb-2">
+            <h2 className="heading-serif text-2xl text-ink mb-4 border-b border-rule pb-2">
               Refund and Cancellation
             </h2>
             <div className="space-y-4 text-sm sm:text-base leading-relaxed">
@@ -67,8 +64,8 @@ export default function RefundPolicyPage() {
                 <li>No cancellation/refund is allowed once a package goes live on the platform.</li>
                 <li>Refunds, if any, are solely at the company's discretion and are final.</li>
               </ul>
-              <div className="mt-6 bg-[#50080E]/10 p-6 rounded-2xl border border-[#DCCDCE]/50 text-center">
-                <p className="font-bold text-[#50080E] uppercase tracking-wide">
+              <div className="mt-6 bg-claret/10 p-6 rounded-2xl border border-rule text-center">
+                <p className="font-bold text-ink uppercase tracking-wide">
                   ONCE THE REFUND IS APPROVED, AMOUNT WILL BE CREDITED BACK TO THE ORIGINAL PAYMENT METHOD WITHIN 3-5 WORKING DAYS.
                 </p>
               </div>

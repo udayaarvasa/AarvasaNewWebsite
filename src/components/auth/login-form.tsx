@@ -81,7 +81,7 @@ export function LoginForm() {
               type="email"
               {...register("email")}
               disabled={isLoading}
-              className="w-full pl-10 pr-4 py-3 bg-[#50080E]/20 border border-white/10 rounded-xl focus:ring-2 focus:ring-[#D4AF37] focus:border-transparent outline-none text-[#F2F1ED] transition-all placeholder:text-[#F2F1ED]/30"
+              className="w-full pl-10 pr-4 py-3 bg-claret/20 border border-white/10 rounded-xl focus:ring-2 focus:ring-[#D4AF37] focus:border-transparent outline-none text-[#F2F1ED] transition-all placeholder:text-[#F2F1ED]/30"
               placeholder="investor@example.com"
             />
           </div>
@@ -103,7 +103,7 @@ export function LoginForm() {
               type="password"
               {...register("password")}
               disabled={isLoading}
-              className="w-full pl-10 pr-4 py-3 bg-[#50080E]/20 border border-white/10 rounded-xl focus:ring-2 focus:ring-[#D4AF37] focus:border-transparent outline-none text-[#F2F1ED] transition-all placeholder:text-[#F2F1ED]/30"
+              className="w-full pl-10 pr-4 py-3 bg-claret/20 border border-white/10 rounded-xl focus:ring-2 focus:ring-[#D4AF37] focus:border-transparent outline-none text-[#F2F1ED] transition-all placeholder:text-[#F2F1ED]/30"
               placeholder="••••••••"
             />
           </div>
@@ -122,7 +122,7 @@ export function LoginForm() {
         <button
           type="submit"
           disabled={isLoading}
-          className="w-full py-3 px-4 bg-gradient-to-r from-[#D4AF37] to-[#C5A028] hover:from-[#C5A028] hover:to-[#B69119] text-[#50080E] font-bold rounded-xl transition-all flex items-center justify-center shadow-lg shadow-[#D4AF37]/20 disabled:opacity-50 disabled:cursor-not-allowed"
+          className="w-full py-3 px-4 bg-gradient-to-r from-[#D4AF37] to-[#C5A028] hover:from-[#C5A028] hover:to-[#B69119] text-ink font-bold rounded-xl transition-all flex items-center justify-center shadow-lg shadow-[#D4AF37]/20 disabled:opacity-50 disabled:cursor-not-allowed"
         >
           {isLoading ? (
             <Loader2 className="h-5 w-5 animate-spin" />

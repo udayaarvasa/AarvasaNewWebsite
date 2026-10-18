@@ -14,18 +14,18 @@ export default async function CreatePropertyPage() {
   if (!session) redirect("/login?callbackUrl=/properties/create")
 
   return (
-    <div className="min-h-screen bg-[#F2F1ED]">
+    <div className="min-h-screen bg-paper-sunken">
       <div className="mx-auto max-w-3xl px-4 pb-16 pt-28 sm:px-6">
         <Link
           href="/dashboard"
-          className="mb-6 inline-flex items-center gap-2 text-sm text-[#72383D]/60 transition hover:text-[#50080E]"
+          className="mb-6 inline-flex items-center gap-2 text-sm text-ink-muted transition hover:text-ink"
         >
           <ArrowLeft className="h-4 w-4" /> Back to Dashboard
         </Link>
-        <h1 className="heading-serif text-3xl text-[#50080E] sm:text-4xl">
+        <h1 className="heading-serif text-3xl text-ink sm:text-4xl">
           List a New Property
         </h1>
-        <p className="mt-2 text-sm text-[#72383D]/60">
+        <p className="mt-2 text-sm text-ink-muted">
           Create your property listing and reach premium investors.
         </p>
         <div className="mt-8">

@@ -73,7 +73,7 @@ export function ImageUploader({ images, onChange, maxFiles = 6 }: ImageUploaderP
         className={`relative flex flex-col items-center justify-center rounded-2xl border-2 border-dashed p-8 transition-all cursor-pointer ${
           dragActive
             ? "border-[#D4AF37] bg-[#D4AF37]/5"
-            : "border-[#DCCDCE]/50 hover:border-[#D4AF37]/40 hover:bg-[#F5F4F1]"
+            : "border-rule hover:border-[#D4AF37]/40 hover:bg-paper-raised"
         }`}
         onClick={() => {
           const input = document.createElement("input")
@@ -92,10 +92,10 @@ export function ImageUploader({ images, onChange, maxFiles = 6 }: ImageUploaderP
         ) : (
           <Upload className="h-8 w-8 text-[#D4AF37]/60" />
         )}
-        <p className="mt-3 text-sm font-medium text-[#50080E]">
+        <p className="mt-3 text-sm font-medium text-ink">
           {uploading ? "Uploading..." : "Click or drag images here"}
         </p>
-        <p className="mt-1 text-xs text-[#72383D]/50">
+        <p className="mt-1 text-xs text-ink-muted">
           {images.length}/{maxFiles} images · Max 5MB each · JPG, PNG, WebP
         </p>
       </div>
@@ -104,7 +104,7 @@ export function ImageUploader({ images, onChange, maxFiles = 6 }: ImageUploaderP
       {images.length > 0 && (
         <div className="grid grid-cols-3 gap-3 sm:grid-cols-4 lg:grid-cols-6">
           {images.map((url, i) => (
-            <div key={url} className="group relative aspect-square overflow-hidden rounded-xl border border-[#DCCDCE]/30">
+            <div key={url} className="group relative aspect-square overflow-hidden rounded-xl border border-rule">
               <Image src={url} alt={`Upload ${i + 1}`} fill className="object-cover" sizes="120px" />
               <button
                 onClick={(e) => { e.stopPropagation(); removeImage(i) }}

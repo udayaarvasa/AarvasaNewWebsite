@@ -85,16 +85,19 @@ export function DbPropertyCard({
   const image = property.images[0] ?? null;
 
   return (
-    <div className="group relative" data-hov>
+    <div
+      className="group lux-gold-border relative overflow-hidden rounded-[24px] bg-paper-raised transition-all duration-700 ease-[cubic-bezier(0.16,1,0.3,1)] hover:-translate-y-2 hover:shadow-[0_40px_80px_rgba(0,0,0,0.55)]"
+      data-hov
+    >
       <Link href={`/property/${property.id}`} className="block">
-        <Plate ratio={compact ? "thumb" : "card"} className="border-b border-rule-firm">
+        <Plate ratio={compact ? "thumb" : "card"}>
           {image ? (
             <Image
               src={image}
               alt={property.title}
               fill
               sizes="(max-width: 767px) 100vw, (max-width: 1279px) 50vw, 33vw"
-              className="object-cover transition-transform duration-[1200ms] ease-[var(--ease-enter)] group-hover:scale-[1.03]"
+              className="object-cover transition-transform duration-[1600ms] ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:scale-110"
             />
           ) : (
             /* No photography for this property. A typographic panel, never a
@@ -105,12 +108,13 @@ export function DbPropertyCard({
           )}
         </Plate>
 
-        <h3 className="av-display mt-3 text-[22px] leading-[1.15]">{property.title}</h3>
+        <div className="p-5">
+        <h3 className="av-display text-[27px] font-normal leading-[1.05]">{property.title}</h3>
         <p className="mt-[2px] text-[13px] text-ink-muted">
           {property.location}
           {property.city ? `, ${property.city}` : ""}
         </p>
-        <p className="av-num mt-2 text-[15px] font-semibold">
+        <p className="av-num mt-3 text-[17px] font-semibold text-gold-pale">
           {formatCurrency(property.price, currencyForCountry(property.country))}
           <span className="ml-2 font-normal text-ink-muted">
             {TYPE_LABEL[property.propertyType] ?? property.propertyType}
@@ -159,10 +163,11 @@ export function DbPropertyCard({
             {property.status !== "ACTIVE" && <Status tone="pending">{property.status}</Status>}
           </div>
         )}
+        </div>
       </Link>
 
       {/* Actions sit above the link, not inside it */}
-      <div className="absolute right-0 top-0 flex gap-1 p-2">
+      <div className="absolute right-0 top-0 flex gap-1.5 p-3">
         <button
           type="button"
           onClick={handleCompare}
@@ -170,10 +175,10 @@ export function DbPropertyCard({
           aria-pressed={selected}
           aria-label={selected ? "Remove from comparison" : "Add to comparison"}
           className={cn(
-            "flex h-8 w-8 items-center justify-center rounded-xs border backdrop-blur-sm transition-colors",
+            "flex h-9 w-9 items-center justify-center rounded-full border backdrop-blur-md transition-colors",
             selected
-              ? "border-burgundy bg-burgundy text-paper"
-              : "border-rule-firm bg-paper/90 text-ink hover:bg-paper",
+              ? "border-gold bg-gold text-[#1a0e0f]"
+              : "border-white/20 bg-black/45 text-stage-ink hover:border-gold hover:text-gold",
             !selected && compare.full && "cursor-not-allowed opacity-50",
           )}
         >
@@ -185,7 +190,7 @@ export function DbPropertyCard({
           disabled={favLoading}
           aria-pressed={isFav}
           aria-label={isFav ? "Remove from saved" : "Save property"}
-          className="flex h-8 w-8 items-center justify-center rounded-xs border border-rule-firm bg-paper/90 text-ink backdrop-blur-sm transition-colors hover:bg-paper"
+          className="flex h-9 w-9 items-center justify-center rounded-full border border-white/20 bg-black/45 text-stage-ink backdrop-blur-md transition-colors hover:border-gold hover:text-gold"
         >
           <Heart className={cn("h-3.5 w-3.5", isFav && "fill-burgundy text-burgundy")} aria-hidden="true" />
         </button>

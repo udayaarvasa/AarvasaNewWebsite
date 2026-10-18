@@ -7,7 +7,7 @@ import { Loader2, Send } from "lucide-react"
 import toast from "react-hot-toast"
 import { inquirySchema, type InquiryInput } from "@/lib/validations/property"
 
-const inputClass = "w-full rounded-xl border border-[#DCCDCE]/50 bg-white px-4 py-3 text-sm text-[#50080E] outline-none transition placeholder:text-[#72383D]/30 focus:border-[#D4AF37]/50 focus:ring-2 focus:ring-[#D4AF37]/10"
+const inputClass = "w-full rounded-xl border border-rule bg-paper-raised px-4 py-3 text-sm text-ink outline-none transition placeholder:text-ink-muted focus:border-[#D4AF37]/50 focus:ring-2 focus:ring-[#D4AF37]/10"
 
 export function InquiryForm({ propertyId, propertyTitle }: { propertyId: string; propertyTitle: string }) {
   const [loading, setLoading] = useState(false)
@@ -92,7 +92,7 @@ export function InquiryForm({ propertyId, propertyTitle }: { propertyId: string;
       <button
         type="submit"
         disabled={loading}
-        className="flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-[#D4AF37] to-[#C5A028] py-3 text-sm font-bold text-[#50080E] shadow-lg shadow-[#D4AF37]/20 transition hover:shadow-xl disabled:opacity-50"
+        className="flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-[#D4AF37] to-[#C5A028] py-3 text-sm font-bold text-ink shadow-lg shadow-[#D4AF37]/20 transition hover:shadow-xl disabled:opacity-50"
       >
         {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
         {loading ? "Sending..." : "Send Inquiry"}

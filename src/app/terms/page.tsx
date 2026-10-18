@@ -1,4 +1,5 @@
 import { Metadata } from "next";
+import { PageHero } from "@/components/lux/page-hero";
 
 export const metadata: Metadata = {
   title: "Terms and Conditions | Aarvasa",
@@ -7,20 +8,13 @@ export const metadata: Metadata = {
 
 export default function TermsPage() {
   return (
-    <div className="min-h-screen bg-[#F2F1ED] pt-32 pb-24">
-      <div className="mx-auto max-w-4xl px-6 sm:px-10">
-        <div className="mb-12 text-center">
-          <h1 className="heading-serif text-4xl sm:text-5xl text-[#50080E] mb-4">
-            Terms and Conditions
-          </h1>
-          <p className="text-sm font-bold uppercase tracking-[0.15em] text-[#D4AF37]">
-            THIS AGREEMENT IS LEGALLY BINDING. READ IT CAREFULLY, PLEASE.
-          </p>
-        </div>
+    <div className="pb-24">
+      <PageHero eyebrow="Aarvasa Innovations Pvt. Ltd." title="Terms and Conditions" size="compact" />
+      <div className="mx-auto mt-4 max-w-4xl rounded-[28px] border border-rule bg-paper-raised/60 px-6 py-12 sm:px-12">
 
-        <div className="prose prose-lg max-w-none text-[#50080E]/80">
+        <div className="prose prose-lg max-w-none text-ink-muted">
           <section className="mb-10">
-            <h2 className="heading-serif text-2xl text-[#50080E] mb-4 border-b border-[#DCCDCE] pb-2">
+            <h2 className="heading-serif text-2xl text-ink mb-4 border-b border-rule pb-2">
               Article 1: Overview and Acceptance
             </h2>
             <div className="space-y-4 text-sm sm:text-base leading-relaxed">
@@ -40,7 +34,7 @@ export default function TermsPage() {
           </section>
 
           <section className="mb-10">
-            <h2 className="heading-serif text-2xl text-[#50080E] mb-4 border-b border-[#DCCDCE] pb-2">
+            <h2 className="heading-serif text-2xl text-ink mb-4 border-b border-rule pb-2">
               Article 2: Definitions and Interpretations
             </h2>
             <div className="space-y-4 text-sm sm:text-base leading-relaxed">
@@ -67,7 +61,7 @@ export default function TermsPage() {
           </section>
 
           <section className="mb-10">
-            <h2 className="heading-serif text-2xl text-[#50080E] mb-4 border-b border-[#DCCDCE] pb-2">
+            <h2 className="heading-serif text-2xl text-ink mb-4 border-b border-rule pb-2">
               Article 3: User Representations and Eligibility
             </h2>
             <div className="space-y-4 text-sm sm:text-base leading-relaxed">
@@ -91,7 +85,7 @@ export default function TermsPage() {
           </section>
 
           <section className="mb-10">
-            <h2 className="heading-serif text-2xl text-[#50080E] mb-4 border-b border-[#DCCDCE] pb-2">
+            <h2 className="heading-serif text-2xl text-ink mb-4 border-b border-rule pb-2">
               Article 4: Detailed Service Scope
             </h2>
             <div className="space-y-4 text-sm sm:text-base leading-relaxed">
@@ -111,7 +105,7 @@ export default function TermsPage() {
           </section>
 
           <section className="mb-10">
-            <h2 className="heading-serif text-2xl text-[#50080E] mb-4 border-b border-[#DCCDCE] pb-2">
+            <h2 className="heading-serif text-2xl text-ink mb-4 border-b border-rule pb-2">
               Article 5: Terms and Disclosures for Investment Services
             </h2>
             <div className="space-y-4 text-sm sm:text-base leading-relaxed">
@@ -143,7 +137,7 @@ export default function TermsPage() {
           </section>
 
           <section className="mb-10">
-            <h2 className="heading-serif text-2xl text-[#50080E] mb-4 border-b border-[#DCCDCE] pb-2">
+            <h2 className="heading-serif text-2xl text-ink mb-4 border-b border-rule pb-2">
               Article 6: Platform Integrity and User Conduct
             </h2>
             <div className="space-y-4 text-sm sm:text-base leading-relaxed">
@@ -169,7 +163,7 @@ export default function TermsPage() {
           </section>
 
           <section className="mb-10">
-            <h2 className="heading-serif text-2xl text-[#50080E] mb-4 border-b border-[#DCCDCE] pb-2">
+            <h2 className="heading-serif text-2xl text-ink mb-4 border-b border-rule pb-2">
               Article 7: Costs, Deposits, and Financial Terms
             </h2>
             <div className="space-y-4 text-sm sm:text-base leading-relaxed">
@@ -186,7 +180,7 @@ export default function TermsPage() {
           </section>
 
           <section className="mb-10">
-            <h2 className="heading-serif text-2xl text-[#50080E] mb-4 border-b border-[#DCCDCE] pb-2">
+            <h2 className="heading-serif text-2xl text-ink mb-4 border-b border-rule pb-2">
               Article 8: Confidentiality and Intellectual Property
             </h2>
             <div className="space-y-4 text-sm sm:text-base leading-relaxed">
@@ -206,11 +200,11 @@ export default function TermsPage() {
           </section>
 
           <section className="mb-10">
-            <h2 className="heading-serif text-2xl text-[#50080E] mb-4 border-b border-[#DCCDCE] pb-2">
+            <h2 className="heading-serif text-2xl text-ink mb-4 border-b border-rule pb-2">
               Article 9: Liability, Indemnity, and Disclaimers
             </h2>
             <div className="space-y-4 text-sm sm:text-base leading-relaxed">
-              <p className="uppercase font-bold text-[#50080E]">
+              <p className="uppercase font-bold text-ink">
                 9.1 WARRANTY DISCLAIMER: ALL SERVICES AND THE PLATFORM ARE GIVEN "AS IS" AND "AS AVAILABLE." AARVASA DISCLAIMS ALL WARRANTIES, EXPRESS, IMPLIED, AND STATUTORY, INCLUDING BUT NOT LIMITED TO THE IMPLIED WARRANTIES OF NON-INFRINGEMENT, MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, TITLE, AND QUIET ENJOYMENT. WE DO NOT GUARANTEE THAT THE PLATFORM WILL BE UNINTERRUPTED, TIMELY, SECURE, OR ERROR-FREE, OR THAT ANY INFORMATION (INCLUDING PROPERTY LISTINGS AND AI INSIGHTS) WILL BE ACCURATE OR RELIABLE.
               </p>
               <p>
@@ -226,7 +220,7 @@ export default function TermsPage() {
           </section>
 
           <section className="mb-10">
-            <h2 className="heading-serif text-2xl text-[#50080E] mb-4 border-b border-[#DCCDCE] pb-2">
+            <h2 className="heading-serif text-2xl text-ink mb-4 border-b border-rule pb-2">
               Article 10: Governance and Dispute Resolution
             </h2>
             <div className="space-y-4 text-sm sm:text-base leading-relaxed">
@@ -245,15 +239,15 @@ export default function TermsPage() {
           </section>
 
           <section className="mb-10">
-            <h2 className="heading-serif text-2xl text-[#50080E] mb-4 border-b border-[#DCCDCE] pb-2">
+            <h2 className="heading-serif text-2xl text-ink mb-4 border-b border-rule pb-2">
               Article 11: Mechanisms of Grievance Redressal
             </h2>
             <div className="space-y-4 text-sm sm:text-base leading-relaxed">
               <p>
                 <strong>11.1. Officer for Grievances:</strong> The name and contact information of the Grievance Officer are listed below in compliance with the Information Technology Act of 2000 and its regulations:
               </p>
-              <div className="bg-white/50 p-6 rounded-2xl border border-[#DCCDCE]/50">
-                <p className="font-semibold text-[#50080E]">Name: Ansh Dubey</p>
+              <div className="bg-white/5 p-6 rounded-2xl border border-rule">
+                <p className="font-semibold text-ink">Name: Ansh Dubey</p>
                 <p>Position: Aarvasa Innovations Pvt. Ltd. Grievance Officer</p>
                 <p>Address: 3 Flr, off Windsar Sq Opp, Vishal Megamart Kolar Rd, Kolar Road, Huzur, Bhopal- 462042, Madhya Pradesh.</p>
                 <p>Email address: <a href="mailto:grievance.officer@aarvasa.com" className="text-[#D4AF37] hover:underline">grievance.officer@aarvasa.com</a></p>
@@ -265,7 +259,7 @@ export default function TermsPage() {
           </section>
 
           <section className="mb-10">
-            <h2 className="heading-serif text-2xl text-[#50080E] mb-4 border-b border-[#DCCDCE] pb-2">
+            <h2 className="heading-serif text-2xl text-ink mb-4 border-b border-rule pb-2">
               Article 12: Overall Terms
             </h2>
             <div className="space-y-4 text-sm sm:text-base leading-relaxed">
@@ -293,14 +287,14 @@ export default function TermsPage() {
             </div>
           </section>
 
-          <div className="mt-16 p-8 bg-[#50080E] text-white rounded-3xl text-center shadow-luxury-xl">
+          <div className="mt-16 p-8 bg-claret text-white rounded-3xl text-center shadow-luxury-xl">
             <p className="font-semibold text-lg mb-2">Aarvasa Innovations Pvt. Ltd.</p>
-            <p className="text-[#DCCDCE] text-sm mb-6 max-w-md mx-auto">
+            <p className="text-ink-muted text-sm mb-6 max-w-md mx-auto">
               3 Flr, off Windsar Sq Opp, Vishal Megamart Kolar Rd, Kolar Road, Huzur, Bhopal- 462042, Madhya Pradesh.
             </p>
             <a 
               href="mailto:Contact@aarvasa.com" 
-              className="inline-block px-6 py-3 rounded-xl bg-gradient-to-r from-[#D4AF37] to-[#b9872f] text-[#50080E] font-bold transition-transform hover:scale-105"
+              className="inline-block px-6 py-3 rounded-xl bg-gradient-to-r from-[#D4AF37] to-[#b9872f] text-ink font-bold transition-transform hover:scale-105"
             >
               Contact@aarvasa.com for general inquiries
             </a>

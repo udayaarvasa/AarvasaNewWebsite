@@ -190,7 +190,7 @@ export function AdminPanel() {
       ADMIN: "bg-purple-100 text-purple-700",
       AGENT: "bg-blue-100 text-blue-700",
       BUILDER: "bg-amber-100 text-amber-700",
-      USER: "bg-gray-100 text-gray-600",
+      USER: "bg-paper-sunken text-ink-muted",
     }
     return (
       <span className={`rounded-full px-2 py-0.5 text-[10px] font-bold uppercase ${colors[role] || colors.USER}`}>
@@ -200,29 +200,29 @@ export function AdminPanel() {
   }
 
   return (
-    <div className="min-h-screen bg-[#F2F1ED]">
+    <div className="min-h-screen bg-paper-sunken">
       <div className="mx-auto max-w-7xl px-4 pb-16 pt-28 sm:px-6 lg:px-8">
         {/* Header */}
         <div className="flex items-center gap-3">
-          <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-[#50080E]">
+          <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-claret">
             <Shield className="h-6 w-6 text-[#D4AF37]" />
           </div>
           <div>
-            <h1 className="heading-serif text-3xl text-[#50080E] sm:text-4xl">Admin Panel</h1>
-            <p className="text-sm text-[#72383D]/60">Platform moderation & management</p>
+            <h1 className="heading-serif text-3xl text-ink sm:text-4xl">Admin Panel</h1>
+            <p className="text-sm text-ink-muted">Platform moderation & management</p>
           </div>
         </div>
 
         {/* Tabs */}
-        <div className="mt-8 flex gap-1 rounded-xl border border-[#DCCDCE]/40 bg-white p-1">
+        <div className="mt-8 flex gap-1 rounded-xl border border-rule bg-paper-raised p-1">
           {tabs.map((t) => (
             <button
               key={t.id}
               onClick={() => setTab(t.id)}
               className={`flex items-center gap-2 rounded-lg px-4 py-2.5 text-sm font-medium transition ${
                 tab === t.id
-                  ? "bg-[#50080E] text-white shadow"
-                  : "text-[#72383D]/60 hover:bg-[#F5F4F1] hover:text-[#50080E]"
+                  ? "bg-claret text-white shadow"
+                  : "text-ink-muted hover:bg-paper-raised hover:text-ink"
               }`}
             >
               <t.icon className="h-4 w-4" /> {t.label}
@@ -246,14 +246,14 @@ export function AdminPanel() {
                     { label: "Inquiries", value: stats.totalInquiries, icon: MessageSquare, color: "text-purple-600" },
                     { label: "Portfolio Value", value: formatCurrency(stats.portfolioValue), icon: TrendingUp, color: "text-[#D4AF37]" },
                   ].map((s) => (
-                    <Card key={s.label} className="border-[#DCCDCE]/40 bg-white p-5">
+                    <Card key={s.label} className="border-rule bg-paper-raised p-5">
                       <div className="flex items-center gap-3">
-                        <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#F5F4F1]">
+                        <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-paper-raised">
                           <s.icon className={`h-5 w-5 ${s.color}`} />
                         </div>
                         <div>
-                          <p className="text-xs text-[#72383D]/50">{s.label}</p>
-                          <p className="text-xl font-bold text-[#50080E]">{s.value}</p>
+                          <p className="text-xs text-ink-muted">{s.label}</p>
+                          <p className="text-xl font-bold text-ink">{s.value}</p>
                         </div>
                       </div>
                     </Card>
@@ -267,24 +267,24 @@ export function AdminPanel() {
                     { label: "Featured", value: stats.featuredProperties, icon: Sparkles, color: "text-[#D4AF37]" },
                     { label: "Total Saves", value: stats.totalFavorites, icon: Heart, color: "text-red-500" },
                   ].map((s) => (
-                    <Card key={s.label} className="border-[#DCCDCE]/40 bg-white p-4">
+                    <Card key={s.label} className="border-rule bg-paper-raised p-4">
                       <div className="flex items-center gap-2">
                         <s.icon className={`h-4 w-4 ${s.color}`} />
-                        <span className="text-xs text-[#72383D]/50">{s.label}</span>
-                        <span className="ml-auto text-lg font-bold text-[#50080E]">{s.value}</span>
+                        <span className="text-xs text-ink-muted">{s.label}</span>
+                        <span className="ml-auto text-lg font-bold text-ink">{s.value}</span>
                       </div>
                     </Card>
                   ))}
                 </div>
 
                 {/* User role breakdown */}
-                <Card className="border-[#DCCDCE]/40 bg-white p-6">
-                  <h3 className="mb-4 text-lg font-bold text-[#50080E]">Users by Role</h3>
+                <Card className="border-rule bg-paper-raised p-6">
+                  <h3 className="mb-4 text-lg font-bold text-ink">Users by Role</h3>
                   <div className="grid gap-3 sm:grid-cols-4">
                     {["USER", "AGENT", "BUILDER", "ADMIN"].map((role) => (
-                      <div key={role} className="rounded-xl bg-[#F5F4F1] p-4 text-center">
-                        <p className="text-2xl font-bold text-[#50080E]">{stats.usersByRole[role] || 0}</p>
-                        <p className="mt-1 text-xs font-medium uppercase tracking-wider text-[#72383D]/50">{role}s</p>
+                      <div key={role} className="rounded-xl bg-paper-raised p-4 text-center">
+                        <p className="text-2xl font-bold text-ink">{stats.usersByRole[role] || 0}</p>
+                        <p className="mt-1 text-xs font-medium uppercase tracking-wider text-ink-muted">{role}s</p>
                       </div>
                     ))}
                   </div>
@@ -292,29 +292,29 @@ export function AdminPanel() {
 
                 {/* Recent activity */}
                 <div className="grid gap-6 lg:grid-cols-2">
-                  <Card className="border-[#DCCDCE]/40 bg-white p-6">
-                    <h3 className="mb-4 text-lg font-bold text-[#50080E]">Recent Properties</h3>
+                  <Card className="border-rule bg-paper-raised p-6">
+                    <h3 className="mb-4 text-lg font-bold text-ink">Recent Properties</h3>
                     <div className="space-y-3">
                       {stats.recentProperties.map((p: any) => (
-                        <div key={p.id} className="flex items-center justify-between rounded-xl border border-[#DCCDCE]/20 p-3">
+                        <div key={p.id} className="flex items-center justify-between rounded-xl border border-rule p-3">
                           <div>
-                            <p className="text-sm font-semibold text-[#50080E]">{p.title}</p>
-                            <p className="text-xs text-[#72383D]/50">{p.city} · {formatCurrency(p.price)}</p>
+                            <p className="text-sm font-semibold text-ink">{p.title}</p>
+                            <p className="text-xs text-ink-muted">{p.city} · {formatCurrency(p.price)}</p>
                           </div>
-                          <p className="text-[10px] text-[#72383D]/40">{new Date(p.createdAt).toLocaleDateString()}</p>
+                          <p className="text-[10px] text-ink-muted">{new Date(p.createdAt).toLocaleDateString()}</p>
                         </div>
                       ))}
                     </div>
                   </Card>
 
-                  <Card className="border-[#DCCDCE]/40 bg-white p-6">
-                    <h3 className="mb-4 text-lg font-bold text-[#50080E]">Recent Users</h3>
+                  <Card className="border-rule bg-paper-raised p-6">
+                    <h3 className="mb-4 text-lg font-bold text-ink">Recent Users</h3>
                     <div className="space-y-3">
                       {stats.recentUsers.map((u: any) => (
-                        <div key={u.id} className="flex items-center justify-between rounded-xl border border-[#DCCDCE]/20 p-3">
+                        <div key={u.id} className="flex items-center justify-between rounded-xl border border-rule p-3">
                           <div>
-                            <p className="text-sm font-semibold text-[#50080E]">{u.name || "—"}</p>
-                            <p className="text-xs text-[#72383D]/50">{u.email}</p>
+                            <p className="text-sm font-semibold text-ink">{u.name || "—"}</p>
+                            <p className="text-xs text-ink-muted">{u.email}</p>
                           </div>
                           {roleBadge(u.role)}
                         </div>
@@ -329,31 +329,31 @@ export function AdminPanel() {
             {tab === "users" && (
               <div className="space-y-4">
                 <div className="flex items-center justify-between">
-                  <p className="text-sm text-[#72383D]/60">{users.length} users total</p>
+                  <p className="text-sm text-ink-muted">{users.length} users total</p>
                 </div>
-                <Card className="overflow-hidden border-[#DCCDCE]/40 bg-white">
+                <Card className="overflow-hidden border-rule bg-paper-raised">
                   <div className="overflow-x-auto">
                     <table className="w-full text-left text-sm">
-                      <thead className="border-b border-[#DCCDCE]/30 bg-[#F5F4F1]">
+                      <thead className="border-b border-rule bg-paper-raised">
                         <tr>
-                          <th className="px-5 py-3 text-xs font-bold uppercase tracking-wider text-[#72383D]/50">User</th>
-                          <th className="px-5 py-3 text-xs font-bold uppercase tracking-wider text-[#72383D]/50">Role</th>
-                          <th className="px-5 py-3 text-xs font-bold uppercase tracking-wider text-[#72383D]/50">Properties</th>
-                          <th className="px-5 py-3 text-xs font-bold uppercase tracking-wider text-[#72383D]/50">Joined</th>
-                          <th className="px-5 py-3 text-xs font-bold uppercase tracking-wider text-[#72383D]/50">Actions</th>
+                          <th className="px-5 py-3 text-xs font-bold uppercase tracking-wider text-ink-muted">User</th>
+                          <th className="px-5 py-3 text-xs font-bold uppercase tracking-wider text-ink-muted">Role</th>
+                          <th className="px-5 py-3 text-xs font-bold uppercase tracking-wider text-ink-muted">Properties</th>
+                          <th className="px-5 py-3 text-xs font-bold uppercase tracking-wider text-ink-muted">Joined</th>
+                          <th className="px-5 py-3 text-xs font-bold uppercase tracking-wider text-ink-muted">Actions</th>
                         </tr>
                       </thead>
                       <tbody className="divide-y divide-[#DCCDCE]/20">
                         {users.map((user) => (
-                          <tr key={user.id} className="hover:bg-[#F5F4F1]/50 transition">
+                          <tr key={user.id} className="hover:bg-paper-raised/50 transition">
                             <td className="px-5 py-4">
                               <div className="flex items-center gap-3">
                                 <div className="flex h-9 w-9 items-center justify-center rounded-full bg-[#902941] text-xs font-bold text-white">
                                   {user.name?.charAt(0)?.toUpperCase() || "?"}
                                 </div>
                                 <div>
-                                  <p className="font-semibold text-[#50080E]">{user.name || "—"}</p>
-                                  <p className="text-xs text-[#72383D]/50">{user.email}</p>
+                                  <p className="font-semibold text-ink">{user.name || "—"}</p>
+                                  <p className="text-xs text-ink-muted">{user.email}</p>
                                 </div>
                               </div>
                             </td>
@@ -361,15 +361,15 @@ export function AdminPanel() {
                               <select
                                 value={user.role}
                                 onChange={(e) => handleUpdateRole(user.id, e.target.value)}
-                                className="rounded-lg border border-[#DCCDCE]/40 bg-white px-2 py-1 text-xs font-medium text-[#50080E] outline-none focus:border-[#D4AF37]/50"
+                                className="rounded-lg border border-rule bg-paper-raised px-2 py-1 text-xs font-medium text-ink outline-none focus:border-[#D4AF37]/50"
                               >
                                 {["USER", "AGENT", "BUILDER", "ADMIN"].map((r) => (
                                   <option key={r} value={r}>{r}</option>
                                 ))}
                               </select>
                             </td>
-                            <td className="px-5 py-4 text-sm text-[#50080E]">{user._count.properties}</td>
-                            <td className="px-5 py-4 text-xs text-[#72383D]/50">
+                            <td className="px-5 py-4 text-sm text-ink">{user._count.properties}</td>
+                            <td className="px-5 py-4 text-xs text-ink-muted">
                               {new Date(user.createdAt).toLocaleDateString()}
                             </td>
                             <td className="px-5 py-4">
@@ -395,36 +395,36 @@ export function AdminPanel() {
             {tab === "properties" && (
               <div className="space-y-4">
                 <div className="flex items-center justify-between">
-                  <p className="text-sm text-[#72383D]/60">{properties.length} properties total</p>
+                  <p className="text-sm text-ink-muted">{properties.length} properties total</p>
                 </div>
-                <Card className="overflow-hidden border-[#DCCDCE]/40 bg-white">
+                <Card className="overflow-hidden border-rule bg-paper-raised">
                   <div className="overflow-x-auto">
                     <table className="w-full text-left text-sm">
-                      <thead className="border-b border-[#DCCDCE]/30 bg-[#F5F4F1]">
+                      <thead className="border-b border-rule bg-paper-raised">
                         <tr>
-                          <th className="px-5 py-3 text-xs font-bold uppercase tracking-wider text-[#72383D]/50">Property</th>
-                          <th className="px-5 py-3 text-xs font-bold uppercase tracking-wider text-[#72383D]/50">Owner</th>
-                          <th className="px-5 py-3 text-xs font-bold uppercase tracking-wider text-[#72383D]/50">Price</th>
-                          <th className="px-5 py-3 text-xs font-bold uppercase tracking-wider text-[#72383D]/50">Status</th>
-                          <th className="px-5 py-3 text-xs font-bold uppercase tracking-wider text-[#72383D]/50">Verified</th>
-                          <th className="px-5 py-3 text-xs font-bold uppercase tracking-wider text-[#72383D]/50">Featured</th>
-                          <th className="px-5 py-3 text-xs font-bold uppercase tracking-wider text-[#72383D]/50">Actions</th>
+                          <th className="px-5 py-3 text-xs font-bold uppercase tracking-wider text-ink-muted">Property</th>
+                          <th className="px-5 py-3 text-xs font-bold uppercase tracking-wider text-ink-muted">Owner</th>
+                          <th className="px-5 py-3 text-xs font-bold uppercase tracking-wider text-ink-muted">Price</th>
+                          <th className="px-5 py-3 text-xs font-bold uppercase tracking-wider text-ink-muted">Status</th>
+                          <th className="px-5 py-3 text-xs font-bold uppercase tracking-wider text-ink-muted">Verified</th>
+                          <th className="px-5 py-3 text-xs font-bold uppercase tracking-wider text-ink-muted">Featured</th>
+                          <th className="px-5 py-3 text-xs font-bold uppercase tracking-wider text-ink-muted">Actions</th>
                         </tr>
                       </thead>
                       <tbody className="divide-y divide-[#DCCDCE]/20">
                         {properties.map((p) => (
-                          <tr key={p.id} className="hover:bg-[#F5F4F1]/50 transition">
+                          <tr key={p.id} className="hover:bg-paper-raised/50 transition">
                             <td className="px-5 py-4">
                               <div>
-                                <p className="font-semibold text-[#50080E] line-clamp-1">{p.title}</p>
-                                <p className="text-xs text-[#72383D]/50">{p.city} · {p.propertyType}</p>
+                                <p className="font-semibold text-ink line-clamp-1">{p.title}</p>
+                                <p className="text-xs text-ink-muted">{p.city} · {p.propertyType}</p>
                               </div>
                             </td>
                             <td className="px-5 py-4">
-                              <p className="text-xs text-[#50080E]">{p.owner.name || "—"}</p>
+                              <p className="text-xs text-ink">{p.owner.name || "—"}</p>
                               {roleBadge(p.owner.role)}
                             </td>
-                            <td className="px-5 py-4 text-sm font-semibold text-[#50080E]">
+                            <td className="px-5 py-4 text-sm font-semibold text-ink">
                               {formatCurrency(p.price)}
                             </td>
                             <td className="px-5 py-4">
@@ -433,7 +433,7 @@ export function AdminPanel() {
                                   ? "bg-emerald-100 text-emerald-700"
                                   : p.status === "SOLD"
                                   ? "bg-blue-100 text-blue-700"
-                                  : "bg-gray-100 text-gray-600"
+                                  : "bg-paper-sunken text-ink-muted"
                               }`}>
                                 {p.status}
                               </span>
@@ -444,7 +444,7 @@ export function AdminPanel() {
                                 className={`flex items-center gap-1 rounded-lg px-2 py-1 text-xs font-medium transition ${
                                   p.verified
                                     ? "bg-emerald-100 text-emerald-700 hover:bg-emerald-200"
-                                    : "bg-gray-100 text-gray-500 hover:bg-gray-200"
+                                    : "bg-paper-sunken text-ink-muted hover:bg-gray-200"
                                 }`}
                               >
                                 {p.verified ? <CheckCircle2 className="h-3 w-3" /> : <XCircle className="h-3 w-3" />}
@@ -457,7 +457,7 @@ export function AdminPanel() {
                                 className={`flex items-center gap-1 rounded-lg px-2 py-1 text-xs font-medium transition ${
                                   p.featured
                                     ? "bg-[#D4AF37]/15 text-[#D4AF37] hover:bg-[#D4AF37]/25"
-                                    : "bg-gray-100 text-gray-500 hover:bg-gray-200"
+                                    : "bg-paper-sunken text-ink-muted hover:bg-gray-200"
                                 }`}
                               >
                                 <Star className={`h-3 w-3 ${p.featured ? "fill-current" : ""}`} />
@@ -488,16 +488,16 @@ export function AdminPanel() {
             {tab === "media" && <MediaManager />}
 
             {tab === "inquiries" && (
-              <Card className="border-[#DCCDCE]/40 bg-white p-12 text-center">
-                <MessageSquare className="mx-auto mb-4 h-12 w-12 text-[#DCCDCE]" />
-                <h3 className="text-lg font-bold text-[#50080E]">Inquiry Management</h3>
-                <p className="mt-2 text-sm text-[#72383D]/50">
+              <Card className="border-rule bg-paper-raised p-12 text-center">
+                <MessageSquare className="mx-auto mb-4 h-12 w-12 text-ink-muted" />
+                <h3 className="text-lg font-bold text-ink">Inquiry Management</h3>
+                <p className="mt-2 text-sm text-ink-muted">
                   View and respond to property inquiries. Coming in Phase 3 with email integration.
                 </p>
                 <p className="mt-4 text-3xl font-bold text-[#D4AF37]">
                   {stats?.totalInquiries || 0}
                 </p>
-                <p className="text-xs text-[#72383D]/50">total inquiries received</p>
+                <p className="text-xs text-ink-muted">total inquiries received</p>
               </Card>
             )}
           </div>

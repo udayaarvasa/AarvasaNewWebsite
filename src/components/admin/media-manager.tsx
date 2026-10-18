@@ -72,13 +72,13 @@ const FORMAT_LABELS: Record<MediaAssetFormat, string> = {
 }
 
 const STATUS_STYLES: Record<Status, string> = {
-  UPLOADED: "bg-gray-100 text-gray-600",
+  UPLOADED: "bg-paper-sunken text-ink-muted",
   PROCESSING: "bg-blue-100 text-blue-700",
   PENDING_REVIEW: "bg-amber-100 text-amber-700",
   PUBLISHED: "bg-green-100 text-green-700",
   REJECTED: "bg-red-100 text-red-700",
   FAILED: "bg-red-100 text-red-700",
-  ARCHIVED: "bg-gray-100 text-gray-500",
+  ARCHIVED: "bg-paper-sunken text-ink-muted",
 }
 
 const FILTERS: Array<{ id: Status | "ALL"; label: string }> = [
@@ -192,12 +192,12 @@ export function MediaManager() {
 
       <div className="space-y-4">
         <div className="flex flex-wrap items-center justify-between gap-3">
-          <div className="flex flex-wrap gap-1 rounded-xl border border-[#DCCDCE]/40 bg-white p-1">
+          <div className="flex flex-wrap gap-1 rounded-xl border border-rule bg-paper-raised p-1">
             {FILTERS.map((f) => (
               <button
                 key={f.id}
                 onClick={() => setFilter(f.id)}
-                className={`rounded-lg px-3 py-2 text-xs font-semibold transition ${filter === f.id ? "bg-[#50080E] text-white" : "text-[#72383D]/60 hover:bg-[#F5F4F1] hover:text-[#50080E]"}`}
+                className={`rounded-lg px-3 py-2 text-xs font-semibold transition ${filter === f.id ? "bg-claret text-white" : "text-ink-muted hover:bg-paper-raised hover:text-ink"}`}
               >
                 {f.label}
               </button>
@@ -209,7 +209,7 @@ export function MediaManager() {
         </div>
 
         <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,420px)]">
-          <Card className="overflow-hidden border-[#DCCDCE]/40 bg-white">
+          <Card className="overflow-hidden border-rule bg-paper-raised">
             {listLoading ? (
               <div className="flex justify-center py-16"><Loader2 className="h-6 w-6 animate-spin text-[#D4AF37]" /></div>
             ) : listError ? (
@@ -218,28 +218,28 @@ export function MediaManager() {
                 <Button variant="outline" size="sm" onClick={loadList}>Try again</Button>
               </div>
             ) : items.length === 0 ? (
-              <p className="py-12 text-center text-sm text-[#72383D]/60">No media in this list.</p>
+              <p className="py-12 text-center text-sm text-ink-muted">No media in this list.</p>
             ) : (
               <div className="overflow-x-auto">
                 <table className="w-full text-left text-sm">
-                  <thead className="border-b border-[#DCCDCE]/30 bg-[#F5F4F1]">
+                  <thead className="border-b border-rule bg-paper-raised">
                     <tr>
                       {["Media", "Attached to", "Status", "Size", "Uploaded"].map((h) => (
-                        <th key={h} className="px-4 py-3 text-xs font-bold uppercase tracking-wider text-[#72383D]/50">{h}</th>
+                        <th key={h} className="px-4 py-3 text-xs font-bold uppercase tracking-wider text-ink-muted">{h}</th>
                       ))}
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-[#DCCDCE]/20">
                     {items.map((item) => (
-                      <tr key={item.id} onClick={() => setSelected(item)} className={`cursor-pointer transition hover:bg-[#F5F4F1]/60 ${selected?.id === item.id ? "bg-[#F5F4F1]" : ""}`}>
+                      <tr key={item.id} onClick={() => setSelected(item)} className={`cursor-pointer transition hover:bg-paper-raised/60 ${selected?.id === item.id ? "bg-paper-raised" : ""}`}>
                         <td className="px-4 py-3">
-                          <p className="font-semibold text-[#50080E] line-clamp-1">{item.title ?? item.format ?? item.kind}</p>
-                          <p className="text-xs text-[#72383D]/50">{item.kind}{item.format ? ` · ${item.format}` : ""}</p>
+                          <p className="font-semibold text-ink line-clamp-1">{item.title ?? item.format ?? item.kind}</p>
+                          <p className="text-xs text-ink-muted">{item.kind}{item.format ? ` · ${item.format}` : ""}</p>
                         </td>
-                        <td className="px-4 py-3 text-[#72383D]">{subjectLabel(item, subjects)}</td>
+                        <td className="px-4 py-3 text-ink-muted">{subjectLabel(item, subjects)}</td>
                         <td className="px-4 py-3"><span className={`rounded-full px-2 py-0.5 text-[10px] font-bold ${STATUS_STYLES[item.status]}`}>{item.status.replace("_", " ")}</span></td>
-                        <td className="px-4 py-3 text-[#72383D]/70">{formatBytes(item.processed?.sizeBytes ?? item.source.sizeBytes)}</td>
-                        <td className="px-4 py-3 text-xs text-[#72383D]/60">{new Date(item.createdAt).toLocaleString()}</td>
+                        <td className="px-4 py-3 text-ink-muted">{formatBytes(item.processed?.sizeBytes ?? item.source.sizeBytes)}</td>
+                        <td className="px-4 py-3 text-xs text-ink-muted">{new Date(item.createdAt).toLocaleString()}</td>
                       </tr>
                     ))}
                   </tbody>
@@ -251,7 +251,7 @@ export function MediaManager() {
           {selected ? (
             <ReviewPanel key={selected.id} item={selected} subjects={subjects} onChanged={async () => { await refreshItem(selected.id); loadList() }} />
           ) : (
-            <Card className="flex items-center justify-center border-[#DCCDCE]/40 bg-white p-8 text-sm text-[#72383D]/60">Select media to see details.</Card>
+            <Card className="flex items-center justify-center border-rule bg-paper-raised p-8 text-sm text-ink-muted">Select media to see details.</Card>
           )}
         </div>
       </div>
@@ -313,17 +313,17 @@ function UploadPanel({ subjects, onUploaded, refreshItem }: { subjects: Subjects
     }
   }
 
-  const field = "w-full rounded-xl border border-[#DCCDCE]/60 bg-white px-3 py-2.5 text-sm text-[#50080E] focus:border-[#D4AF37] focus:outline-none"
+  const field = "w-full rounded-xl border border-rule bg-paper-raised px-3 py-2.5 text-sm text-ink focus:border-[#D4AF37] focus:outline-none"
   return (
-    <Card className="border-[#DCCDCE]/40 bg-white p-6">
+    <Card className="border-rule bg-paper-raised p-6">
       <div className="flex items-center gap-2">
         <FileUp className="h-5 w-5 text-[#D4AF37]" />
-        <h2 className="text-lg font-bold text-[#50080E]">Upload immersive media</h2>
+        <h2 className="text-lg font-bold text-ink">Upload immersive media</h2>
       </div>
-      <p className="mt-1 text-xs text-[#72383D]/60">Files upload directly to private storage, are verified and processed, and stay unpublished until approved below.</p>
+      <p className="mt-1 text-xs text-ink-muted">Files upload directly to private storage, are verified and processed, and stay unpublished until approved below.</p>
 
       <div className="mt-5 grid gap-4 md:grid-cols-2">
-        <label className="space-y-1.5 text-xs font-semibold text-[#72383D]">
+        <label className="space-y-1.5 text-xs font-semibold text-ink-muted">
           Attach to
           <div className="flex gap-2">
             <select className={field} value={subjectType} disabled={busy} onChange={(e) => { setSubjectType(e.target.value as "PROPERTY" | "PROJECT"); setSubjectId("") }}>
@@ -338,22 +338,22 @@ function UploadPanel({ subjects, onUploaded, refreshItem }: { subjects: Subjects
             </select>
           </div>
         </label>
-        <label className="space-y-1.5 text-xs font-semibold text-[#72383D]">
+        <label className="space-y-1.5 text-xs font-semibold text-ink-muted">
           Media type
           <select className={field} value={format} disabled={busy} onChange={(e) => { setFormat(e.target.value as MediaAssetFormat); setFile(null); if (fileInput.current) fileInput.current.value = "" }}>
             {(Object.keys(FORMAT_LABELS) as MediaAssetFormat[]).map((f) => <option key={f} value={f}>{FORMAT_LABELS[f]}</option>)}
           </select>
         </label>
-        <label className="space-y-1.5 text-xs font-semibold text-[#72383D]">
+        <label className="space-y-1.5 text-xs font-semibold text-ink-muted">
           File
           <input ref={fileInput} type="file" accept={accept} disabled={busy} className={field} onChange={(e) => setFile(e.target.files?.[0] ?? null)} />
           {fileProblem && <span className="block font-normal text-red-700">{fileProblem}</span>}
         </label>
-        <label className="space-y-1.5 text-xs font-semibold text-[#72383D]">
+        <label className="space-y-1.5 text-xs font-semibold text-ink-muted">
           Title (optional)
           <input className={field} value={title} maxLength={150} disabled={busy} onChange={(e) => setTitle(e.target.value)} />
         </label>
-        <label className="space-y-1.5 text-xs font-semibold text-[#72383D] md:col-span-2">
+        <label className="space-y-1.5 text-xs font-semibold text-ink-muted md:col-span-2">
           Alt text (required before publishing)
           <input className={field} value={altText} maxLength={500} disabled={busy} onChange={(e) => setAltText(e.target.value)} placeholder="Describe what the model or panorama shows" />
         </label>
@@ -364,14 +364,14 @@ function UploadPanel({ subjects, onUploaded, refreshItem }: { subjects: Subjects
       )}
       {stage && (
         <div className="mt-4 space-y-1.5">
-          <p className="text-xs font-semibold text-[#72383D]">{STAGE_LABELS[stage]}{stage === "uploading" ? ` ${Math.round(progress * 100)}%` : ""}</p>
-          <div className="h-2 overflow-hidden rounded-full bg-[#F5F4F1]">
+          <p className="text-xs font-semibold text-ink-muted">{STAGE_LABELS[stage]}{stage === "uploading" ? ` ${Math.round(progress * 100)}%` : ""}</p>
+          <div className="h-2 overflow-hidden rounded-full bg-paper-raised">
             <div className="h-full bg-[#D4AF37] transition-all" style={{ width: `${stage === "uploading" ? Math.round(progress * 100) : stage === "done" || stage === "completing" ? 100 : 5}%` }} />
           </div>
         </div>
       )}
       {tracking && (
-        <p className="mt-3 text-xs text-[#72383D]">
+        <p className="mt-3 text-xs text-ink-muted">
           Latest upload: <span className={`rounded-full px-2 py-0.5 text-[10px] font-bold ${STATUS_STYLES[tracking.status as Status] ?? STATUS_STYLES.UPLOADED}`}>{tracking.status.replace("_", " ")}</span>
           {tracking.message ? ` — ${tracking.message}` : tracking.status === "PENDING_REVIEW" ? " — ready for review below." : ""}
         </p>
@@ -417,15 +417,15 @@ function ReviewPanel({ item, subjects, onChanged }: { item: MediaItem; subjects:
   }
 
   const row = (label: string, value: string | null | undefined) => (
-    <div className="flex justify-between gap-4 py-1.5 text-xs"><span className="text-[#72383D]/60">{label}</span><span className="text-right font-medium text-[#50080E]">{value || "—"}</span></div>
+    <div className="flex justify-between gap-4 py-1.5 text-xs"><span className="text-ink-muted">{label}</span><span className="text-right font-medium text-ink">{value || "—"}</span></div>
   )
   const dims = item.processed?.dimensions?.entry
   return (
-    <Card className="space-y-4 border-[#DCCDCE]/40 bg-white p-5">
+    <Card className="space-y-4 border-rule bg-paper-raised p-5">
       <div className="flex items-start justify-between gap-3">
         <div>
-          <h3 className="font-bold text-[#50080E]">{item.title ?? item.format ?? item.kind}</h3>
-          <p className="text-xs text-[#72383D]/60">{subjectLabel(item, subjects)}</p>
+          <h3 className="font-bold text-ink">{item.title ?? item.format ?? item.kind}</h3>
+          <p className="text-xs text-ink-muted">{subjectLabel(item, subjects)}</p>
         </div>
         <span className={`rounded-full px-2 py-0.5 text-[10px] font-bold ${STATUS_STYLES[item.status]}`}>{item.status.replace("_", " ")}</span>
       </div>
@@ -463,24 +463,24 @@ function ReviewPanel({ item, subjects, onChanged }: { item: MediaItem; subjects:
               {previewLoading ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Eye className="h-3.5 w-3.5" />} Secure preview
             </Button>
             {preview && (
-              <div className="space-y-2 rounded-lg border border-[#DCCDCE]/40 p-3">
+              <div className="space-y-2 rounded-lg border border-rule p-3">
                 {preview.poster && (
                   // Short-lived presigned URL to a private review copy; next/image would proxy and cache it.
                   // eslint-disable-next-line @next/next/no-img-element
                   <img src={preview.poster.url} alt="Poster preview" className="w-full rounded-md" referrerPolicy="no-referrer" />
                 )}
-                <a href={preview.entry.url} target="_blank" rel="noopener noreferrer" referrerPolicy="no-referrer" className="text-xs font-semibold text-[#50080E] underline">
+                <a href={preview.entry.url} target="_blank" rel="noopener noreferrer" referrerPolicy="no-referrer" className="text-xs font-semibold text-ink underline">
                   Open processed file ({formatBytes(preview.entry.sizeBytes)})
                 </a>
-                <p className="text-[10px] text-[#72383D]/50">Private link, expires {new Date(preview.expiresAt).toLocaleTimeString()}.</p>
+                <p className="text-[10px] text-ink-muted">Private link, expires {new Date(preview.expiresAt).toLocaleTimeString()}.</p>
               </div>
             )}
           </div>
 
           <div className="space-y-2">
-            <label className="block space-y-1 text-xs font-semibold text-[#72383D]">
+            <label className="block space-y-1 text-xs font-semibold text-ink-muted">
               Alt text
-              <input className="w-full rounded-xl border border-[#DCCDCE]/60 px-3 py-2 text-sm" maxLength={500} value={altText} onChange={(e) => setAltText(e.target.value)} />
+              <input className="w-full rounded-xl border border-rule px-3 py-2 text-sm" maxLength={500} value={altText} onChange={(e) => setAltText(e.target.value)} />
             </label>
             <Button size="sm" onClick={() => void decide("approve")} disabled={acting !== null || !altText.trim()}>
               {acting === "approve" ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <CheckCircle2 className="h-3.5 w-3.5" />} Approve and publish
@@ -488,9 +488,9 @@ function ReviewPanel({ item, subjects, onChanged }: { item: MediaItem; subjects:
           </div>
 
           <div className="space-y-2">
-            <label className="block space-y-1 text-xs font-semibold text-[#72383D]">
+            <label className="block space-y-1 text-xs font-semibold text-ink-muted">
               Rejection reason
-              <textarea className="w-full rounded-xl border border-[#DCCDCE]/60 px-3 py-2 text-sm" rows={2} maxLength={500} value={reason} onChange={(e) => setReason(e.target.value)} />
+              <textarea className="w-full rounded-xl border border-rule px-3 py-2 text-sm" rows={2} maxLength={500} value={reason} onChange={(e) => setReason(e.target.value)} />
             </label>
             <Button variant="outline" size="sm" onClick={() => void decide("reject")} disabled={acting !== null || reason.trim().length < 3}>
               {acting === "reject" ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <XCircle className="h-3.5 w-3.5" />} Reject

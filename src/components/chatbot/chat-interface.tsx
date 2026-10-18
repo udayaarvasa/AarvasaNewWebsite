@@ -66,7 +66,7 @@ function renderMarkdown(text: string) {
       elements.push(
         <h3
           key={k}
-          className="mt-5 mb-2 flex items-center gap-2 text-base font-bold text-[#50080E]"
+          className="mt-5 mb-2 flex items-center gap-2 text-base font-bold text-ink"
         >
           {line.slice(4)}
         </h3>,
@@ -77,7 +77,7 @@ function renderMarkdown(text: string) {
     // Bold line (**text**)
     if (line.startsWith("**") && line.endsWith("**")) {
       elements.push(
-        <p key={k} className="mt-1 text-sm font-semibold text-[#50080E]">
+        <p key={k} className="mt-1 text-sm font-semibold text-ink">
           {line.replace(/\*\*/g, "")}
         </p>,
       );
@@ -97,7 +97,7 @@ function renderMarkdown(text: string) {
       elements.push(
         <div key={k} className="flex items-start gap-2 py-0.5">
           <span className="mt-1.5 h-1.5 w-1.5 flex-shrink-0 rounded-full bg-gold-ink" />
-          <span className="text-sm leading-relaxed text-[#72383D]">
+          <span className="text-sm leading-relaxed text-ink-muted">
             {renderInlineMarkdown(line.slice(2))}
           </span>
         </div>,
@@ -126,7 +126,7 @@ function renderMarkdown(text: string) {
 
     // Regular paragraph with inline markdown
     elements.push(
-      <p key={k} className="text-sm leading-relaxed text-[#72383D]">
+      <p key={k} className="text-sm leading-relaxed text-ink-muted">
         {renderInlineMarkdown(line)}
       </p>,
     );
@@ -141,7 +141,7 @@ function renderInlineMarkdown(text: string): React.ReactNode {
   return parts.map((part, i) => {
     if (part.startsWith("**") && part.endsWith("**")) {
       return (
-        <strong key={i} className="font-semibold text-[#50080E]">
+        <strong key={i} className="font-semibold text-ink">
           {part.slice(2, -2)}
         </strong>
       );
@@ -330,7 +330,7 @@ export function ChatInterface({ initialPrompt }: { initialPrompt?: string }) {
         </div>
 
         {/* Quick-start queries */}
-        <p className="mb-3 text-xs font-semibold uppercase tracking-widest text-[#72383D]/50">
+        <p className="mb-3 text-xs font-semibold uppercase tracking-widest text-ink-muted">
           Quick Queries
         </p>
         <div className="space-y-2.5">
@@ -349,7 +349,7 @@ export function ChatInterface({ initialPrompt }: { initialPrompt?: string }) {
 
         {/* Capabilities */}
         <div className="mt-6 space-y-2.5 border-t border-border pt-5">
-          <p className="mb-2 text-xs font-semibold uppercase tracking-widest text-[#72383D]/50">
+          <p className="mb-2 text-xs font-semibold uppercase tracking-widest text-ink-muted">
             Capabilities
           </p>
           {/* What the advisor can actually do against real listing data. It
@@ -367,8 +367,8 @@ export function ChatInterface({ initialPrompt }: { initialPrompt?: string }) {
             </div>
           ))}
           <div className="mt-3 rounded-lg border border-rule bg-paper-raised p-2.5">
-            <p className="text-[10px] font-semibold uppercase tracking-widest text-[#72383D]/40 mb-1">Data Sources</p>
-            <p className="text-[10px] leading-relaxed text-[#72383D]/50">Aarvasa DB • Market APIs • Infrastructure • RERA • Rental Intelligence</p>
+            <p className="text-[10px] font-semibold uppercase tracking-widest text-ink-muted mb-1">Data Sources</p>
+            <p className="text-[10px] leading-relaxed text-ink-muted">Aarvasa DB • Market APIs • Infrastructure • RERA • Rental Intelligence</p>
           </div>
         </div>
       </Card>
@@ -458,7 +458,7 @@ export function ChatInterface({ initialPrompt }: { initialPrompt?: string }) {
               <div className="flex items-center gap-3 rounded-sm border border-rule bg-paper-raised px-5 py-4">
                 <Loader2 className="h-4 w-4 animate-spin text-[#D4AF37]" />
                 <div>
-                  <p className="text-sm font-medium text-[#50080E]">
+                  <p className="text-sm font-medium text-ink">
                     {loadingMessage}
                   </p>
                   <div className="mt-1.5 flex gap-1">
@@ -499,7 +499,7 @@ export function ChatInterface({ initialPrompt }: { initialPrompt?: string }) {
               <Send className="h-4 w-4" />
             </Button>
           </div>
-          <p className="mt-2 text-center text-[10px] text-[#72383D]/40">
+          <p className="mt-2 text-center text-[10px] text-ink-muted">
             AI-generated insights are projections, not guarantees. Always conduct independent due diligence.
           </p>
         </form>

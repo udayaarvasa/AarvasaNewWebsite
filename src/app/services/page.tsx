@@ -116,7 +116,7 @@ export default function ServicesPage() {
         eyebrow="Services"
         title="Four people use Aarvasa. It is built for *all four.*"
         body="Buyers and occupiers on one side, builders and their channel partners on the other. The same captured project serves both."
-        image="/images/reef-996/hero/reef-996-tower-aerial-16x9.jpg"
+        image="/images/reef-996/banners/reef-996-tower-facade-night-16x9.jpg"
         caption="REEF 996 · Developer render"
         size="tall"
       >

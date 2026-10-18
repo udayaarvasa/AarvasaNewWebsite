@@ -1,4 +1,5 @@
 import { Metadata } from "next";
+import { PageHero } from "@/components/lux/page-hero";
 
 export const metadata: Metadata = {
   title: "Security Policy | Aarvasa",
@@ -7,20 +8,13 @@ export const metadata: Metadata = {
 
 export default function SecurityPolicyPage() {
   return (
-    <div className="min-h-screen bg-[#F2F1ED] pt-32 pb-24">
-      <div className="mx-auto max-w-4xl px-6 sm:px-10">
-        <div className="mb-12 text-center">
-          <h1 className="heading-serif text-4xl sm:text-5xl text-[#50080E] mb-4">
-            Security Policy
-          </h1>
-          <p className="text-sm font-bold uppercase tracking-[0.15em] text-[#D4AF37]">
-            How we protect your data and transactions
-          </p>
-        </div>
+    <div className="pb-24">
+      <PageHero eyebrow="Aarvasa Innovations Pvt. Ltd." title="Security Policy" size="compact" />
+      <div className="mx-auto mt-4 max-w-4xl rounded-[28px] border border-rule bg-paper-raised/60 px-6 py-12 sm:px-12">
 
-        <div className="prose prose-lg max-w-none text-[#50080E]/80">
+        <div className="prose prose-lg max-w-none text-ink-muted">
           <section className="mb-10">
-            <h2 className="heading-serif text-2xl text-[#50080E] mb-4 border-b border-[#DCCDCE] pb-2">
+            <h2 className="heading-serif text-2xl text-ink mb-4 border-b border-rule pb-2">
               1. Cloud Infrastructure & Hosting
             </h2>
             <div className="space-y-4 text-sm sm:text-base leading-relaxed">
@@ -33,7 +27,7 @@ export default function SecurityPolicyPage() {
           </section>
 
           <section className="mb-10">
-            <h2 className="heading-serif text-2xl text-[#50080E] mb-4 border-b border-[#DCCDCE] pb-2">
+            <h2 className="heading-serif text-2xl text-ink mb-4 border-b border-rule pb-2">
               2. Network & Application Security
             </h2>
             <div className="space-y-4 text-sm sm:text-base leading-relaxed">
@@ -46,7 +40,7 @@ export default function SecurityPolicyPage() {
           </section>
 
           <section className="mb-10">
-            <h2 className="heading-serif text-2xl text-[#50080E] mb-4 border-b border-[#DCCDCE] pb-2">
+            <h2 className="heading-serif text-2xl text-ink mb-4 border-b border-rule pb-2">
               3. Access Control
             </h2>
             <div className="space-y-4 text-sm sm:text-base leading-relaxed">
@@ -59,7 +53,7 @@ export default function SecurityPolicyPage() {
           </section>
 
           <section className="mb-10">
-            <h2 className="heading-serif text-2xl text-[#50080E] mb-4 border-b border-[#DCCDCE] pb-2">
+            <h2 className="heading-serif text-2xl text-ink mb-4 border-b border-rule pb-2">
               4. Data Protection & Encryption
             </h2>
             <div className="space-y-4 text-sm sm:text-base leading-relaxed">
@@ -73,7 +67,7 @@ export default function SecurityPolicyPage() {
           </section>
 
           <section className="mb-10">
-            <h2 className="heading-serif text-2xl text-[#50080E] mb-4 border-b border-[#DCCDCE] pb-2">
+            <h2 className="heading-serif text-2xl text-ink mb-4 border-b border-rule pb-2">
               5. Payment & Transaction Security
             </h2>
             <div className="space-y-4 text-sm sm:text-base leading-relaxed">
@@ -89,7 +83,7 @@ export default function SecurityPolicyPage() {
           </section>
 
           <section className="mb-10">
-            <h2 className="heading-serif text-2xl text-[#50080E] mb-4 border-b border-[#DCCDCE] pb-2">
+            <h2 className="heading-serif text-2xl text-ink mb-4 border-b border-rule pb-2">
               6. Monitoring, Logging & Alerts
             </h2>
             <div className="space-y-4 text-sm sm:text-base leading-relaxed">
@@ -103,7 +97,7 @@ export default function SecurityPolicyPage() {
           </section>
 
           <section className="mb-10">
-            <h2 className="heading-serif text-2xl text-[#50080E] mb-4 border-b border-[#DCCDCE] pb-2">
+            <h2 className="heading-serif text-2xl text-ink mb-4 border-b border-rule pb-2">
               7. Threat Detection & Updates
             </h2>
             <div className="space-y-4 text-sm sm:text-base leading-relaxed">
@@ -116,7 +110,7 @@ export default function SecurityPolicyPage() {
           </section>
 
           <section className="mb-10">
-            <h2 className="heading-serif text-2xl text-[#50080E] mb-4 border-b border-[#DCCDCE] pb-2">
+            <h2 className="heading-serif text-2xl text-ink mb-4 border-b border-rule pb-2">
               8. Incident Response & Recovery
             </h2>
             <div className="space-y-4 text-sm sm:text-base leading-relaxed">
@@ -128,7 +122,7 @@ export default function SecurityPolicyPage() {
           </section>
 
           <section className="mb-10">
-            <h2 className="heading-serif text-2xl text-[#50080E] mb-4 border-b border-[#DCCDCE] pb-2">
+            <h2 className="heading-serif text-2xl text-ink mb-4 border-b border-rule pb-2">
               9. Legal Compliance
             </h2>
             <div className="space-y-4 text-sm sm:text-base leading-relaxed">

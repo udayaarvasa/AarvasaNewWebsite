@@ -94,15 +94,15 @@ export function DashboardView({ userName, userRole }: { userName: string; userRo
   ]
 
   return (
-    <div className="min-h-screen bg-[#F2F1ED]">
+    <div className="min-h-screen bg-paper-sunken">
       <div className="mx-auto max-w-7xl px-4 pb-16 pt-28 sm:px-6 lg:px-8">
         {/* Header */}
         <div className="flex flex-col justify-between gap-5 lg:flex-row lg:items-center">
           <div>
-            <h1 className="heading-serif text-3xl text-[#50080E] sm:text-4xl">
+            <h1 className="heading-serif text-3xl text-ink sm:text-4xl">
               Welcome back, {userName}
             </h1>
-            <p className="mt-1 text-sm text-[#72383D]/60">
+            <p className="mt-1 text-sm text-ink-muted">
               {userRole === "ADMIN" ? "Administrator" : userRole === "AGENT" ? "Verified Agent" : "Investor"} Dashboard
             </p>
           </div>
@@ -117,15 +117,15 @@ export function DashboardView({ userName, userRole }: { userName: string; userRo
         {/* The four tabs need ~490px; below that they forced the whole page
             ~112px wider than the viewport at 375. They scroll within their own
             row now instead of stretching the document. */}
-        <div className="mt-8 flex gap-1 overflow-x-auto rounded-xl border border-[#DCCDCE]/40 bg-white p-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+        <div className="mt-8 flex gap-1 overflow-x-auto rounded-xl border border-rule bg-paper-raised p-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
           {tabs.map((t) => (
             <button
               key={t.id}
               onClick={() => setTab(t.id)}
               className={`flex shrink-0 items-center gap-2 rounded-lg px-4 py-2.5 text-sm font-medium transition ${
                 tab === t.id
-                  ? "bg-[#50080E] text-white shadow"
-                  : "text-[#72383D]/60 hover:bg-[#F5F4F1] hover:text-[#50080E]"
+                  ? "bg-claret text-white shadow"
+                  : "text-ink-muted hover:bg-paper-raised hover:text-ink"
               }`}
             >
               <t.icon className="h-4 w-4" /> {t.label}
@@ -149,14 +149,14 @@ export function DashboardView({ userName, userRole }: { userName: string; userRo
                     { label: "Total Saves", value: stats.favorites, icon: Star },
                     { label: "Listed value", value: listedValue, icon: BarChart3 },
                   ].map((s) => (
-                    <Card key={s.label} className="border-[#DCCDCE]/40 bg-white p-5">
+                    <Card key={s.label} className="border-rule bg-paper-raised p-5">
                       <div className="flex items-center gap-3">
                         <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#D4AF37]/10">
                           <s.icon className="h-5 w-5 text-[#D4AF37]" />
                         </div>
                         <div>
-                          <p className="text-xs text-[#72383D]/50">{s.label}</p>
-                          <p className="text-xl font-bold text-[#50080E]">{s.value}</p>
+                          <p className="text-xs text-ink-muted">{s.label}</p>
+                          <p className="text-xl font-bold text-ink">{s.value}</p>
                         </div>
                       </div>
                     </Card>
@@ -165,7 +165,7 @@ export function DashboardView({ userName, userRole }: { userName: string; userRo
 
                 {myProperties.length > 0 ? (
                   <div>
-                    <h2 className="mb-4 text-lg font-bold text-[#50080E]">Recent Listings</h2>
+                    <h2 className="mb-4 text-lg font-bold text-ink">Recent Listings</h2>
                     <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
                       {myProperties.slice(0, 3).map((p) => (
                         <DbPropertyCard key={p.id} property={p} />
@@ -173,10 +173,10 @@ export function DashboardView({ userName, userRole }: { userName: string; userRo
                     </div>
                   </div>
                 ) : (
-                  <Card className="border-[#DCCDCE]/40 bg-white p-12 text-center">
-                    <Building2 className="mx-auto mb-4 h-12 w-12 text-[#DCCDCE]" />
-                    <h3 className="text-lg font-bold text-[#50080E]">No properties yet</h3>
-                    <p className="mt-2 text-sm text-[#72383D]/50">
+                  <Card className="border-rule bg-paper-raised p-12 text-center">
+                    <Building2 className="mx-auto mb-4 h-12 w-12 text-ink-muted" />
+                    <h3 className="text-lg font-bold text-ink">No properties yet</h3>
+                    <p className="mt-2 text-sm text-ink-muted">
                       Start by creating your first listing.
                     </p>
                     <Button asChild variant="gold" size="sm" className="mt-4 gap-2 rounded-lg">
@@ -193,9 +193,9 @@ export function DashboardView({ userName, userRole }: { userName: string; userRo
             {tab === "properties" && (
               <div>
                 {myProperties.length === 0 ? (
-                  <Card className="border-[#DCCDCE]/40 bg-white p-12 text-center">
-                    <Building2 className="mx-auto mb-4 h-12 w-12 text-[#DCCDCE]" />
-                    <h3 className="text-lg font-bold text-[#50080E]">No properties listed</h3>
+                  <Card className="border-rule bg-paper-raised p-12 text-center">
+                    <Building2 className="mx-auto mb-4 h-12 w-12 text-ink-muted" />
+                    <h3 className="text-lg font-bold text-ink">No properties listed</h3>
                     <Button asChild variant="gold" size="sm" className="mt-4 gap-2 rounded-lg">
                       <Link href="/properties/create">
                         <Plus className="h-4 w-4" /> Create Listing
@@ -205,7 +205,7 @@ export function DashboardView({ userName, userRole }: { userName: string; userRo
                 ) : (
                   <div className="space-y-4">
                     {myProperties.map((p) => (
-                      <Card key={p.id} className="flex flex-col gap-4 border-[#DCCDCE]/40 bg-white p-5 sm:flex-row sm:items-center">
+                      <Card key={p.id} className="flex flex-col gap-4 border-rule bg-paper-raised p-5 sm:flex-row sm:items-center">
                         <div className="relative h-20 w-28 shrink-0 overflow-hidden rounded-xl">
                           <Image
                             /* A stock photo here would stand in for a real listing. */
@@ -214,15 +214,15 @@ export function DashboardView({ userName, userRole }: { userName: string; userRo
                           />
                         </div>
                         <div className="min-w-0 flex-1">
-                          <Link href={`/property/${p.id}`} className="font-bold text-[#50080E] hover:text-[#D4AF37] transition">
+                          <Link href={`/property/${p.id}`} className="font-bold text-ink hover:text-[#D4AF37] transition">
                             {p.title}
                           </Link>
-                          <p className="text-xs text-[#72383D]/50">{p.location} · {p.city}</p>
+                          <p className="text-xs text-ink-muted">{p.location} · {p.city}</p>
                           <div className="mt-1 flex items-center gap-3 text-xs">
-                            <span className="font-semibold text-[#50080E]">{formatCurrency(p.price, currencyForCountry(p.country))}</span>
+                            <span className="font-semibold text-ink">{formatCurrency(p.price, currencyForCountry(p.country))}</span>
                             {p.roi > 0 && <span className="text-emerald-600">{p.roi}% ROI</span>}
                             <span className={`rounded-full px-2 py-0.5 text-[10px] font-bold uppercase ${
-                              p.status === "ACTIVE" ? "bg-emerald-100 text-emerald-700" : "bg-gray-100 text-gray-600"
+                              p.status === "ACTIVE" ? "bg-emerald-100 text-emerald-700" : "bg-paper-sunken text-ink-muted"
                             }`}>{p.status}</span>
                           </div>
                         </div>
@@ -250,10 +250,10 @@ export function DashboardView({ userName, userRole }: { userName: string; userRo
             {tab === "favorites" && (
               <div>
                 {favProperties.length === 0 ? (
-                  <Card className="border-[#DCCDCE]/40 bg-white p-12 text-center">
-                    <Heart className="mx-auto mb-4 h-12 w-12 text-[#DCCDCE]" />
-                    <h3 className="text-lg font-bold text-[#50080E]">No saved properties</h3>
-                    <p className="mt-2 text-sm text-[#72383D]/50">
+                  <Card className="border-rule bg-paper-raised p-12 text-center">
+                    <Heart className="mx-auto mb-4 h-12 w-12 text-ink-muted" />
+                    <h3 className="text-lg font-bold text-ink">No saved properties</h3>
+                    <p className="mt-2 text-sm text-ink-muted">
                       Browse listings and save properties you're interested in.
                     </p>
                     <Button asChild variant="gold" size="sm" className="mt-4 gap-2 rounded-lg">
@@ -285,7 +285,7 @@ export function DashboardView({ userName, userRole }: { userName: string; userRo
 
 // ── Account Settings Sub-component ────────────────────────────────────────────
 
-const inputClass = "w-full rounded-xl border border-[#DCCDCE]/50 bg-white px-4 py-3 text-sm text-[#50080E] outline-none transition placeholder:text-[#72383D]/30 focus:border-[#D4AF37]/50 focus:ring-2 focus:ring-[#D4AF37]/10"
+const inputClass = "w-full rounded-xl border border-rule bg-paper-raised px-4 py-3 text-sm text-ink outline-none transition placeholder:text-ink-muted focus:border-[#D4AF37]/50 focus:ring-2 focus:ring-[#D4AF37]/10"
 
 function AccountSettings({ userName, userRole }: { userName: string; userRole: string }) {
   const [profile, setProfile] = useState({ name: userName, phone: "", bio: "" })
@@ -374,14 +374,14 @@ function AccountSettings({ userName, userRole }: { userName: string; userRole: s
   return (
     <div className="space-y-8">
       {/* Profile Details */}
-      <Card className="border-[#DCCDCE]/40 bg-white p-6">
-        <h3 className="mb-5 flex items-center gap-2 text-lg font-bold text-[#50080E]">
+      <Card className="border-rule bg-paper-raised p-6">
+        <h3 className="mb-5 flex items-center gap-2 text-lg font-bold text-ink">
           <UserCircle className="h-5 w-5 text-[#D4AF37]" />
           Profile Details
         </h3>
         <div className="grid gap-5 md:grid-cols-2">
           <div>
-            <label className="mb-1.5 block text-sm font-medium text-[#50080E]/80">Full Name</label>
+            <label className="mb-1.5 block text-sm font-medium text-ink-muted">Full Name</label>
             <input
               value={profile.name}
               onChange={(e) => setProfile({ ...profile, name: e.target.value })}
@@ -390,7 +390,7 @@ function AccountSettings({ userName, userRole }: { userName: string; userRole: s
             />
           </div>
           <div>
-            <label className="mb-1.5 block text-sm font-medium text-[#50080E]/80">Phone</label>
+            <label className="mb-1.5 block text-sm font-medium text-ink-muted">Phone</label>
             <input
               value={profile.phone}
               onChange={(e) => setProfile({ ...profile, phone: e.target.value })}
@@ -399,7 +399,7 @@ function AccountSettings({ userName, userRole }: { userName: string; userRole: s
             />
           </div>
           <div className="md:col-span-2">
-            <label className="mb-1.5 block text-sm font-medium text-[#50080E]/80">Bio</label>
+            <label className="mb-1.5 block text-sm font-medium text-ink-muted">Bio</label>
             <textarea
               value={profile.bio}
               onChange={(e) => setProfile({ ...profile, bio: e.target.value })}
@@ -410,7 +410,7 @@ function AccountSettings({ userName, userRole }: { userName: string; userRole: s
           </div>
         </div>
         <div className="mt-4 flex items-center justify-between">
-          <p className="text-xs text-[#72383D]/40">
+          <p className="text-xs text-ink-muted">
             Role: <span className="font-semibold uppercase">{userRole}</span>
           </p>
           <Button
@@ -427,14 +427,14 @@ function AccountSettings({ userName, userRole }: { userName: string; userRole: s
       </Card>
 
       {/* Change Password */}
-      <Card className="border-[#DCCDCE]/40 bg-white p-6">
-        <h3 className="mb-5 flex items-center gap-2 text-lg font-bold text-[#50080E]">
+      <Card className="border-rule bg-paper-raised p-6">
+        <h3 className="mb-5 flex items-center gap-2 text-lg font-bold text-ink">
           <KeyRound className="h-5 w-5 text-[#D4AF37]" />
           Change Password
         </h3>
         <div className="grid gap-5 md:grid-cols-2">
           <div>
-            <label className="mb-1.5 block text-sm font-medium text-[#50080E]/80">Current Password</label>
+            <label className="mb-1.5 block text-sm font-medium text-ink-muted">Current Password</label>
             <input
               type="password"
               value={passwords.currentPassword}
@@ -444,7 +444,7 @@ function AccountSettings({ userName, userRole }: { userName: string; userRole: s
             />
           </div>
           <div>
-            <label className="mb-1.5 block text-sm font-medium text-[#50080E]/80">New Password</label>
+            <label className="mb-1.5 block text-sm font-medium text-ink-muted">New Password</label>
             <input
               type="password"
               value={passwords.newPassword}

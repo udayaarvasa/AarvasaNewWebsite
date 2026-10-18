@@ -1,4 +1,5 @@
 import { Metadata } from "next";
+import { PageHero } from "@/components/lux/page-hero";
 
 export const metadata: Metadata = {
   title: "Privacy Policy | Aarvasa",
@@ -7,20 +8,13 @@ export const metadata: Metadata = {
 
 export default function PrivacyPolicyPage() {
   return (
-    <div className="min-h-screen bg-[#F2F1ED] pt-32 pb-24">
-      <div className="mx-auto max-w-4xl px-6 sm:px-10">
-        <div className="mb-12 text-center">
-          <h1 className="heading-serif text-4xl sm:text-5xl text-[#50080E] mb-4">
-            Privacy Policy
-          </h1>
-          <p className="text-sm font-bold uppercase tracking-[0.15em] text-[#D4AF37]">
-            Effective Date: 01/07/2025
-          </p>
-        </div>
+    <div className="pb-24">
+      <PageHero eyebrow="Effective Date: 01/07/2025" title="Privacy Policy" size="compact" />
+      <div className="mx-auto mt-4 max-w-4xl rounded-[28px] border border-rule bg-paper-raised/60 px-6 py-12 sm:px-12">
 
-        <div className="prose prose-lg max-w-none text-[#50080E]/80">
+        <div className="prose prose-lg max-w-none text-ink-muted">
           <section className="mb-10">
-            <h2 className="heading-serif text-2xl text-[#50080E] mb-4 border-b border-[#DCCDCE] pb-2">
+            <h2 className="heading-serif text-2xl text-ink mb-4 border-b border-rule pb-2">
               1. Introduction
             </h2>
             <div className="space-y-4 text-sm sm:text-base leading-relaxed">
@@ -31,12 +25,12 @@ export default function PrivacyPolicyPage() {
           </section>
 
           <section className="mb-10">
-            <h2 className="heading-serif text-2xl text-[#50080E] mb-4 border-b border-[#DCCDCE] pb-2">
+            <h2 className="heading-serif text-2xl text-ink mb-4 border-b border-rule pb-2">
               2. Data Collection: Categories and Methods
             </h2>
             <div className="space-y-4 text-sm sm:text-base leading-relaxed">
               <div>
-                <strong className="text-[#50080E]">A. User-Provided Data:</strong>
+                <strong className="text-ink">A. User-Provided Data:</strong>
                 <ul className="list-disc pl-5 mt-2 space-y-1">
                   <li><strong>Account Info:</strong> Name, DOB, Aadhaar/PAN, address, phone, email, job info.</li>
                   <li><strong>Transactions:</strong> UPI, card, bank details, investment behavior.</li>
@@ -44,16 +38,16 @@ export default function PrivacyPolicyPage() {
                 </ul>
               </div>
               <div>
-                <strong className="text-[#50080E]">B. Automatically Collected Data:</strong> IP, browser, device, clickstream (via Google Analytics 4).
+                <strong className="text-ink">B. Automatically Collected Data:</strong> IP, browser, device, clickstream (via Google Analytics 4).
               </div>
               <div>
-                <strong className="text-[#50080E]">C. Third-Party Sources:</strong> LinkedIn/X profiles via SSO, credit info (e.g., CIBIL) with consent.
+                <strong className="text-ink">C. Third-Party Sources:</strong> LinkedIn/X profiles via SSO, credit info (e.g., CIBIL) with consent.
               </div>
             </div>
           </section>
 
           <section className="mb-10">
-            <h2 className="heading-serif text-2xl text-[#50080E] mb-4 border-b border-[#DCCDCE] pb-2">
+            <h2 className="heading-serif text-2xl text-ink mb-4 border-b border-rule pb-2">
               3. Purpose of Data Processing
             </h2>
             <div className="space-y-4 text-sm sm:text-base leading-relaxed">
@@ -67,7 +61,7 @@ export default function PrivacyPolicyPage() {
           </section>
 
           <section className="mb-10">
-            <h2 className="heading-serif text-2xl text-[#50080E] mb-4 border-b border-[#DCCDCE] pb-2">
+            <h2 className="heading-serif text-2xl text-ink mb-4 border-b border-rule pb-2">
               4. Disclosures and Data Sharing
             </h2>
             <div className="space-y-4 text-sm sm:text-base leading-relaxed">
@@ -81,7 +75,7 @@ export default function PrivacyPolicyPage() {
           </section>
 
           <section className="mb-10">
-            <h2 className="heading-serif text-2xl text-[#50080E] mb-4 border-b border-[#DCCDCE] pb-2">
+            <h2 className="heading-serif text-2xl text-ink mb-4 border-b border-rule pb-2">
               5. User Rights and Controls
             </h2>
             <div className="space-y-4 text-sm sm:text-base leading-relaxed">
@@ -94,7 +88,7 @@ export default function PrivacyPolicyPage() {
           </section>
 
           <section className="mb-10">
-            <h2 className="heading-serif text-2xl text-[#50080E] mb-4 border-b border-[#DCCDCE] pb-2">
+            <h2 className="heading-serif text-2xl text-ink mb-4 border-b border-rule pb-2">
               6. Security Measures
             </h2>
             <div className="space-y-4 text-sm sm:text-base leading-relaxed">
@@ -103,14 +97,14 @@ export default function PrivacyPolicyPage() {
                 <li>Role-based access and employee biometrics.</li>
                 <li>Blockchain logs for sensitive transactions.</li>
               </ul>
-              <p className="mt-4 bg-white/50 p-4 rounded-xl border border-[#DCCDCE]/50">
+              <p className="mt-4 bg-white/5 p-4 rounded-xl border border-rule">
                 <strong className="text-[#D4AF37]">User Tips:</strong> Enable 2FA. Never share passwords insecurely.
               </p>
             </div>
           </section>
 
           <section className="mb-10">
-            <h2 className="heading-serif text-2xl text-[#50080E] mb-4 border-b border-[#DCCDCE] pb-2">
+            <h2 className="heading-serif text-2xl text-ink mb-4 border-b border-rule pb-2">
               7. Data Retention Schedule
             </h2>
             <div className="space-y-4 text-sm sm:text-base leading-relaxed">
@@ -123,7 +117,7 @@ export default function PrivacyPolicyPage() {
           </section>
 
           <section className="mb-10">
-            <h2 className="heading-serif text-2xl text-[#50080E] mb-4 border-b border-[#DCCDCE] pb-2">
+            <h2 className="heading-serif text-2xl text-ink mb-4 border-b border-rule pb-2">
               8. International Transfers
             </h2>
             <div className="space-y-4 text-sm sm:text-base leading-relaxed">
@@ -134,7 +128,7 @@ export default function PrivacyPolicyPage() {
           </section>
 
           <section className="mb-10">
-            <h2 className="heading-serif text-2xl text-[#50080E] mb-4 border-b border-[#DCCDCE] pb-2">
+            <h2 className="heading-serif text-2xl text-ink mb-4 border-b border-rule pb-2">
               9. Policy Changes
             </h2>
             <div className="space-y-4 text-sm sm:text-base leading-relaxed">
@@ -145,12 +139,12 @@ export default function PrivacyPolicyPage() {
           </section>
 
           <section className="mb-10">
-            <h2 className="heading-serif text-2xl text-[#50080E] mb-4 border-b border-[#DCCDCE] pb-2">
+            <h2 className="heading-serif text-2xl text-ink mb-4 border-b border-rule pb-2">
               10. Grievance Redressal
             </h2>
             <div className="space-y-4 text-sm sm:text-base leading-relaxed">
               <p><strong>Data Protection Officer (DPO):</strong></p>
-              <div className="bg-white/50 p-6 rounded-2xl border border-[#DCCDCE]/50">
+              <div className="bg-white/5 p-6 rounded-2xl border border-rule">
                 <p>Mailing Address: Aarvasa Innovations Pvt. Ltd., 3 Flr, off Windsar Sq Opp,Vishal Megamart Kolar Rd, Kolar Road,Huzur, Bhopal- 462042, Madhya Pradesh.</p>
                 <p>Noida, UP – 201301</p>
               </div>
@@ -158,28 +152,28 @@ export default function PrivacyPolicyPage() {
           </section>
 
           <section className="mb-10">
-            <h2 className="heading-serif text-2xl text-[#50080E] mb-4 border-b border-[#DCCDCE] pb-2">
+            <h2 className="heading-serif text-2xl text-ink mb-4 border-b border-rule pb-2">
               11. Jurisdiction-Specific Disclosures
             </h2>
             <div className="space-y-4 text-sm sm:text-base leading-relaxed">
               <div>
-                <strong className="text-[#50080E]">California (CCPA):</strong>
+                <strong className="text-ink">California (CCPA):</strong>
                 <ul className="list-disc pl-5 mt-2 space-y-1">
                   <li>Opt out of data "sales" (we don't sell).</li>
                   <li>Submit requests via privacy.aarvasa.com/ccpa</li>
                 </ul>
               </div>
               <div className="mt-4">
-                <strong className="text-[#50080E]">EU (GDPR):</strong> Refer to Section 3 for Legal Basis. Right to file complaints with authorities.
+                <strong className="text-ink">EU (GDPR):</strong> Refer to Section 3 for Legal Basis. Right to file complaints with authorities.
               </div>
             </div>
           </section>
 
-          <div className="mt-16 p-8 bg-[#50080E] text-white rounded-3xl text-center shadow-luxury-xl">
+          <div className="mt-16 p-8 bg-claret text-white rounded-3xl text-center shadow-luxury-xl">
             <p className="text-sm mb-4">
               This version replaces all previous editions.
             </p>
-            <p className="text-[#DCCDCE] text-sm">
+            <p className="text-ink-muted text-sm">
               © 2024 Aarvasa Technologies Pvt. Ltd. All rights reserved. "Aarvasa" and the lotus symbol are trademarks.
             </p>
           </div>

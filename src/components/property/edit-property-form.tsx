@@ -42,8 +42,8 @@ const AMENITIES_OPTIONS = [
   "Power Backup", "Elevator", "Smart Home", "Terrace", "Balcony", "Fireplace",
 ]
 
-const inputClass = "w-full rounded-xl border border-[#DCCDCE]/50 bg-white px-4 py-3 text-sm text-[#50080E] outline-none transition placeholder:text-[#72383D]/30 focus:border-[#D4AF37]/50 focus:ring-2 focus:ring-[#D4AF37]/10"
-const labelClass = "mb-1.5 block text-sm font-medium text-[#50080E]/80"
+const inputClass = "w-full rounded-xl border border-rule bg-paper-raised px-4 py-3 text-sm text-ink outline-none transition placeholder:text-ink-muted focus:border-[#D4AF37]/50 focus:ring-2 focus:ring-[#D4AF37]/10"
+const labelClass = "mb-1.5 block text-sm font-medium text-ink-muted"
 const errorClass = "mt-1 text-xs text-red-500"
 
 interface EditPropertyFormProps {
@@ -147,25 +147,25 @@ export function EditPropertyForm({ propertyId }: EditPropertyFormProps) {
   }
 
   return (
-    <div className="min-h-screen bg-[#F2F1ED]">
+    <div className="min-h-screen bg-paper-sunken">
       <div className="mx-auto max-w-3xl px-4 pb-16 pt-28 sm:px-6">
         <Link
           href="/dashboard"
-          className="mb-6 inline-flex items-center gap-2 text-sm text-[#72383D]/60 transition hover:text-[#50080E]"
+          className="mb-6 inline-flex items-center gap-2 text-sm text-ink-muted transition hover:text-ink"
         >
           <ArrowLeft className="h-4 w-4" /> Back to Dashboard
         </Link>
-        <h1 className="heading-serif text-3xl text-[#50080E] sm:text-4xl">
+        <h1 className="heading-serif text-3xl text-ink sm:text-4xl">
           Edit Property
         </h1>
-        <p className="mt-2 text-sm text-[#72383D]/60">
+        <p className="mt-2 text-sm text-ink-muted">
           Update your property listing details.
         </p>
 
         <form onSubmit={handleSubmit(onSubmit)} className="mt-8 space-y-8">
           {/* Basic Info */}
-          <section className="rounded-2xl border border-[#DCCDCE]/40 bg-white p-6">
-            <h3 className="mb-5 text-lg font-bold text-[#50080E]">Basic Information</h3>
+          <section className="rounded-2xl border border-rule bg-paper-raised p-6">
+            <h3 className="mb-5 text-lg font-bold text-ink">Basic Information</h3>
             <div className="grid gap-5 md:grid-cols-2">
               <div className="md:col-span-2">
                 <label className={labelClass}>Property Title *</label>
@@ -221,8 +221,8 @@ export function EditPropertyForm({ propertyId }: EditPropertyFormProps) {
           </section>
 
           {/* Location */}
-          <section className="rounded-2xl border border-[#DCCDCE]/40 bg-white p-6">
-            <h3 className="mb-5 text-lg font-bold text-[#50080E]">Location</h3>
+          <section className="rounded-2xl border border-rule bg-paper-raised p-6">
+            <h3 className="mb-5 text-lg font-bold text-ink">Location</h3>
             <div className="grid gap-5 md:grid-cols-2">
               <div className="md:col-span-2">
                 <label className={labelClass}>Full Address / Location *</label>
@@ -243,14 +243,14 @@ export function EditPropertyForm({ propertyId }: EditPropertyFormProps) {
           </section>
 
           {/* Images */}
-          <section className="rounded-2xl border border-[#DCCDCE]/40 bg-white p-6">
-            <h3 className="mb-5 text-lg font-bold text-[#50080E]">Property Images</h3>
+          <section className="rounded-2xl border border-rule bg-paper-raised p-6">
+            <h3 className="mb-5 text-lg font-bold text-ink">Property Images</h3>
             <ImageUploader images={images} onChange={setImages} maxFiles={6} />
           </section>
 
           {/* Amenities */}
-          <section className="rounded-2xl border border-[#DCCDCE]/40 bg-white p-6">
-            <h3 className="mb-5 text-lg font-bold text-[#50080E]">Amenities</h3>
+          <section className="rounded-2xl border border-rule bg-paper-raised p-6">
+            <h3 className="mb-5 text-lg font-bold text-ink">Amenities</h3>
             <div className="flex flex-wrap gap-2">
               {AMENITIES_OPTIONS.map((amenity) => (
                 <button
@@ -259,8 +259,8 @@ export function EditPropertyForm({ propertyId }: EditPropertyFormProps) {
                   onClick={() => toggleAmenity(amenity)}
                   className={`rounded-full border px-4 py-2 text-xs font-medium transition ${
                     selectedAmenities.includes(amenity)
-                      ? "border-[#D4AF37] bg-[#D4AF37]/10 text-[#50080E]"
-                      : "border-[#DCCDCE]/50 text-[#72383D]/60 hover:border-[#D4AF37]/40"
+                      ? "border-[#D4AF37] bg-[#D4AF37]/10 text-ink"
+                      : "border-rule text-ink-muted hover:border-[#D4AF37]/40"
                   }`}
                 >
                   {amenity}
@@ -273,7 +273,7 @@ export function EditPropertyForm({ propertyId }: EditPropertyFormProps) {
           <button
             type="submit"
             disabled={loading}
-            className="flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-[#D4AF37] to-[#C5A028] py-4 text-sm font-bold text-[#50080E] shadow-lg shadow-[#D4AF37]/20 transition-all hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed"
+            className="flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-[#D4AF37] to-[#C5A028] py-4 text-sm font-bold text-ink shadow-lg shadow-[#D4AF37]/20 transition-all hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {loading ? <Loader2 className="h-5 w-5 animate-spin" /> : <Save className="h-5 w-5" />}
             {loading ? "Saving Changes..." : "Update Property"}

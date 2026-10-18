@@ -1,7 +1,8 @@
 import Image from "next/image";
 import Link from "next/link";
+import { ArrowUpRight, MapPin } from "lucide-react";
 import { MotionReveal } from "@/components/layout/motion-reveal";
-import { Plate, Status } from "@/components/av/primitives";
+import { Status } from "@/components/av/primitives";
 import { publishedProjects } from "@/lib/projects";
 import { formatCurrency, formatCompact, inrEstimate } from "@/lib/currency";
 import { projectImageSrc } from "@/lib/project-types";
@@ -32,7 +33,7 @@ export async function ProjectCards({ city }: { city?: string } = {}) {
   const withModel = await projectsWithModel(items);
 
   return (
-    <div className="grid gap-[var(--s-8)] md:grid-cols-2 lg:grid-cols-3">
+    <div className="grid gap-[var(--s-6)] md:grid-cols-2 lg:grid-cols-3">
       {items.map((project, i) => {
         /* A card frame, not the hero — the listing and the project page should
            not open on the same picture. */
@@ -55,8 +56,12 @@ export async function ProjectCards({ city }: { city?: string } = {}) {
 
         return (
           <MotionReveal key={project.slug} delay={Math.min(i, 3) * 0.09}>
-            <Link href={`/projects/${project.slug}`} className="group block" data-hov>
-              <Plate ratio="card" className="border-b border-rule-firm">
+            <Link
+              href={`/projects/${project.slug}`}
+              className="group lux-gold-border block overflow-hidden rounded-[24px] bg-paper-raised transition-all duration-700 ease-[cubic-bezier(0.16,1,0.3,1)] hover:-translate-y-2 hover:shadow-[0_40px_80px_rgba(0,0,0,0.55),0_0_0_1px_rgba(226,196,122,0.25)]"
+              data-hov
+            >
+              <div className="relative aspect-[4/3] overflow-hidden">
                 {cover ? (
                   <Image
                     src={cover}
@@ -66,43 +71,48 @@ export async function ProjectCards({ city }: { city?: string } = {}) {
                     className={
                       isPlanCover
                         ? "bg-white object-contain object-top p-2"
-                        : "object-cover transition-transform duration-[1200ms] ease-[var(--ease-enter)] group-hover:scale-[1.03]"
+                        : "object-cover transition-transform duration-[1600ms] ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:scale-110"
                     }
                   />
                 ) : (
-                  <div className="absolute inset-0 flex items-end bg-paper-sunken p-4">
-                    <span className="av-meta text-ink-disabled">Not yet photographed</span>
+                  <div className="absolute inset-0 flex items-end bg-[radial-gradient(circle_at_30%_20%,#3d0c10,#110c0d_70%)] p-5">
+                    <span className="av-meta text-[10px] text-ink-muted">Not yet photographed</span>
                   </div>
                 )}
-                {isPlanCover && (
-                  <span className="av-meta absolute bottom-3 left-3 rounded-xs border border-rule-firm bg-paper/90 px-2 py-1 text-ink">
-                    Layout plan
+                {!isPlanCover && cover && (
+                  <div className="absolute inset-0 bg-[linear-gradient(180deg,transparent_55%,rgba(7,5,5,0.7))]" />
+                )}
+                {(isPlanCover || isRenderCover) && (
+                  <span className="av-meta absolute left-4 top-4 rounded-full bg-black/55 px-3 py-1.5 text-[10px] text-stage-ink backdrop-blur-md">
+                    {isPlanCover ? "Layout plan" : "Render"}
                   </span>
                 )}
-                {isRenderCover && (
-                  <span className="av-meta absolute bottom-3 left-3 rounded-xs border border-rule-firm bg-paper/90 px-2 py-1 text-ink">
-                    Render
-                  </span>
-                )}
-              </Plate>
-
-              <h3 className="av-display mt-3 text-[22px] leading-[1.15]">{project.name}</h3>
-              <p className="mt-[2px] text-[13px] text-ink-muted">
-                {project.location}, {project.city}
-              </p>
-              <p className="av-num mt-2 text-[15px] font-semibold">
-                {price}
-                {inr && <span className="ml-2 font-normal text-ink-muted">{inr}</span>}
-              </p>
-
-              <div className="mt-3 flex flex-wrap items-center gap-2 border-t border-rule pt-[10px]">
-                {project.approvals.length > 0 && <Status tone="ready">{project.approvals[0]}</Status>}
-                {project.completion && <Status tone="pending">{project.completion}</Status>}
                 {hasModel && (
-                  <span className="av-meta rounded-xs border border-rule-firm px-[7px] py-[3px] text-ink">
+                  <span className="av-meta absolute right-4 top-4 rounded-full border border-gold/50 bg-black/55 px-3 py-1.5 text-[10px] text-gold backdrop-blur-md">
                     3D
                   </span>
                 )}
+                <span className="absolute bottom-4 right-4 flex h-11 w-11 items-center justify-center rounded-full border border-gold/50 bg-black/40 text-gold backdrop-blur-md transition-all duration-500 group-hover:rotate-45 group-hover:bg-gold group-hover:text-[#1a0e0f]">
+                  <ArrowUpRight className="h-4 w-4" aria-hidden="true" />
+                </span>
+              </div>
+
+              <div className="p-6">
+                <h3 className="av-display text-[30px] font-normal leading-none text-ink">{project.name}</h3>
+                <p className="mt-2 flex items-start gap-1.5 text-[13px] text-ink-muted">
+                  <MapPin className="mt-0.5 h-3.5 w-3.5 shrink-0 text-gold" aria-hidden="true" />
+                  {project.location}, {project.city}
+                </p>
+                <div className="mt-5 flex items-end justify-between gap-3 border-t border-rule pt-4">
+                  <p className="av-num">
+                    <span className="block text-[18px] font-semibold text-gold-pale">{price}</span>
+                    {inr && <span className="text-[12.5px] text-ink-muted">{inr}</span>}
+                  </p>
+                  <div className="flex flex-wrap justify-end gap-2">
+                    {project.approvals.length > 0 && <Status tone="ready">{project.approvals[0]}</Status>}
+                    {project.completion && <Status tone="pending">{project.completion}</Status>}
+                  </div>
+                </div>
               </div>
             </Link>
           </MotionReveal>

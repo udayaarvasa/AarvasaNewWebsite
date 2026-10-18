@@ -101,7 +101,7 @@ export default async function PropertyDetailPage({
   const heroImage: string | null = property.images?.[0] ?? null;
 
   return (
-    <div className="min-h-screen bg-[#F2F1ED]">
+    <div className="min-h-screen bg-paper-sunken">
       {/* Full-width cinematic hero */}
       <section className="relative h-[55vh] min-h-[420px] w-full overflow-hidden bg-[#2a1216]">
         {heroImage ? (
@@ -131,7 +131,7 @@ export default async function PropertyDetailPage({
           </Button>
           <div className="flex flex-wrap items-center gap-2 mb-3">
             {property.featured && (
-              <Badge className="bg-[#D4AF37] text-[#1A0006]">Featured</Badge>
+              <Badge className="bg-[#D4AF37] text-ink">Featured</Badge>
             )}
             {property.verified && (
               <Badge variant="success">Verified</Badge>
@@ -152,30 +152,30 @@ export default async function PropertyDetailPage({
         </div>
 
         <div className="absolute right-6 top-24 z-10 flex gap-2">
-          <button className="flex h-10 w-10 items-center justify-center rounded-full bg-white/20 text-white backdrop-blur-xl transition hover:bg-white/30">
+          <button className="flex h-10 w-10 items-center justify-center rounded-full bg-white/5 text-white backdrop-blur-xl transition hover:bg-white/5">
             <Heart className="h-5 w-5" />
           </button>
-          <button className="flex h-10 w-10 items-center justify-center rounded-full bg-white/20 text-white backdrop-blur-xl transition hover:bg-white/30">
+          <button className="flex h-10 w-10 items-center justify-center rounded-full bg-white/5 text-white backdrop-blur-xl transition hover:bg-white/5">
             <Share2 className="h-5 w-5" />
           </button>
         </div>
       </section>
 
       {/* Stats row */}
-      <section className="border-b border-[#DCCDCE]/40 bg-white">
+      <section className="border-b border-rule bg-paper-raised">
         <div className="mx-auto flex max-w-7xl flex-wrap items-center gap-8 px-4 py-5 sm:px-6 lg:px-8">
-          <div className="border-r border-[#DCCDCE]/40 pr-8">
-            <p className="text-xs uppercase tracking-[0.14em] text-[#72383D]/60">Price</p>
-            <p className="text-2xl font-bold text-[#50080E]">{money(property.price)}</p>
+          <div className="border-r border-rule pr-8">
+            <p className="text-xs uppercase tracking-[0.14em] text-ink-muted">Price</p>
+            <p className="text-2xl font-bold text-ink">{money(property.price)}</p>
           </div>
-          <div className="border-r border-[#DCCDCE]/40 pr-8">
-            <p className="text-xs uppercase tracking-[0.14em] text-[#72383D]/60">Area</p>
-            <p className="text-2xl font-bold text-[#50080E]">
-              {property.area?.toLocaleString("en-IN")} <span className="text-sm font-normal text-[#72383D]/60">sq.ft</span>
+          <div className="border-r border-rule pr-8">
+            <p className="text-xs uppercase tracking-[0.14em] text-ink-muted">Area</p>
+            <p className="text-2xl font-bold text-ink">
+              {property.area?.toLocaleString("en-IN")} <span className="text-sm font-normal text-ink-muted">sq.ft</span>
             </p>
           </div>
           <div>
-            <p className="text-xs uppercase tracking-[0.14em] text-[#72383D]/60">Status</p>
+            <p className="text-xs uppercase tracking-[0.14em] text-ink-muted">Status</p>
             <p className="text-2xl font-bold text-emerald-600">
               {property.status === "ACTIVE" ? "Active" : property.status}
             </p>
@@ -189,46 +189,46 @@ export default async function PropertyDetailPage({
           {/* Left column */}
           <div className="space-y-8">
             {/* Description */}
-            <Card className="border-[#DCCDCE]/40 bg-white p-6">
-              <h2 className="mb-4 text-xl font-bold text-[#50080E]">About this Property</h2>
-              <p className="text-sm leading-relaxed text-[#72383D]/80">
+            <Card className="border-rule bg-paper-raised p-6">
+              <h2 className="mb-4 text-xl font-bold text-ink">About this Property</h2>
+              <p className="text-sm leading-relaxed text-ink-muted">
                 {property.description}
               </p>
             </Card>
 
             {/* Specs */}
-            <Card className="border-[#DCCDCE]/40 bg-white p-6">
-              <h2 className="mb-4 text-xl font-bold text-[#50080E]">Specifications</h2>
+            <Card className="border-rule bg-paper-raised p-6">
+              <h2 className="mb-4 text-xl font-bold text-ink">Specifications</h2>
               <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
                 {property.bedrooms > 0 && (
-                  <div className="rounded-xl bg-[#F5F4F1] p-4 text-center">
+                  <div className="rounded-xl bg-paper-raised p-4 text-center">
                     <BedDouble className="mx-auto mb-2 h-5 w-5 text-[#D4AF37]" />
-                    <p className="text-lg font-bold text-[#50080E]">{property.bedrooms}</p>
-                    <p className="text-xs text-[#72383D]/50">Bedrooms</p>
+                    <p className="text-lg font-bold text-ink">{property.bedrooms}</p>
+                    <p className="text-xs text-ink-muted">Bedrooms</p>
                   </div>
                 )}
                 {property.bathrooms > 0 && (
-                  <div className="rounded-xl bg-[#F5F4F1] p-4 text-center">
+                  <div className="rounded-xl bg-paper-raised p-4 text-center">
                     <Bath className="mx-auto mb-2 h-5 w-5 text-[#D4AF37]" />
-                    <p className="text-lg font-bold text-[#50080E]">{property.bathrooms}</p>
-                    <p className="text-xs text-[#72383D]/50">Bathrooms</p>
+                    <p className="text-lg font-bold text-ink">{property.bathrooms}</p>
+                    <p className="text-xs text-ink-muted">Bathrooms</p>
                   </div>
                 )}
-                <div className="rounded-xl bg-[#F5F4F1] p-4 text-center">
+                <div className="rounded-xl bg-paper-raised p-4 text-center">
                   <Ruler className="mx-auto mb-2 h-5 w-5 text-[#D4AF37]" />
-                  <p className="text-lg font-bold text-[#50080E]">{property.area?.toLocaleString("en-IN")}</p>
-                  <p className="text-xs text-[#72383D]/50">sq.ft</p>
+                  <p className="text-lg font-bold text-ink">{property.area?.toLocaleString("en-IN")}</p>
+                  <p className="text-xs text-ink-muted">sq.ft</p>
                 </div>
               </div>
             </Card>
 
             {/* Amenities */}
             {property.amenities?.length > 0 && (
-              <Card className="border-[#DCCDCE]/40 bg-white p-6">
-                <h2 className="mb-4 text-xl font-bold text-[#50080E]">Amenities</h2>
+              <Card className="border-rule bg-paper-raised p-6">
+                <h2 className="mb-4 text-xl font-bold text-ink">Amenities</h2>
                 <div className="flex flex-wrap gap-2">
                   {property.amenities.map((amenity: string) => (
-                    <span key={amenity} className="flex items-center gap-1.5 rounded-full border border-[#DCCDCE]/40 bg-[#F5F4F1] px-3 py-1.5 text-xs font-medium text-[#50080E]">
+                    <span key={amenity} className="flex items-center gap-1.5 rounded-full border border-rule bg-paper-raised px-3 py-1.5 text-xs font-medium text-ink">
                       <CheckCircle2 className="h-3 w-3 text-emerald-600" />
                       {amenity}
                     </span>
@@ -239,11 +239,11 @@ export default async function PropertyDetailPage({
 
             {/* Gallery */}
             {property.images?.length > 1 && (
-              <Card className="border-[#DCCDCE]/40 bg-white p-6">
-                <h2 className="mb-4 text-xl font-bold text-[#50080E]">Gallery</h2>
+              <Card className="border-rule bg-paper-raised p-6">
+                <h2 className="mb-4 text-xl font-bold text-ink">Gallery</h2>
                 <div className="grid gap-4 md:grid-cols-2">
                   {property.images.slice(1).map((src: string, i: number) => (
-                    <div key={src} className="group relative aspect-[16/10] overflow-hidden rounded-2xl border border-[#DCCDCE]/30">
+                    <div key={src} className="group relative aspect-[16/10] overflow-hidden rounded-2xl border border-rule">
                       <Image
                         src={src}
                         alt={`${property.title} - View ${i + 2}`}
@@ -261,15 +261,15 @@ export default async function PropertyDetailPage({
           <div className="space-y-6">
             {/* Owner info */}
             {property.owner && (
-              <Card className="border-[#DCCDCE]/40 bg-white p-6">
-                <h3 className="mb-4 text-sm font-bold text-[#50080E]">Listed By</h3>
+              <Card className="border-rule bg-paper-raised p-6">
+                <h3 className="mb-4 text-sm font-bold text-ink">Listed By</h3>
                 <div className="flex items-center gap-3">
                   <div className="flex h-11 w-11 items-center justify-center rounded-full bg-[#902941] text-sm font-bold text-white">
                     {property.owner.name?.charAt(0)?.toUpperCase() || "A"}
                   </div>
                   <div>
-                    <p className="text-sm font-bold text-[#50080E]">{property.owner.name}</p>
-                    <p className="text-xs text-[#72383D]/50 capitalize">{property.owner.role?.toLowerCase()}</p>
+                    <p className="text-sm font-bold text-ink">{property.owner.name}</p>
+                    <p className="text-xs text-ink-muted capitalize">{property.owner.role?.toLowerCase()}</p>
                   </div>
                 </div>
               </Card>
@@ -279,8 +279,8 @@ export default async function PropertyDetailPage({
                 not an offer and not data about this property, so the card says
                 so. The previous version multiplied the loan by the monthly rate,
                 which is one month's interest rather than an instalment. */}
-            <Card className="border-[#DCCDCE]/40 bg-white p-6">
-              <h3 className="mb-4 flex items-center gap-2 text-lg font-bold text-[#50080E]">
+            <Card className="border-rule bg-paper-raised p-6">
+              <h3 className="mb-4 flex items-center gap-2 text-lg font-bold text-ink">
                 <Calculator className="h-5 w-5 text-[#D4AF37]" />
                 Indicative repayment
               </h3>
@@ -291,13 +291,13 @@ export default async function PropertyDetailPage({
                   ["Tenure (assumed)", `${TENURE_YEARS} years`],
                   ["Monthly instalment", money(monthlyInstalment)],
                 ].map(([label, value]) => (
-                  <div key={label} className="flex items-center justify-between border-b border-[#DCCDCE]/20 pb-2 last:border-0">
-                    <span className="text-xs text-[#72383D]/60">{label}</span>
-                    <span className="text-sm font-semibold text-[#50080E]">{value}</span>
+                  <div key={label} className="flex items-center justify-between border-b border-rule pb-2 last:border-0">
+                    <span className="text-xs text-ink-muted">{label}</span>
+                    <span className="text-sm font-semibold text-ink">{value}</span>
                   </div>
                 ))}
               </div>
-              <p className="mt-4 border-t border-[#DCCDCE]/20 pt-3 text-xs leading-relaxed text-[#72383D]/60">
+              <p className="mt-4 border-t border-rule pt-3 text-xs leading-relaxed text-ink-muted">
                 An illustration on an 80% loan at the rate and tenure above. Not an offer,
                 not a quotation, and not specific to this property. Your lender decides the
                 actual rate, tenure and eligibility.
@@ -305,20 +305,20 @@ export default async function PropertyDetailPage({
             </Card>
 
             {/* Inquiry Form */}
-            <Card className="border-[#DCCDCE]/40 bg-white p-6">
-              <h3 className="mb-4 text-lg font-bold text-[#50080E]">Interested?</h3>
+            <Card className="border-rule bg-paper-raised p-6">
+              <h3 className="mb-4 text-lg font-bold text-ink">Interested?</h3>
               <InquiryForm propertyId={property.id} propertyTitle={property.title} />
             </Card>
 
             {/* Diligence checklist */}
-            <Card className="border-[#DCCDCE]/40 bg-white p-6">
+            <Card className="border-rule bg-paper-raised p-6">
               <div className="mb-4 flex items-center gap-3">
                 <ShieldCheck className="h-5 w-5 text-[#D4AF37]" />
-                <h3 className="text-lg font-bold text-[#50080E]">Diligence</h3>
+                <h3 className="text-lg font-bold text-ink">Diligence</h3>
               </div>
               <div className="grid gap-2">
                 {["Title verification", "Rental comparables", "Exit liquidity", "Developer track record", "Tax estimate"].map((item) => (
-                  <div key={item} className="flex items-center gap-3 rounded-xl border border-[#DCCDCE]/30 bg-[#F5F4F1]/60 p-3 text-sm text-[#50080E]">
+                  <div key={item} className="flex items-center gap-3 rounded-xl border border-rule bg-paper-raised/60 p-3 text-sm text-ink">
                     <CheckCircle2 className="h-4 w-4 text-emerald-600" />
                     {item}
                   </div>

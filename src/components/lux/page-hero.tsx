@@ -47,13 +47,13 @@ export function PageHero({
           className={cn(
             "absolute inset-0",
             image
-              ? "bg-[linear-gradient(180deg,rgba(7,5,5,0.7)_0%,rgba(7,5,5,0.35)_40%,rgba(7,5,5,0.75)_75%,var(--paper)_100%)]"
+              ? "bg-[linear-gradient(180deg,rgba(7,5,5,0.55)_0%,rgba(7,5,5,0.05)_35%,rgba(7,5,5,0.5)_72%,var(--paper)_100%)]"
               : "bg-[radial-gradient(90%_90%_at_75%_0%,#3d0c10_0%,#0c0909_65%)]",
           )}
         />
-        {image && <div aria-hidden="true" className="absolute inset-0 bg-[linear-gradient(90deg,rgba(7,5,5,0.78)_0%,rgba(7,5,5,0)_65%)]" />}
+        {image && <div aria-hidden="true" className="absolute inset-0 bg-[linear-gradient(90deg,rgba(7,5,5,0.82)_0%,rgba(7,5,5,0.45)_45%,rgba(7,5,5,0)_75%)]" />}
         <div aria-hidden="true" className="pointer-events-none absolute inset-0 overflow-hidden">
-          <div className="lux-aurora opacity-60" />
+          <div className={image ? "lux-aurora opacity-25" : "lux-aurora opacity-60"} />
         </div>
         {caption && (
           <span className="av-meta absolute right-[var(--gutter)] top-[calc(var(--nav-h)+16px)] z-[3] hidden rounded-full border border-white/15 bg-black/40 px-3 py-1.5 text-[10px] text-stage-ink backdrop-blur-md md:block">
