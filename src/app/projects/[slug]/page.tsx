@@ -37,13 +37,7 @@ import { ExploreArea } from "@/components/property/explore-area";
 import { NearbyPlaces } from "@/components/property/nearby-places";
 import { ImmersiveTour } from "@/components/property/immersive-tour";
 import { loadImmersiveTour } from "@/lib/services/immersive-tour";
-import { TOUR_UNAVAILABLE_HINT, TOUR_UNAVAILABLE_MESSAGE } from "@/lib/immersive-tours";
-import {
-  EXPLORE_AREA_HINTS,
-  NO_PROPERTY_MODEL_HINT,
-  NO_PROPERTY_MODEL_MESSAGE,
-  exploreAreaMode,
-} from "@/lib/maps/google-3d";
+import { exploreAreaMode } from "@/lib/maps/google-3d";
 import ImmersiveSection from "./immersive-section";
 
 // Only slugs from generateStaticParams resolve; anything else 404s at the routing
@@ -180,13 +174,37 @@ export default async function ProjectPage({
     ...(price.secondary ? [{ term: "Indicative INR", value: price.secondary }] : []),
   ];
 
+  // The enquiry form arrives already naming the project the visitor came from.
+  const enquireHref = `/contact?project=${encodeURIComponent(project.name)}`;
+
+  /* Sections are numbered by what this project actually shows, so a project
+     without payment plans reads 01, 02, 03 — not 01, 04, 06. */
+  const sections = [
+    "overview",
+    project.unitTypes.length > 0 || project.ratePerSqft ? "pricing" : null,
+    project.paymentPlans.length > 0 ? "payment" : null,
+    project.usps.length > 0 ? "highlights" : null,
+    project.nearby.length > 0 ? "location" : null,
+    project.planImages.length > 0 ? "plan" : null,
+    galleryItems.length > 0 ? "gallery" : null,
+  ].filter((k): k is string => k !== null);
+  const indexOf = (key: string) => (
+    <SectionIndex n={sections.indexOf(key) + 1} total={sections.length} className="mb-[var(--s-3)]" />
+  );
+
   return (
     <div className="pb-[var(--s-24)]">
       {/* ── DISCOVER ──────────────────────────────────────────────────────
           Cinematic hero. Photography where it exists, otherwise a typographic
           panel — never a stock photo standing in for the real site. */}
       <StageHero className="relative">
-        <Plate ratio="auto" scrim={Boolean(hero)} className="h-[74vh] min-h-[460px] bg-stage">
+        <Plate
+          ratio="auto"
+          scrim={Boolean(hero)}
+          /* Without photography there is nothing to look at, only type: a short
+             panel, not three-quarters of a screen of empty stage. */
+          className={hero ? "h-[74vh] min-h-[460px] bg-stage" : "h-[46vh] min-h-[360px] bg-stage"}
+        >
           {hero ? (
             <Parallax distance={32} className="absolute inset-0">
               <Image
@@ -255,7 +273,7 @@ export default async function ProjectPage({
               All listings
             </Link>
             <Button asChild size="sm">
-              <Link href="/contact">Enquire</Link>
+              <Link href={enquireHref}>Enquire</Link>
             </Button>
           </div>
         </Wrap>
@@ -275,25 +293,21 @@ export default async function ProjectPage({
           Each entry is either live or honestly absent. An entry that is missing
           says which input it is waiting for rather than pretending to be broken,
           and neither is ever simulated. */}
+      {hasImmersive || hasFilms || hasArea ? (
       <StageBand className="mt-[var(--s-14)] py-[var(--band)]">
         <Wrap>
-          <SectionHead
-            label="Explore"
-            title={hasImmersive || hasArea || hasFilms ? "See it for yourself" : "Not captured yet"}
-            note={
-              hasImmersive || hasArea || hasFilms
-                ? "Nothing downloads until you open it."
-                : "When this project has been captured, the experiences appear here."
-            }
-          />
+          <SectionHead label="Explore" title="See it for yourself" note="Nothing downloads until you open it." />
 
+          {/* Only what is live is offered. An entry waiting on an asset, a key
+              or verified coordinates is left out rather than shown as an empty
+              box: a page of "not yet available" panels reads as unfinished, and
+              an entry point to something unvalidated is a promise. */}
           <div className="mt-[var(--s-8)] grid gap-[var(--s-8)] lg:grid-cols-2">
-            {/* Explore property — the building */}
-            <div>
-              <h3 className="av-label text-stage-ink">Explore property</h3>
-              <p className="mt-1 text-[14px] text-stage-muted">Interactive 3D model</p>
-              <div className="mt-[var(--s-5)]">
-                {hasImmersive ? (
+            {hasImmersive && (
+              <div className={hasFilms ? undefined : "lg:col-span-2"}>
+                <h3 className="av-label text-stage-ink">Explore property</h3>
+                <p className="mt-1 text-[14px] text-stage-muted">Interactive 3D model</p>
+                <div className="mt-[var(--s-5)]">
                   <ImmersiveSection
                     viewer={viewer}
                     tour={tour}
@@ -301,41 +315,29 @@ export default async function ProjectPage({
                     projectName={project.name}
                     projectSlug={project.slug}
                   />
-                ) : (
-                  <div className="max-w-[46ch] border border-rule-firm/40 p-[var(--s-5)] text-[14px] leading-relaxed text-stage-muted">
-                    <p>{NO_PROPERTY_MODEL_MESSAGE}</p>
-                    <p className="mt-2 opacity-80">{NO_PROPERTY_MODEL_HINT}</p>
-                  </div>
-                )}
+                </div>
               </div>
-            </div>
+            )}
 
             {/* Immersive tour — the developer's films, cut into the spaces they
                 show. Flat films, never offered as 360: they cover what the camera
                 pointed at and nothing more. */}
-            <div>
-              <h3 className="av-label text-stage-ink">Immersive tour</h3>
-              <p className="mt-1 text-[14px] text-stage-muted">Films of the spaces</p>
-              <div className="mt-[var(--s-5)]">
-                {films && hasFilms ? (
+            {films && hasFilms && (
+              <div className={hasImmersive ? undefined : "lg:col-span-2"}>
+                <h3 className="av-label text-stage-ink">Immersive tour</h3>
+                <p className="mt-1 text-[14px] text-stage-muted">Films of the spaces</p>
+                <div className="mt-[var(--s-5)]">
                   <ImmersiveTour scenes={films} projectName={project.name} />
-                ) : (
-                  <div className="max-w-[46ch] border border-rule-firm/40 p-[var(--s-5)] text-[14px] leading-relaxed text-stage-muted">
-                    <p>{TOUR_UNAVAILABLE_MESSAGE}</p>
-                    <p className="mt-2 opacity-80">{TOUR_UNAVAILABLE_HINT}</p>
-                  </div>
-                )}
+                </div>
               </div>
-            </div>
+            )}
 
-            {/* Explore area — the surroundings. Full width in its own row: the
-                order is property, tour, area, and the map keeps all of its
-                behaviour — only the column it sits in is wider. */}
-            <div className="lg:col-span-2">
-              <h3 className="av-label text-stage-ink">Explore area</h3>
-              <p className="mt-1 text-[14px] text-stage-muted">3D surroundings</p>
-              <div className="mt-[var(--s-5)]">
-                {hasArea ? (
+            {/* Explore area — the surroundings, full width in its own row. */}
+            {area.kind !== "unavailable" && (
+              <div className="lg:col-span-2">
+                <h3 className="av-label text-stage-ink">Explore area</h3>
+                <p className="mt-1 text-[14px] text-stage-muted">3D surroundings</p>
+                <div className="mt-[var(--s-5)]">
                   <MotionReveal>
                     <ExploreArea
                       name={project.name}
@@ -351,26 +353,20 @@ export default async function ProjectPage({
                       apiKey={process.env.NEXT_PUBLIC_GOOGLE_MAPS_BROWSER_KEY ?? ""}
                     />
                   </MotionReveal>
-                ) : (
-                  <div className="max-w-[46ch] border border-rule-firm/40 p-[var(--s-5)] text-[14px] leading-relaxed text-stage-muted">
-                    <p>{area.kind === "unavailable" ? area.message : null}</p>
-                    {area.kind === "unavailable" && EXPLORE_AREA_HINTS[area.reason] && (
-                      <p className="mt-2 opacity-80">{EXPLORE_AREA_HINTS[area.reason]}</p>
-                    )}
-                  </div>
-                )}
+                </div>
               </div>
-            </div>
+            )}
           </div>
         </Wrap>
       </StageBand>
+      ) : null}
 
       {/* ── EVALUATE ──────────────────────────────────────────────────── */}
       <Wrap className="pt-[var(--band)]">
         <div className="grid grid-cols-1 items-start gap-[var(--s-14)] lg:grid-cols-[minmax(0,1fr)_var(--aside)]">
           <div>
             <MotionReveal>
-              <SectionIndex n={1} total={6} className="mb-[var(--s-3)]" />
+              {indexOf("overview")}
               <SectionHead label="Overview" />
               <Ledger rows={specRows} className="-mt-[var(--s-6)]" />
             </MotionReveal>
@@ -379,6 +375,7 @@ export default async function ProjectPage({
             {project.unitTypes.length > 0 && (
               <MotionReveal>
                 <section className="mt-[var(--s-14)]">
+                  {indexOf("pricing")}
                   <SectionHead
                     label="Availability"
                     title={isPlots ? "Plot sizes" : "Current availability"}
@@ -442,6 +439,7 @@ export default async function ProjectPage({
             {project.unitTypes.length === 0 && project.ratePerSqft && (
               <MotionReveal>
                 <section className="mt-[var(--s-14)]">
+                  {indexOf("pricing")}
                   <SectionHead label="Pricing" />
                   <p className="-mt-[var(--s-6)] max-w-[var(--measure)] text-[17px] leading-relaxed">
                     {project.rateNote ??
@@ -459,7 +457,7 @@ export default async function ProjectPage({
             {project.paymentPlans.length > 0 && (
               <MotionReveal>
                 <section className="mt-[var(--s-14)]">
-                  <SectionIndex n={3} total={6} className="mb-[var(--s-3)]" />
+                  {indexOf("payment")}
                   <SectionHead label="Payment" title="Payment plans" />
                   <div className="-mt-[var(--s-6)] grid gap-[var(--s-5)] sm:grid-cols-2">
                     {project.paymentPlans.map((plan) => (
@@ -485,7 +483,7 @@ export default async function ProjectPage({
             {project.usps.length > 0 && (
               <MotionReveal>
                 <section className="mt-[var(--s-14)]">
-                  <SectionIndex n={4} total={6} className="mb-[var(--s-3)]" />
+                  {indexOf("highlights")}
                   <SectionHead label="Highlights" title={`Why ${project.name}`} />
                   <div className="-mt-[var(--s-6)] grid gap-0 sm:grid-cols-2 sm:gap-x-[var(--s-10)]">
                     {project.usps.map((usp) => (
@@ -502,6 +500,7 @@ export default async function ProjectPage({
             {project.nearby.length > 0 && (
               <MotionReveal>
                 <section className="mt-[var(--s-14)]">
+                  {indexOf("location")}
                   <SectionHead
                     label="Location"
                     title={project.nearby.some((n) => n.minutes !== null) ? "Getting around" : "Nearby landmarks"}
@@ -521,6 +520,7 @@ export default async function ProjectPage({
             {project.planImages.length > 0 && (
               <MotionReveal>
                 <section className="mt-[var(--s-14)]">
+                  {indexOf("plan")}
                   <SectionHead
                     label="Plan"
                     title="Layout plan"
@@ -552,7 +552,7 @@ export default async function ProjectPage({
             {galleryItems.length > 0 && (
               <Reveal>
                 <section className="mt-[var(--s-14)]">
-                  <SectionIndex n={6} total={6} className="mb-[var(--s-3)]" />
+                  {indexOf("gallery")}
                   <SectionHead
                     label="Gallery"
                     title="On site"
@@ -579,7 +579,7 @@ export default async function ProjectPage({
                 <p className="av-num mt-4 text-[13.5px] font-medium">{project.contact.join(" · ")}</p>
               )}
               <Button asChild className="mt-[var(--s-5)] w-full">
-                <Link href="/contact">Request details</Link>
+                <Link href={enquireHref}>Request details</Link>
               </Button>
             </div>
 

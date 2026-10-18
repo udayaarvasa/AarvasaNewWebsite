@@ -91,8 +91,8 @@ export function HomeHero() {
             className="av-display mt-3 max-w-[13ch] text-[clamp(38px,6.6vw,84px)] leading-[0.98] text-stage-ink"
           />
           <p className="mt-[var(--s-4)] max-w-[46ch] text-[16px] leading-relaxed text-stage-muted md:text-[17px]">
-            Premium homes, plots and offices — photographed, measured and, where they have been
-            captured, walkable in three dimensions.
+            Premium homes, plots and offices — photographed, measured and set out as the developer
+            filed them.
           </p>
           <div className="mt-[var(--s-6)] flex flex-wrap gap-[var(--s-3)]">
             <Link
@@ -118,7 +118,7 @@ export function HomeHero() {
 
 /* ── 2 · Featured project ─────────────────────────────────────────────── */
 
-export function FeaturedProject() {
+export function FeaturedProject({ n = 1, total = 8 }: SectionPosition = {}) {
   const project = publishedProjects().find((p) => p.images.length > 1) ?? publishedProjects()[0];
   if (!project) return null;
 
@@ -137,7 +137,7 @@ export function FeaturedProject() {
 
   return (
     <Wrap className="pt-[var(--band)]">
-      <SectionIndex n={1} total={8} className="mb-[var(--s-3)]" />
+      <SectionIndex n={n} total={total} className="mb-[var(--s-3)]" />
       <SectionHead
         label="Featured project"
         note="One project takes the full spread. Inventory and pricing are sourced from the developer."
@@ -221,10 +221,19 @@ export function FeaturedProject() {
 
 /* ── 3 · Immersive ────────────────────────────────────────────────────── */
 
-export async function ImmersiveHome() {
+/** Where the page is numbered from: the immersive band is absent in builds
+    with no published model, and the count must not skip a number for it. */
+type SectionPosition = { n?: number; total?: number };
+
+/** The project the immersive band features, or null when there is none. */
+export async function homeImmersiveFeature() {
   const projects = publishedProjects();
   const withModel = await projectsWithModel(projects);
-  const feature = projects.find((p) => withModel.has(p.slug)) ?? null;
+  return projects.find((p) => withModel.has(p.slug)) ?? null;
+}
+
+export async function ImmersiveHome({ n = 2, total = 7 }: SectionPosition = {}) {
+  const feature = await homeImmersiveFeature();
 
   // No published immersive media in this environment: the section is absent
   // rather than an empty shell with dead controls.
@@ -239,7 +248,7 @@ export async function ImmersiveHome() {
       <DraftingGrid tone="stage" size={56} fade="radial" className="opacity-30" />
       <Grain opacity={0.05} />
       <Wrap className="relative z-[2]">
-        <SectionIndex n={3} total={8} tone="stage" className="mb-[var(--s-3)]" />
+        <SectionIndex n={n} total={total} tone="stage" className="mb-[var(--s-3)]" />
         <SectionHead
           label="Explore"
           title="Walk it from where you are"
@@ -274,10 +283,10 @@ export async function ImmersiveHome() {
 
 /* ── 4 · Curated ──────────────────────────────────────────────────────── */
 
-export function CuratedProjects() {
+export function CuratedProjects({ n = 4, total = 8 }: SectionPosition = {}) {
   return (
     <Wrap className="pt-[var(--band)]">
-      <SectionIndex n={4} total={8} className="mb-[var(--s-3)]" />
+      <SectionIndex n={n} total={total} className="mb-[var(--s-3)]" />
       <SectionHead
         label="Curated"
         title="Developer inventory"
@@ -299,7 +308,7 @@ const JOURNEY = [
   {
     name: "Explore",
     live: true,
-    body: "Walk the building in 3D, stand inside a 360° capture and open the measured plans, wherever those assets exist.",
+    body: "Open the developer's imagery and measured plans. Where a building has been captured in 3D or 360°, it appears on its page — and nowhere else.",
   },
   {
     name: "Evaluate",
@@ -318,10 +327,10 @@ const JOURNEY = [
   },
 ];
 
-export function HowAarvasaWorks() {
+export function HowAarvasaWorks({ n = 5, total = 8 }: SectionPosition = {}) {
   return (
     <Wrap className="pt-[var(--band)]">
-      <SectionIndex n={5} total={8} className="mb-[var(--s-3)]" />
+      <SectionIndex n={n} total={total} className="mb-[var(--s-3)]" />
       <SectionHead
         label="How Aarvasa works"
         title="Three steps today, five eventually"
@@ -361,10 +370,10 @@ export function HowAarvasaWorks() {
 
 /* ── 6 · Property intelligence ────────────────────────────────────────── */
 
-export function AdvisorPanel() {
+export function AdvisorPanel({ n = 6, total = 8 }: SectionPosition = {}) {
   return (
     <Wrap className="pt-[var(--band)]">
-      <SectionIndex n={6} total={8} className="mb-[var(--s-3)]" />
+      <SectionIndex n={n} total={total} className="mb-[var(--s-3)]" />
       <SectionHead
         label="Property intelligence"
         note="The advisor sits in the margin of the page, where a good editor sits."
@@ -416,12 +425,12 @@ const PARTNERS = [
   { name: "AWS", image: "/images/partners/aws.png" },
 ];
 
-export function TrustPartners() {
+export function TrustPartners({ n = 7, total = 8 }: SectionPosition = {}) {
   const developers = Array.from(new Set(publishedProjects().map((p) => p.developer)));
 
   return (
     <Wrap className="pt-[var(--band)]">
-      <SectionIndex n={7} total={8} className="mb-[var(--s-3)]" />
+      <SectionIndex n={n} total={total} className="mb-[var(--s-3)]" />
       <SectionHead
         label="Who we work with"
         note="Listings come from the developer or their appointed channel partner. Aarvasa holds no inventory and takes no fee from buyers."
@@ -459,7 +468,7 @@ export function TrustPartners() {
 
 /* ── 8 · Closing ──────────────────────────────────────────────────────── */
 
-export function ClosingCTA() {
+export function ClosingCTA({ n = 8, total = 8 }: SectionPosition = {}) {
   const project = publishedProjects().find((p) => p.images[0]);
   const closingImage = project?.imagery?.banners[1] ?? null;
   const cover = closingImage
@@ -479,15 +488,15 @@ export function ClosingCTA() {
         <CoordinateMarks tone="stage" className="z-[2] max-md:hidden" />
         <div className="absolute inset-x-0 bottom-0 z-[3] pb-[var(--s-14)] pt-[var(--s-24)]">
           <Wrap>
-            <SectionIndex n={8} total={8} tone="stage" className="mb-[var(--s-3)]" />
+            <SectionIndex n={n} total={total} tone="stage" className="mb-[var(--s-3)]" />
             <TextReveal
               as="h2"
               text="Start with one building."
               className="av-display max-w-[16ch] text-[clamp(28px,4.4vw,56px)] leading-[1.02] text-stage-ink"
             />
             <p className="mt-[var(--s-3)] max-w-[48ch] text-[15px] leading-relaxed text-stage-muted">
-              Search, walk it, compare it. Enquiries go straight to the developer — there is nothing
-              to sign up for first.
+              Search it, read it, compare it. Enquiries go straight to the developer — there is
+              nothing to sign up for first.
             </p>
             <div className="mt-[var(--s-5)] flex flex-wrap gap-[var(--s-3)]">
               <Link

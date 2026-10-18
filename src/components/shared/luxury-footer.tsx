@@ -21,7 +21,6 @@ const quickLinks = [
 
 const discoverLinks = [
   { href: "/listings", label: "All properties" },
-  { href: "/agents", label: "Agents" },
   { href: "/ai-chat", label: "Advisor" },
   { href: "/contact", label: "Contact" },
 ];

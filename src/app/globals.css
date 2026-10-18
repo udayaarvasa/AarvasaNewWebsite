@@ -291,9 +291,11 @@ body {
 /* ── Media scrim ──────────────────────────────────────────────────────────
    Legibility only. The side scrim protects a text column on wide media; on a
    narrow viewport it would cover the whole frame, so there the bottom scrim
-   does the work alone and the photograph stays visible. */
+   does the work alone and the photograph stays visible. Copy wraps to more
+   lines on a phone and climbs higher up the frame, so the narrow scrim
+   reaches further than the wide one. */
 .av-scrim {
-  background: var(--scrim-media);
+  background: linear-gradient(to top, rgba(12, 11, 10, 0.94) 0%, rgba(12, 11, 10, 0.72) 42%, rgba(12, 11, 10, 0.2) 72%, rgba(12, 11, 10, 0) 88%);
 }
 
 @media (min-width: 768px) {

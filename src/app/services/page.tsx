@@ -43,7 +43,7 @@ const audiences: {
 }[] = [
   {
     label: "For buyers",
-    title: "Find it, walk it, compare it",
+    title: "Find it, read it, compare it",
     body: "Search the platform on city, budget, configuration and specification, open the immersive formats a project has actually produced, and put a shortlist of three side by side before you travel. Enquiries go straight to the developer; you pay Aarvasa nothing.",
     includes: [
       ["Search and filters", "City, budget, configuration, type and verified-only, held in the URL"],

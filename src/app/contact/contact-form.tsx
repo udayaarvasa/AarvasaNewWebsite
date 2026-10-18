@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, type FormEvent, type ReactNode } from "react";
+import { useEffect, useRef, useState, type FormEvent, type ReactNode } from "react";
 import { Button } from "@/components/ui/button";
 
 /**
@@ -21,6 +21,16 @@ const TO = "contact@aarvasa.com";
 
 export function ContactForm({ children }: { children: ReactNode }) {
   const [handedOff, setHandedOff] = useState(false);
+  const formRef = useRef<HTMLFormElement>(null);
+
+  /* Arriving from a project's Enquire button (?project=REEF 998): name that
+     project in the form, unless the visitor has already typed something. Read
+     on the client so the page itself stays static. */
+  useEffect(() => {
+    const project = new URLSearchParams(window.location.search).get("project")?.trim();
+    const field = formRef.current?.elements.namedItem("city");
+    if (project && field instanceof HTMLInputElement && !field.value) field.value = project.slice(0, 120);
+  }, []);
 
   function onSubmit(e: FormEvent<HTMLFormElement>) {
     // Always stop the native submit: a GET would leak the fields into the URL.
@@ -51,7 +61,7 @@ export function ContactForm({ children }: { children: ReactNode }) {
   }
 
   return (
-    <form onSubmit={onSubmit} className="mt-[var(--s-6)] grid gap-[var(--s-4)]">
+    <form ref={formRef} onSubmit={onSubmit} className="mt-[var(--s-6)] grid gap-[var(--s-4)]">
       {children}
 
       <Button type="submit" size="lg" className="w-full sm:w-auto sm:justify-self-start">

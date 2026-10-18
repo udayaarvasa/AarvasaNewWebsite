@@ -23,11 +23,12 @@ import { useNavOverlay } from "./nav-overlay";
 type NavLink = { href: string; label: string; match?: string[] };
 
 // Blockchain stays routable but is unlinked: it is roadmap, not product.
+// Agents is likewise unlinked: the route requires sign-in, so in the public
+// navigation it sent every visitor to a login wall.
 const navLinks: NavLink[] = [
   { href: "/listings", label: "Properties", match: ["/listings", "/properties", "/property", "/projects"] },
   { href: "/reef", label: "REEF Collection" },
   { href: "/ai-chat", label: "Advisor" },
-  { href: "/agents", label: "Agents" },
   { href: "/about", label: "About" },
   { href: "/services", label: "Services" },
   { href: "/contact", label: "Contact" },
@@ -117,7 +118,11 @@ export function Navbar() {
         data-surface={floating ? "stage" : undefined}
         className={cn(
           "sticky top-0 z-50 border-b transition-colors duration-300",
-          floating ? "border-transparent bg-transparent" : "border-rule bg-paper",
+          // Floating over a photograph: a soft stage gradient keeps the white
+          // logo and links legible however bright the frame beneath them is.
+          floating
+            ? "border-transparent bg-transparent bg-gradient-to-b from-[rgba(12,11,10,0.62)] to-transparent"
+            : "border-rule bg-paper",
         )}
       >
         <div className="mx-auto flex h-[var(--nav-h)] max-w-[var(--container)] items-center gap-6 px-[var(--gutter)]">

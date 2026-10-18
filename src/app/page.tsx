@@ -7,6 +7,7 @@ import {
   HomeHero,
   HowAarvasaWorks,
   ImmersiveHome,
+  homeImmersiveFeature,
   TrustPartners,
 } from "@/components/homepage/home-sections";
 
@@ -34,13 +35,19 @@ export const metadata = {
  *   7 trust             paper
  *   8 closing           stage
  */
-export default function Home() {
+export default async function Home() {
+  // Numbered by what renders, in order: the hero is unnumbered, and the
+  // immersive band takes a number only when it is shown.
+  const immersive = Boolean(await homeImmersiveFeature());
+  const order = ["featured", ...(immersive ? ["immersive"] : []), "curated", "how", "advisor", "trust", "closing"];
+  const at = (key: string) => ({ n: order.indexOf(key) + 1, total: order.length });
+
   return (
     <div className="pb-[var(--s-24)]">
       <HomeHero />
-      <FeaturedProject />
-      <ImmersiveHome />
-      <CuratedProjects />
+      <FeaturedProject {...at("featured")} />
+      <ImmersiveHome {...at("immersive")} />
+      <CuratedProjects {...at("curated")} />
 
       <div className="mt-[var(--band)]">
         <StatementBanner
@@ -51,8 +58,8 @@ export default function Home() {
         />
       </div>
 
-      <HowAarvasaWorks />
-      <AdvisorPanel />
+      <HowAarvasaWorks {...at("how")} />
+      <AdvisorPanel {...at("advisor")} />
 
       <div className="mt-[var(--band)]">
         <TextureBanner
@@ -63,8 +70,8 @@ export default function Home() {
         />
       </div>
 
-      <TrustPartners />
-      <ClosingCTA />
+      <TrustPartners {...at("trust")} />
+      <ClosingCTA {...at("closing")} />
     </div>
   );
 }
