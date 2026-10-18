@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useId, useRef, useState } from "react";
-import { Globe2, Loader2, LocateFixed, MapPin, TriangleAlert } from "lucide-react";
+import { ArrowDown, ArrowUp, Globe2, Loader2, LocateFixed, MapPin, Pause, Play, RotateCcw, RotateCw, TriangleAlert, ZoomIn, ZoomOut } from "lucide-react";
 import {
   AREA_2D_NO_COVERAGE,
   MODEL_OVERLAY_LABEL,
@@ -92,6 +92,23 @@ type Phase =
      not change on a retry. */
   | { k: "failed"; blocker: ExploreAreaBlocker };
 
+/** The board's camera buttons: a turn of 45°, a tilt of 12°, a zoom of 30%. */
+const CAMERA_MOVES = [
+  { label: "Turn left", icon: RotateCcw, delta: { heading: -45 } },
+  { label: "Turn right", icon: RotateCw, delta: { heading: 45 } },
+  { label: "Look down from higher", icon: ArrowDown, delta: { tilt: -12 } },
+  { label: "Look across, closer to the ground", icon: ArrowUp, delta: { tilt: 12 } },
+  { label: "Zoom in", icon: ZoomIn, delta: { rangeFactor: 0.7 } },
+  { label: "Zoom out", icon: ZoomOut, delta: { rangeFactor: 1.4 } },
+] as const;
+
+/** The 3D map's current camera, read from its own properties. */
+function readCamera(element: HTMLElement | null) {
+  const map = element as (HTMLElement & { heading?: number; tilt?: number; range?: number }) | null;
+  if (!map) return null;
+  return { map, heading: Number(map.heading) || 0, tilt: Number(map.tilt) || 0, range: Number(map.range) || 500 };
+}
+
 export function ExploreArea({
   name,
   location,
@@ -122,6 +139,59 @@ export function ExploreArea({
   const [showModel, setShowModel] = useState(true);
   const [modelFailed, setModelFailed] = useState(false);
   const statusId = useId();
+
+  /* ── Camera controls: turn, tilt, zoom and a 360° orbit ────────────────
+     Driven through the map's own heading/tilt/range properties, eased in a
+     frame loop. (flyCameraTo returned without moving the camera here — see
+     the recentre note below — so the properties are what move it.) */
+  const animRef = useRef(0);
+  const [orbiting, setOrbiting] = useState(false);
+  const stopCamera = useCallback(() => {
+    cancelAnimationFrame(animRef.current);
+    animRef.current = 0;
+    setOrbiting(false);
+  }, []);
+  const moveCamera = useCallback(
+    (delta: { heading?: number; tilt?: number; rangeFactor?: number }, ms = 650) => {
+      stopCamera();
+      const from = readCamera(mapRef.current);
+      if (!from) return;
+      const to = {
+        heading: from.heading + (delta.heading ?? 0),
+        tilt: Math.min(85, Math.max(0, from.tilt + (delta.tilt ?? 0))),
+        range: Math.min(4000, Math.max(80, from.range * (delta.rangeFactor ?? 1))),
+      };
+      const start = performance.now();
+      const step = (now: number) => {
+        const t = Math.min(1, (now - start) / ms);
+        const e = 1 - Math.pow(1 - t, 3);
+        const m = from.map as unknown as { heading: number; tilt: number; range: number };
+        m.heading = (from.heading + (to.heading - from.heading) * e + 360) % 360;
+        m.tilt = from.tilt + (to.tilt - from.tilt) * e;
+        m.range = from.range + (to.range - from.range) * e;
+        if (t < 1) animRef.current = requestAnimationFrame(step);
+        else animRef.current = 0;
+      };
+      animRef.current = requestAnimationFrame(step);
+    },
+    [stopCamera],
+  );
+  const toggleOrbit = useCallback(() => {
+    if (orbiting) return stopCamera();
+    const from = readCamera(mapRef.current);
+    if (!from) return;
+    setOrbiting(true);
+    // One full turn around the subject in 24 s, then keep going until stopped.
+    let last = performance.now();
+    const step = (now: number) => {
+      const m = from.map as unknown as { heading: number };
+      m.heading = ((Number(m.heading) || 0) + ((now - last) / 24000) * 360) % 360;
+      last = now;
+      animRef.current = requestAnimationFrame(step);
+    };
+    animRef.current = requestAnimationFrame(step);
+  }, [orbiting, stopCamera]);
+  useEffect(() => () => cancelAnimationFrame(animRef.current), []);
 
   const resolved: ExploreAreaMode = exploreAreaMode({ coordinates, apiKey });
   const resolvedCenter = resolved.kind === "unavailable" ? null : resolved.center;
@@ -371,13 +441,52 @@ export function ExploreArea({
             <span className="text-[14px]">Loading the area…</span>
           </div>
         )}
+        {phase.k === "ready" && phase.mode === "3d" && (
+          <div
+            role="toolbar"
+            aria-label={`Move around ${name}`}
+            className="absolute bottom-3 left-1/2 z-[2] flex -translate-x-1/2 items-center gap-1 rounded-full border border-white/15 bg-black/55 p-1.5 shadow-[0_12px_30px_rgba(0,0,0,0.4)] backdrop-blur-md"
+            onPointerDown={(e) => e.stopPropagation()}
+          >
+            {CAMERA_MOVES.map(({ label, icon: Icon, delta }) => (
+              <button
+                key={label}
+                type="button"
+                onClick={() => moveCamera(delta)}
+                aria-label={label}
+                title={label}
+                className="flex h-9 w-9 items-center justify-center rounded-full text-white/85 transition-colors hover:bg-white/15 hover:text-white"
+              >
+                <Icon className="h-4 w-4" aria-hidden="true" />
+              </button>
+            ))}
+            <span aria-hidden="true" className="mx-1 h-5 w-px bg-white/20" />
+            <button
+              type="button"
+              onClick={toggleOrbit}
+              aria-pressed={orbiting}
+              className="flex items-center gap-1.5 rounded-full px-3.5 py-2 text-[12px] font-semibold text-[var(--action-ink)] [background:var(--action)]"
+            >
+              {orbiting ? <Pause className="h-3.5 w-3.5" aria-hidden="true" /> : <Play className="h-3.5 w-3.5" aria-hidden="true" />}
+              {orbiting ? "Stop" : "Orbit 360°"}
+            </button>
+          </div>
+        )}
+        {phase.k === "ready" && phase.mode === "3d" && (
+          <p className="pointer-events-none absolute right-3 top-3 z-[2] hidden rounded-full bg-black/45 px-3 py-1.5 text-[11px] text-white/85 backdrop-blur-md md:block">
+            Drag to move · Right-drag or Ctrl-drag to turn and tilt · Scroll to zoom
+          </p>
+        )}
         {phase.k === "ready" && (
           /* Deliberately a real button rather than a gesture hint: the gesture
              that gets you back does not exist, and on a touch screen there is
              nothing to discover. */
           <button
             type="button"
-            onClick={() => recenterRef.current?.()}
+            onClick={() => {
+              stopCamera();
+              recenterRef.current?.();
+            }}
             className="av-label absolute left-3 top-3 inline-flex items-center gap-1.5 rounded-xs border border-rule-firm/60 bg-paper/90 px-2.5 py-1.5 text-[11px] text-ink backdrop-blur-sm transition-opacity hover:opacity-90"
           >
             <LocateFixed className="h-3.5 w-3.5" aria-hidden="true" />
