@@ -1,5 +1,7 @@
 const { PrismaClient } = require("@prisma/client");
 const bcrypt = require("bcryptjs");
+// eslint-disable-next-line @typescript-eslint/no-require-imports -- CommonJS seed, run directly by node
+const { seedPassword } = require("./seed-guard.cjs");
 
 const prisma = new PrismaClient();
 
@@ -9,8 +11,9 @@ const img = (id) =>
 async function main() {
   console.log("🌱 Seeding database...");
 
-  // Create demo users
-  const password = await bcrypt.hash("Password123!", 12);
+  // Create demo users. The password comes from SEED_PASSWORD; there is no
+  // default, and the seed refuses to run against production (seed-guard.cjs).
+  const password = await bcrypt.hash(seedPassword(), 12);
 
   const admin = await prisma.user.upsert({
     where: { email: "admin@aarvasa.com" },
@@ -207,9 +210,7 @@ async function main() {
 
   console.log(`✅ ${propertyData.length} properties created`);
   console.log("\n📋 Demo accounts:");
-  console.log("  Admin:  admin@aarvasa.com / Password123!");
-  console.log("  Agent:  agent@aarvasa.com / Password123!");
-  console.log("  User:   user@aarvasa.com  / Password123!");
+  console.log("  Demo accounts use the password supplied in SEED_PASSWORD (not printed).");
   console.log("\n🎉 Seed complete!");
 }
 

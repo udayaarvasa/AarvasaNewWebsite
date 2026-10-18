@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server"
 import bcrypt from "bcryptjs"
+import { isCompromisedPassword } from "@/lib/compromised-passwords"
 import { prisma } from "@/lib/prisma"
 import { authRateLimited, AUTH_LOGIN_LIMIT } from "@/lib/rate-limit"
 import { issueTokens } from "@/lib/mobile-auth"
@@ -31,7 +32,8 @@ export async function POST(req: Request) {
     // `password` is null for Google and wallet accounts — those cannot log in
     // through this endpoint. Fold that into the same generic failure so the
     // response never reveals whether an email is registered.
-    if (!user?.password || !(await bcrypt.compare(password, user.password))) {
+    // A publicly exposed password never authenticates, whatever is stored.
+    if (isCompromisedPassword(password) || !user?.password || !(await bcrypt.compare(password, user.password))) {
       return NextResponse.json(
         { success: false, error: "Invalid email or password" },
         { status: 401 }

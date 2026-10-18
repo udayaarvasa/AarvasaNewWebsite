@@ -3,6 +3,7 @@ import { getAuthUser } from "@/lib/auth-context"
 import { prisma } from "@/lib/prisma"
 import { z } from "zod"
 import bcrypt from "bcryptjs"
+import { isCompromisedPassword, COMPROMISED_PASSWORD_MESSAGE } from "@/lib/compromised-passwords"
 
 const updateProfileSchema = z.object({
   name: z.string().min(2).max(100).optional(),
@@ -76,6 +77,9 @@ export async function PATCH(req: Request) {
           { success: false, error: parsed.error.flatten().fieldErrors },
           { status: 400 }
         )
+
+      if (isCompromisedPassword(parsed.data.newPassword))
+        return NextResponse.json({ success: false, error: COMPROMISED_PASSWORD_MESSAGE }, { status: 400 })
 
       const user = await prisma.user.findUnique({
         where: { id: authUser.id },

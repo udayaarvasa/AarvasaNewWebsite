@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server"
 import bcrypt from "bcryptjs"
+import { isCompromisedPassword, COMPROMISED_PASSWORD_MESSAGE } from "@/lib/compromised-passwords";
 import { prisma } from "@/lib/prisma"
 
 export async function POST(req: Request) {
@@ -12,6 +13,10 @@ export async function POST(req: Request) {
         { message: "Missing required fields" },
         { status: 400 }
       );
+    }
+
+    if (isCompromisedPassword(password)) {
+      return NextResponse.json({ message: COMPROMISED_PASSWORD_MESSAGE }, { status: 400 });
     }
 
     const existingUser = await prisma.user.findUnique({

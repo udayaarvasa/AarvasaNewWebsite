@@ -3,6 +3,7 @@ import { PrismaAdapter } from "@auth/prisma-adapter"
 import { prisma } from "./lib/prisma"
 import CredentialsProvider from "next-auth/providers/credentials"
 import Google from "next-auth/providers/google"
+import { isCompromisedPassword } from "@/lib/compromised-passwords"
 import bcrypt from "bcryptjs"
 // Removed Prisma type imports for local build compatibility
 
@@ -30,6 +31,10 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       },
       async authorize(credentials) {
         if (!credentials?.email || !credentials?.password) {
+          throw new Error("Invalid credentials");
+        }
+        // A publicly exposed password never authenticates, whatever is stored.
+        if (isCompromisedPassword(credentials.password as string)) {
           throw new Error("Invalid credentials");
         }
 

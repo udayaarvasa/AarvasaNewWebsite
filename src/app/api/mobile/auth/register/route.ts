@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server"
 import bcrypt from "bcryptjs"
+import { isCompromisedPassword, COMPROMISED_PASSWORD_MESSAGE } from "@/lib/compromised-passwords"
 import { prisma } from "@/lib/prisma"
 import { authRateLimited, AUTH_REGISTER_LIMIT } from "@/lib/rate-limit"
 import { issueTokens } from "@/lib/mobile-auth"
@@ -28,6 +29,9 @@ export async function POST(req: Request) {
     }
 
     const { name, email, password, role } = parsed.data
+    if (isCompromisedPassword(password)) {
+      return NextResponse.json({ success: false, error: COMPROMISED_PASSWORD_MESSAGE }, { status: 400 })
+    }
 
     const existingUser = await prisma.user.findUnique({ where: { email } })
     if (existingUser) {
