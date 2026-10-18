@@ -278,8 +278,9 @@ describe("project page: XR entry points", () => {
     assert.equal(projectViewerConfig(optedOut, "development")?.xr, null);
   });
 
-  it("offers no XR for a project with no model at all", () => {
-    assert.equal(projectViewerConfig(reef, "development"), null);
+  it("offers no XR for a project with no model at all, nor for a site-hosted one", () => {
+    assert.equal(projectViewerConfig(getProject("reef-997-dubai-islands") as Project, "development"), null);
+    assert.equal(projectViewerConfig(reef, "development")?.xr ?? null, null);
   });
 
   it("does not add a mode to the page's experiences: XR belongs to the 3D model", () => {

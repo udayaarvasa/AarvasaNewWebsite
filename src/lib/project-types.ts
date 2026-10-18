@@ -59,6 +59,12 @@ export type ProjectImmersiveMedia = {
    */
   hosting?: "site";
   /**
+   * Standing the model in Google's 3D scene on the project's coordinate.
+   * baseOffsetMetres is half the model's real height (its origin is the
+   * centroid), measured from the GLB's bounds — never chosen by eye.
+   */
+  mapOverlay?: { baseOffsetMetres: number };
+  /**
    * How the model was produced, for the label shown beside it. Carried from the
    * MediaAsset row; absent on the hand-authored pilot, which `review` already
    * marks as a placeholder.

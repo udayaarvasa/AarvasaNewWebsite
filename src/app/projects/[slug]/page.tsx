@@ -120,6 +120,14 @@ export default async function ProjectPage({
   });
   const hasArea = area.kind !== "unavailable";
 
+  /* The project's own reconstruction, stood in Google's scene on its
+     coordinate. Only a reviewed, site-hosted model with measured placement. */
+  const media = project.immersive;
+  const mapModel =
+    media && media.review === "approved" && media.hosting === "site" && media.mapOverlay
+      ? { url: `/media/${media.storageKey}/${media.entryFile}`, baseOffsetMetres: media.mapOverlay.baseOffsetMetres }
+      : null;
+
   /* Capability marks come from what actually passed server-side gating. A
      format with no published asset is omitted — never a dead control. */
   const produced: string[] = [
@@ -334,6 +342,7 @@ export default async function ProjectPage({
                       location={`${project.location}, ${project.city}`}
                       coordinates={area.center}
                       apiKey={process.env.NEXT_PUBLIC_GOOGLE_MAPS_BROWSER_KEY ?? null}
+                      modelOverlay={mapModel}
                     />
                     {/* Shares the map's gate exactly: same key, same verified
                         coordinates. Measuring distances from a position nobody

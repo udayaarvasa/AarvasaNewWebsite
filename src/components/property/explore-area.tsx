@@ -292,7 +292,8 @@ export function ExploreArea({
         }>("maps3d");
         if (cancelled) return;
         const model = new lib.Model3DElement({
-          src: modelOverlay.url,
+          // Google's loader needs an absolute URL; a site-hosted model is relative.
+          src: new URL(modelOverlay.url, window.location.origin).href,
           /* Anchored to the property's own coordinate, lifted so the model's
              base — not its centroid — meets the ground. */
           position: { ...(resolvedCenter as VerifiedCoordinates), altitude: modelOverlay.baseOffsetMetres },
