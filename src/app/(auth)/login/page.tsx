@@ -1,12 +1,18 @@
 import { LoginForm } from "@/components/auth/login-form"
 import Image from "next/image"
+import { redirect } from "next/navigation"
+import { auth } from "@/auth"
 
 export const metadata = {
   title: "Login | Aarvasa",
   description: "Sign in to your Aarvasa premium PropTech account",
 }
 
-export default function LoginPage() {
+export default async function LoginPage() {
+  // Signed-in visitors go to their dashboard. Reading the session here also
+  // makes the page dynamic (private, no-store), so no shared cache keeps it.
+  if (await auth()) redirect("/dashboard")
+
   return (
     <div data-surface="stage" className="min-h-screen flex bg-[#12070a] relative overflow-hidden">
       {/* Background elements */}

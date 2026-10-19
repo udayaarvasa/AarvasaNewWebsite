@@ -79,3 +79,36 @@ test("Google sign-in always asks which account to use", async () => {
   // which signed a visitor into a colleague's Aarvasa account on a shared browser.
   assert.match(src, /Google\(\{[\s\S]*?authorization:\s*\{\s*params:\s*\{\s*prompt:\s*"select_account"\s*\}\s*\}/);
 });
+
+test("the auth proxy never runs on public pages, so no cached page can carry a session cookie", async () => {
+  const { readFile } = await import("node:fs/promises");
+  const src = await readFile(new URL("../src/proxy.ts", import.meta.url), "utf8");
+  const matcher = src.slice(src.indexOf("export const config"));
+  // The old catch-all matcher put a signed-in visitor's refreshed session cookie
+  // on statically cached pages, and CloudFront replayed it to everyone after them.
+  assert.doesNotMatch(matcher, /\(\?!/, "no negative-lookahead catch-all matcher");
+  for (const publicPath of ['"/"', '"/listings', '"/projects', '"/reef', '"/about', '"/login"', '"/signup"']) {
+    assert.ok(!matcher.includes(publicPath), `${publicPath} must not be matched by the proxy`);
+  }
+  for (const privatePath of ['"/dashboard/:path*"', '"/admin/:path*"', '"/properties/create"']) {
+    assert.ok(matcher.includes(privatePath), `${privatePath} must stay protected`);
+  }
+  assert.match(src, /Cache-Control", "private, no-store"/, "proxied responses are never shared-cacheable");
+  assert.doesNotMatch(src, /return NextResponse\.(redirect|next)\(/, "every proxy response goes through privateResponse");
+});
+
+test("sessions issued before the current epoch are refused", async () => {
+  const { readFile } = await import("node:fs/promises");
+  const src = await readFile(new URL("../src/auth.ts", import.meta.url), "utf8");
+  assert.match(src, /export const SESSION_EPOCH = \d+/);
+  assert.match(src, /token\.epoch = SESSION_EPOCH/, "stamped at sign-in");
+  assert.match(src, /if \(token\.epoch !== SESSION_EPOCH\) return null/, "checked on every request");
+});
+
+test("login and signup read the session server-side, so they are dynamic and never cached", async () => {
+  const { readFile } = await import("node:fs/promises");
+  for (const page of ["login", "signup"]) {
+    const src = await readFile(new URL(`../src/app/(auth)/${page}/page.tsx`, import.meta.url), "utf8");
+    assert.match(src, /if \(await auth\(\)\) redirect\("\/dashboard"\)/, page);
+  }
+});
