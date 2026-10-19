@@ -391,9 +391,10 @@ export function ChatInterface({ initialPrompt }: { initialPrompt?: string }) {
               <Sparkles className="h-5 w-5" />
             </div>
             <div>
-              <h1 className="text-xl font-semibold text-foreground">
+              {/* A panel title, not the page's: the Advisor page has its own h1. */}
+              <h2 className="text-xl font-semibold text-foreground">
                 Aarvasa AI Advisor
-              </h1>
+              </h2>
               <p className="text-sm text-muted-foreground">
                 Specification · developer filings · locality data
               </p>
