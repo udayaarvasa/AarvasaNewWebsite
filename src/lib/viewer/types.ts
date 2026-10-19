@@ -128,6 +128,19 @@ export type ViewerXrStart = {
   onEvent: (event: ViewerXrEvent) => void;
 };
 
+/**
+ * Key light and ambient for model scenes. Omitted = the standard lighting every
+ * production page uses. Exists so lighting can be evaluated in the dev lab
+ * without changing what visitors see.
+ */
+export type ViewerLighting = {
+  keyPitchDeg: number;
+  keyYawDeg: number;
+  intensity: number;
+  ambient: number;
+  shadows: boolean;
+};
+
 /** How far a model download has got. */
 export type LoadProgress = { fraction: number | null; bytes: number };
 
@@ -142,6 +155,7 @@ export type ViewerEngineOptions = {
   onContextRestored: () => void;
   /** Model download progress: fraction 0..1 (null when the size is unknown) and bytes so far. */
   onLoadProgress?: (progress: LoadProgress) => void;
+  lighting?: ViewerLighting;
 };
 
 /**

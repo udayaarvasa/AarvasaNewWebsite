@@ -43,10 +43,14 @@ const SOURCES: Record<SceneChoice, ViewerSource | undefined> = {
   reef998v2:
     process.env.NODE_ENV === "production"
       ? undefined
-      : { kind: "model", url: "/labs/media/m/3eecb8df7d61b40c456ee53d/ee69f8401af04463/scene.glb" },
+      : { kind: "model", url: "/labs/media/m/3eecb8df7d61b40c456ee53d/589b15693f0a2ef6/scene.glb" },
   // Must be rejected by the same-origin guard without any request being made.
   blocked: { kind: "model", url: "https://example.com/untrusted.glb" },
 };
+
+/** Evaluation lighting: a low key light from the side with shadows, so plan
+ *  curvature reads as it does in the developer's renders. Lab only. */
+const RAKING_LIGHT = { keyPitchDeg: 35, keyYawDeg: 70, intensity: 1.5, ambient: 0.3, shadows: true };
 
 function Choice<T extends string>({
   label,
@@ -82,6 +86,7 @@ export function ViewerLab({ initialLoadOn }: { initialLoadOn: "visible" | "inter
   const [scene, setScene] = useState<SceneChoice>("procedural");
   const [loadOn, setLoadOn] = useState<"visible" | "interaction">(initialLoadOn);
   const [autoRotate, setAutoRotate] = useState<"off" | "on">("off");
+  const [lighting, setLighting] = useState<"standard" | "raking">("standard");
   const [mounted, setMounted] = useState<"mounted" | "unmounted">("mounted");
   const [second, setSecond] = useState<"hidden" | "shown">("hidden");
   const [status, setStatus] = useState<ViewerStatus>("idle");
@@ -121,7 +126,7 @@ export function ViewerLab({ initialLoadOn }: { initialLoadOn: "visible" | "inter
             { value: "reef996v2", label: "REEF 996 v2 (candidate)" },
             { value: "reef996v3", label: "REEF 996 v3 (candidate)" },
             { value: "reef997", label: "REEF 997 (candidate)" },
-            { value: "reef998v2", label: "REEF 998 v2 (candidate)" },
+            { value: "reef998v2", label: "REEF 998 v3 (candidate)" },
             { value: "blocked", label: "Blocked URL" },
           ]}
         />
@@ -141,6 +146,15 @@ export function ViewerLab({ initialLoadOn }: { initialLoadOn: "visible" | "inter
           options={[
             { value: "off", label: "Off" },
             { value: "on", label: "On" },
+          ]}
+        />
+        <Choice
+          label="Lighting"
+          value={lighting}
+          onChange={setLighting}
+          options={[
+            { value: "standard", label: "Standard (production)" },
+            { value: "raking", label: "Raking + shadows (evaluation)" },
           ]}
         />
         <Choice
@@ -187,11 +201,12 @@ export function ViewerLab({ initialLoadOn }: { initialLoadOn: "visible" | "inter
           ) : (
             <Aarvasa3DViewer
               // Changing the load strategy only makes sense from a fresh mount.
-              key={loadOn}
+              key={`${loadOn}-${lighting}`}
               label="Viewer lab scene"
               source={SOURCES[scene]}
               loadOn={loadOn}
               autoRotate={autoRotate === "on"}
+              lighting={lighting === "raking" ? RAKING_LIGHT : undefined}
               onStatusChange={setStatus}
             />
           ))}

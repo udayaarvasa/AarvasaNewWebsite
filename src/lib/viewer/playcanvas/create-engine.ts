@@ -17,7 +17,7 @@ import { LoadGate } from "../load-gate";
 import { RenderDemand } from "../render-demand";
 import { MEDIA_CDN_ORIGIN, PUBLIC_MODEL_ORIGIN } from "../media-origin";
 import { resolveModelUrl, resolvePanoramaUrl, resolveSplatUrl } from "../source";
-import type { RGB, ViewerEngine, ViewerEngineOptions, ViewerSource, ViewerTheme, ViewerXrStart } from "../types";
+import type { RGB, ViewerEngine, ViewerEngineOptions, ViewerLighting, ViewerSource, ViewerTheme, ViewerXrStart } from "../types";
 import { directionFor } from "./look-controls";
 import { loadModel } from "./model-loader";
 import { loadPanorama } from "./panorama";
@@ -48,6 +48,9 @@ const toColor = ([r, g, b]: RGB) => new Color(r, g, b);
  *
  * Throws if a WebGL 2 context cannot be created.
  */
+/** The lighting production pages use. Unchanged from before ViewerLighting existed. */
+const STANDARD_LIGHTING: ViewerLighting = { keyPitchDeg: 50, keyYawDeg: 30, intensity: 1.2, ambient: 0.45, shadows: false };
+
 export function createViewerEngine(host: HTMLElement, options: ViewerEngineOptions): ViewerEngine {
   if (typeof window === "undefined") {
     throw new Error("createViewerEngine must only run in the browser");
@@ -92,11 +95,18 @@ export function createViewerEngine(host: HTMLElement, options: ViewerEngineOptio
   });
   app.root.addChild(camera);
 
+  const lit = options.lighting ?? STANDARD_LIGHTING;
   const light = new Entity("key-light");
-  light.addComponent("light", { type: "directional", intensity: 1.2 });
-  light.setEulerAngles(50, 30, 0);
+  light.addComponent("light", {
+    type: "directional",
+    intensity: lit.intensity,
+    ...(lit.shadows
+      ? { castShadows: true, shadowDistance: 60, shadowResolution: 2048, shadowBias: 0.25, normalOffsetBias: 0.05 }
+      : {}),
+  });
+  light.setEulerAngles(lit.keyPitchDeg, lit.keyYawDeg, 0);
   app.root.addChild(light);
-  app.scene.ambientLight = new Color(0.45, 0.45, 0.45);
+  app.scene.ambientLight = new Color(lit.ambient, lit.ambient, lit.ambient);
 
   // ── Render loop ──────────────────────────────────────────────────────────
   // PlayCanvas re-schedules requestAnimationFrame every tick for as long as the

@@ -16,7 +16,7 @@ import {
 } from "@/lib/viewer/capabilities";
 import { sourceFromKey, sourceKey } from "@/lib/viewer/source";
 import { readViewerTheme } from "@/lib/viewer/theme";
-import type { LoadProgress, ViewerEngine, ViewerSource, ViewerStatus } from "@/lib/viewer/types";
+import type { LoadProgress, ViewerEngine, ViewerLighting, ViewerSource, ViewerStatus } from "@/lib/viewer/types";
 
 const MAX_PIXEL_RATIO = 2;
 const CANVAS_LABELS = {
@@ -45,6 +45,8 @@ export type Aarvasa3DViewerProps = {
   loadOn?: "visible" | "interaction";
   /** Slow idle rotation. Ignored when the user prefers reduced motion. */
   autoRotate?: boolean;
+  /** Lighting override (dev lab evaluation only); omitted = standard lighting. */
+  lighting?: ViewerLighting;
   /** Still image shown until the 3D view is ready, and behind the fallback states. */
   poster?: { src: string; width: number; height: number; alt: string };
   className?: string;
@@ -80,6 +82,7 @@ export function Aarvasa3DViewer({
   source,
   loadOn = "visible",
   autoRotate = false,
+  lighting,
   poster,
   className,
   onStatusChange,
@@ -159,6 +162,7 @@ export function Aarvasa3DViewer({
           onContextLost: () => setPhase({ status: "context-lost" }),
           onContextRestored: () => setPhase({ status: "running" }),
           onLoadProgress: (p) => setProgress(p),
+          lighting,
         });
         setEngine(created);
         setPhase({ status: "running" });

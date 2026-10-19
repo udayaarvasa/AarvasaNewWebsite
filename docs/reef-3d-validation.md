@@ -31,7 +31,8 @@ on the production model CDN.
 | REEF 996 v3 | `tools/reef-996-massing-v3.py` | `32f29c26d09283b51dcee881e5b4fb841b2c80d51abb601cb26ad101cfb0d096` | 3,633,076 B | 69,556 | Reference variant (v2 geometry, smoothed normals) |
 | REEF 997 v1.0.0 | `tools/reef-997-massing.py` @ d2f790c | `05061b40be5e2d6fb7fcb70da24ee0451dd9d79aa0a8363841c0123fe10b9d1a` | 2,007,752 B | 52,388 | Superseded draft (reproducible) |
 | REEF 997 v1.1 | `tools/reef-997-massing.py` 1.1.0 | `3ec2651523f35f1b45e1f80fa52e1dae5b7b1fa4bb0d037c5e8030fef70fc482` | 2,560,520 B | 69,340 | DRAFT candidate |
-| REEF 998 v2 | `tools/reef-998-massing-v2.py` | `ee69f8401af04463fc39393e48b55be7cc65ec3bcd36403582e10504f8263ea3` | 958,796 B | 23,856 | Review candidate (v1 stays live) |
+| REEF 998 v2 | `tools/reef-998-massing-v2.py` | `ee69f8401af04463fc39393e48b55be7cc65ec3bcd36403582e10504f8263ea3` | 958,796 B | 23,856 | Superseded by v3 |
+| REEF 998 v3 | `tools/reef-998-massing-v3.py` | `589b15693f0a2ef6db8a416dea3a2043b13a30860cc62649f091cd9a219ace20` | 1,135,668 B | 27,100 | Review candidate (v1 stays live) |
 | REEF 998 v1 | `tools/reef-998-massing.py` | `0756752510fe54e4b41d325682bcb27461d68952df1f0de2dfa22fdea3958f7d` | 1,132,676 B | 28,290 | Published (unchanged, regenerates byte-identically) |
 
 ### REEF 996 v2 — what changed and why
@@ -163,3 +164,43 @@ Three films carry no project identification and are not attributed: two show-apa
 | REEF 996 | Locality point (Dubai Production City); no overlay | DLD/Dubai Development Authority affection plan or site plan with plot number and coordinates (DLTM/WGS84), or the developer's surveyed site coordinates |
 | REEF 997 | Locality point (Dubai Islands); no overlay | Nakheel/Dubai Islands affection plan for the plot (brochure p.9 marks it on a schematic only) |
 | REEF 998 | Locality point (Wadi Al Safa 5 / DLRC); approved approximate overlay | DLRC affection plan with plot number; the brochure's location map (p.6) shows the plot beside an interchange but is not georeferenced |
+
+## Final review round (19 Oct 2026)
+
+### REEF 996 — the marginal criterion is lighting, not geometry
+
+v2 was reproduced byte-identically (9ea83ecf…). Viewed in the site viewer,
+square-on, with the same file and camera: under the live lighting (one key light
+at 50°/30°, ambient 0.45, no shadows) each bay reads as a flat tray; under a
+raking key light (35°/70°, ambient 0.3) with shadows it reads as the S-curve in
+the developer's facade render. The geometry matches the evidence; the live
+lighting cannot show plan curvature square-on. The engine now accepts an
+optional `lighting` setting (ViewerLighting); production passes none and is
+unchanged. Adopting it live is a separate viewer decision. Status stays 5/6 +
+1 marginal — not claimed as fully validated.
+
+### REEF 998 v3 — balconies as separate units
+
+The typical floor layout (p.14) shows six separate balcony units on the north
+face and four runs on the south, not a continuous band. v3 places balconies
+only there (slab, 0.45 m solid edge, 0.75 m glass rail, nosing), keeps a thin
+continuous slab ledge (the white ledges in the renders), sets the glazing body
+at the measured 65 x 19.5 m, and seats the crown on it. Unresolved: the slot
+seen in the renders does not appear on the typical floor plan, so its position
+is unconfirmed. Overlay: model height 88.5 m → base offset 44.25 m (the overlay
+loaded at that altitude in a local test; ground contact not yet checked
+visually). Scale 10 matches the 1:10 authoring.
+
+### REEF 997 — stopped at the v1.1 draft
+
+The wing projections, set-back depths and fin frames cannot be dimensioned from
+perspective renders; the north and east facades appear in no reference. A
+request for elevations has been prepared.
+
+### Candidate pages (local test, reverted)
+
+With a temporary uncommitted approval and the files served locally, each
+property page loaded its own model (996 → 9ea83ecf…, 997 → 3ec26515…, 998 →
+589b1569…) with the reconstruction label, the presets, reset and the toolbar at
+1440, 390 and 375 px, no overflow and no broken images; REEF 998's overlay
+loaded at 44.25 m. The approval list was restored to REEF 998 v1 only.
