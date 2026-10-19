@@ -2,7 +2,6 @@
 
 import { motion, useReducedMotion } from "framer-motion";
 import { FileCheck2, Landmark, Link2, Lock, ScrollText, Send } from "lucide-react";
-import { useEffect, useState } from "react";
 import { EASE } from "./motion";
 
 /**
@@ -13,32 +12,20 @@ import { EASE } from "./motion";
  * routed to the developer. The last two — an on-chain title record and escrow
  * — are the roadmap and are marked as such on the block itself, never
  * implied to be live.
+ *
+ * The live blocks used to show rolling "0x…" strings. They were decorative,
+ * not hashes of anything, and read as on-chain transaction records the site
+ * does not have; a plain "Live" mark replaces them.
  */
 
 const BLOCKS = [
   { icon: ScrollText, title: "Developer filing", body: "Specification, areas and plans as filed", live: true },
-  { icon: FileCheck2, title: "Approvals", body: "RERA and planning status, as sanctioned", live: true },
+  { icon: FileCheck2, title: "Approvals", body: "Planning approvals, where the developer has supplied them", live: true },
   { icon: Link2, title: "Listing published", body: "Inventory and payment plans, from the filing", live: true },
   { icon: Send, title: "Enquiry routed", body: "Straight to the developer's desk", live: true },
   { icon: Lock, title: "Title on-chain", body: "Verifiable record of ownership", live: false },
   { icon: Landmark, title: "Escrow", body: "Milestone-linked release of funds", live: false },
 ];
-
-const HEX = "0123456789abcdef";
-const randomHash = () => Array.from({ length: 10 }, () => HEX[Math.floor(Math.random() * 16)]).join("");
-
-function Hash({ seed }: { seed: number }) {
-  // A stable value on the server; the client re-rolls it so the ledger
-  // looks alive. Decorative only — these are not real hashes of anything.
-  const [h, setH] = useState(() => (seed * 2654435761).toString(16).padStart(10, "0").slice(0, 10));
-  const reduced = useReducedMotion();
-  useEffect(() => {
-    if (reduced) return;
-    const id = window.setInterval(() => setH(randomHash()), 1800 + seed * 220);
-    return () => window.clearInterval(id);
-  }, [reduced, seed]);
-  return <span aria-hidden="true">0x{h}…</span>;
-}
 
 export function LedgerChain() {
   const reduced = useReducedMotion();
@@ -81,7 +68,7 @@ export function LedgerChain() {
               <div className="mt-auto pt-4">
                 {b.live ? (
                   <span className="av-meta flex items-center gap-1.5 text-[10px] text-gold/80">
-                    <span className="h-1.5 w-1.5 rounded-full bg-positive" /> <Hash seed={i + 1} />
+                    <span className="h-1.5 w-1.5 rounded-full bg-positive" /> Live
                   </span>
                 ) : (
                   <span className="av-meta rounded-full border border-[var(--glass-rule)] px-2 py-1 text-[10px] text-ink-muted">

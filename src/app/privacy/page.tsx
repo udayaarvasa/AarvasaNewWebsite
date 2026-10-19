@@ -94,12 +94,12 @@ export default function PrivacyPolicyPage() {
             </h2>
             <div className="space-y-4 text-sm sm:text-base leading-relaxed">
               <ul className="list-disc pl-5 space-y-2">
-                <li>AES-256 for storage, TLS 1.3 in-transit encryption.</li>
-                <li>Role-based access and employee biometrics.</li>
-                <li>Blockchain logs for sensitive transactions.</li>
+                <li>AES-256 encryption for stored data and backups; TLS (1.3 supported) for data in transit.</li>
+                <li>Role-based access: administrative functions are limited to administrator accounts.</li>
+                <li>See our <a href="/security" className="underline">Security Policy</a> for what is in place and what is still in progress.</li>
               </ul>
               <p className="mt-4 bg-white/5 p-4 rounded-xl border border-rule">
-                <strong className="text-[#D4AF37]">User Tips:</strong> Enable 2FA. Never share passwords insecurely.
+                <strong className="text-[#D4AF37]">User Tips:</strong> Use a strong, unique password or sign in with Google, and sign out on shared devices. Never share passwords insecurely.
               </p>
             </div>
           </section>

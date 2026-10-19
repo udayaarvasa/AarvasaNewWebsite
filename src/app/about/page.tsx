@@ -113,7 +113,7 @@ const partners = [
 
 const roadmap = [
   ["2024", "Team formation, MVP development, strategic partnerships, beta launch with core features."],
-  ["2025", "Advisor launch, multi-city expansion, investor dashboard."],
+  ["2025", "Advisor launch, and listings across Bhopal and Dubai."],
   ["2026 and beyond", "International expansion, institutional partnerships, and the fractional participation and digital-title layers that are still in development."],
 ];
 

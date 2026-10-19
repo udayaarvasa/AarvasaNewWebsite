@@ -1,5 +1,6 @@
 // @ts-ignore
 import { prisma } from "@/lib/prisma";
+import { isPubliclyVisible, isHiddenListing, publicListingWhere } from "@/lib/listing-visibility";
 import type { PropertyFilters, CreatePropertyInput, UpdatePropertyInput } from "@/lib/validations/property";
 import {
   PRIVILEGED_OWNER_SELECT,
@@ -45,11 +46,14 @@ const PROPERTY_SELECT = {
 export async function getProperties(filters: PropertyFilters, userId?: string) {
   const {
     city, propertyType, minPrice, maxPrice, bedrooms,
-    minRoi, verified, featured, status = "ACTIVE",
+    minRoi, verified, featured,
     search, sortBy = "newest", page = 1, limit = 12,
   } = filters;
 
-  const where: any = { status };
+  // The public catalogue: active, non-hidden listings only. A `status` filter
+  // from the query string is deliberately ignored here — it let anyone list
+  // inactive listings. Admins use /api/admin/properties.
+  const where: any = { ...publicListingWhere() };
 
   if (city) where.city = { contains: city, mode: "insensitive" };
   if (propertyType) where.propertyType = propertyType;
@@ -129,12 +133,14 @@ export async function getPropertyById(
   // Who owns it decides which projection the caller may see, so read that first.
   const ownership = await prisma.property.findUnique({
     where: { id },
-    select: { ownerId: true },
+    select: { ownerId: true, status: true },
   });
   if (!ownership) return null;
 
   const privileged =
     viewerRole === "ADMIN" || (!!userId && ownership.ownerId === userId);
+  // Inactive and hidden listings exist only for their owner and admins.
+  if (!privileged && !isPubliclyVisible({ id, status: ownership.status })) return null;
 
   const property = await prisma.property.findUnique({
     where: { id },
@@ -246,7 +252,7 @@ export async function getUserFavorites(userId: string) {
     include: { property: { select: PROPERTY_SELECT } },
     orderBy: { createdAt: "desc" },
   });
-  return favs.map((f: any) => ({
+  return favs.filter((f: any) => !isHiddenListing(f.property.id)).map((f: any) => ({
     ...f.property,
     createdAt: f.property.createdAt.toISOString(),
     updatedAt: f.property.updatedAt.toISOString(),
@@ -256,7 +262,11 @@ export async function getUserFavorites(userId: string) {
 
 // ─── Create inquiry ─────────────────────────────────────────────────────────
 
+/** Returns null when the listing is not publicly visible: no inquiry may be
+ *  sent about a hidden, inactive or non-existent listing. */
 export async function createInquiry(data: { name: string; email: string; phone?: string; message: string; propertyId: string; userId?: string }) {
+  const listing = await prisma.property.findUnique({ where: { id: data.propertyId }, select: { id: true, status: true } });
+  if (!listing || !isPubliclyVisible(listing)) return null;
   return prisma.inquiry.create({ data });
 }
 

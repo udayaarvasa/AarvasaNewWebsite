@@ -167,16 +167,20 @@ export function ListingsGrid() {
               <ElevationMotif storeys={12} accentRow={3} />
             </div>
             <div className="relative z-[2] max-w-[46ch]">
-              <span className="av-label text-gold-ink">No matches</span>
+              <span className="av-label text-gold-ink">{hasFilters ? "No matches" : "No individual listings yet"}</span>
               <h3 className="av-display mt-2 text-[26px] leading-tight">
                 {city
                   ? `No properties found in ${city}`
-                  : "Nothing on the platform fits those filters"}
+                  : hasFilters
+                    ? "Nothing on the platform fits those filters"
+                    : "The developer projects above are what Aarvasa lists today"}
               </h3>
               <p className="mt-3 text-[13.5px] leading-relaxed text-ink-muted">
                 {city
                   ? `We have nothing listed in ${city} at the moment. Aarvasa holds no inventory — every listing comes from the developer or their appointed channel partner, so the set is deliberately small.`
-                  : "Try widening the price range or clearing a filter. Every listing here comes from the developer or their appointed channel partner, so the set is deliberately small."}
+                  : hasFilters
+                    ? "Try widening the price range or clearing a filter. Every listing here comes from the developer or their appointed channel partner, so the set is deliberately small."
+                    : "Individual listings from owners, agents and channel partners will appear here once they are published."}
               </p>
               {hasFilters && (
                 <div className="mt-[var(--s-5)] flex flex-wrap gap-2">

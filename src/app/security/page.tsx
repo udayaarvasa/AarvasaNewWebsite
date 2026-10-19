@@ -7,6 +7,15 @@ export const metadata: Metadata = {
   description: "Security Policy and Data Protection measures for Aarvasa Innovations Pvt. Ltd.",
 };
 
+/*
+ * Every statement on this page was checked against the running infrastructure
+ * on 20 Oct 2026 (Amplify WAF association, CloudFront, RDS encryption and
+ * rds.force_ssl, the restricted aarvasa_app role, root-account MFA). The
+ * previous text described a generic multi-cloud estate — Azure, Google Cloud,
+ * Terraform, network segmentation, antivirus, IDS, SIEM dashboards, threat
+ * intelligence, routine audits — none of which Aarvasa runs. What is not yet in
+ * place is said so in section 6 rather than implied.
+ */
 export default function SecurityPolicyPage() {
   return (
     <div className="pb-24">
@@ -16,51 +25,48 @@ export default function SecurityPolicyPage() {
         <div className="prose prose-lg max-w-none text-ink-muted">
           <section className="mb-10">
             <h2 className="heading-serif text-2xl text-ink mb-4 border-b border-rule pb-2">
-              1. Cloud Infrastructure & Hosting
+              1. Hosting
             </h2>
             <div className="space-y-4 text-sm sm:text-base leading-relaxed">
               <ul className="list-disc pl-5 space-y-2">
-                <li>Our systems are hosted on secure and compliant cloud platforms (AWS, Azure, or Google Cloud) for scalability, monitoring, and resilience.</li>
-                <li>DDoS protection is enabled through AWS Shield, Azure DDoS Protection, or Google Cloud Armor.</li>
-                <li>We use Infrastructure-as-Code (IaC) tools like Terraform and CloudFormation for reliable, version-controlled deployments.</li>
+                <li>The website runs on Amazon Web Services: AWS Amplify Hosting behind the Amazon CloudFront network, with the database on Amazon RDS for PostgreSQL.</li>
+                <li>Traffic to the website passes through an AWS WAF web application firewall, and CloudFront carries AWS Shield Standard protection against common network-level denial-of-service attacks.</li>
               </ul>
             </div>
           </section>
 
           <section className="mb-10">
             <h2 className="heading-serif text-2xl text-ink mb-4 border-b border-rule pb-2">
-              2. Network & Application Security
+              2. Encryption
             </h2>
             <div className="space-y-4 text-sm sm:text-base leading-relaxed">
               <ul className="list-disc pl-5 space-y-2">
-                <li>Networks are segmented for development, staging, and production to reduce blast radius in case of a breach.</li>
-                <li>WAFs filter edge traffic to block SQL injections, XSS, and other attacks.</li>
-                <li>Firewalls and antivirus tools are continuously running to detect and block malicious activity.</li>
+                <li>Connections to the website use HTTPS, with TLS 1.3 supported.</li>
+                <li>The application connects to its database over TLS, and the database refuses unencrypted connections.</li>
+                <li>The database and its automated backups are encrypted at rest with AWS-managed keys (AES-256).</li>
               </ul>
             </div>
           </section>
 
           <section className="mb-10">
             <h2 className="heading-serif text-2xl text-ink mb-4 border-b border-rule pb-2">
-              3. Access Control
+              3. Access control
             </h2>
             <div className="space-y-4 text-sm sm:text-base leading-relaxed">
               <ul className="list-disc pl-5 space-y-2">
-                <li>Access is granted strictly on a role-based basis (RBAC), with permissions limited to what is necessary.</li>
-                <li>Multi-Factor Authentication (MFA) is enforced for cloud and admin tool access.</li>
-                <li>Strict access controls ensure only authorized personnel access user data.</li>
+                <li>The website reaches its database through a restricted account that can only read and write the application’s own data; it cannot change the database structure or manage other accounts.</li>
+                <li>Administrative pages and actions are limited to accounts with the administrator role, checked on the server for every request.</li>
+                <li>Multi-factor authentication is enabled on the cloud provider’s root account.</li>
               </ul>
             </div>
           </section>
 
           <section className="mb-10">
             <h2 className="heading-serif text-2xl text-ink mb-4 border-b border-rule pb-2">
-              4. Data Protection & Encryption
+              4. Your data
             </h2>
             <div className="space-y-4 text-sm sm:text-base leading-relaxed">
               <ul className="list-disc pl-5 space-y-2">
-                <li>All data is encrypted using TLS in transit and AES-256 at rest.</li>
-                <li>Backups are encrypted and securely stored for recovery purposes.</li>
                 <li>Only necessary data is collected, and we never share or sell it without consent or legal requirement.</li>
                 <li>Users have the right to request access, correction, or deletion of their personal data at any time.</li>
               </ul>
@@ -81,46 +87,20 @@ export default function SecurityPolicyPage() {
 
           <section className="mb-10">
             <h2 className="heading-serif text-2xl text-ink mb-4 border-b border-rule pb-2">
-              6. Monitoring, Logging & Alerts
+              6. What is still in progress
             </h2>
             <div className="space-y-4 text-sm sm:text-base leading-relaxed">
               <ul className="list-disc pl-5 space-y-2">
-                <li>System activity is continuously monitored via tools like AWS CloudTrail, Azure Monitor, and SIEMs.</li>
-                <li>Intrusion Detection Systems (IDS) and log collection help identify threats and breaches.</li>
-                <li>Our security dashboards provide real-time visibility into system health and incidents.</li>
-                <li>Automatic alerts notify teams of suspicious activity such as hacking attempts or service crashes.</li>
+                <li>The database is still reachable from the internet (protected by its restricted account, enforced TLS and strong credentials); moving it onto a private network is scheduled.</li>
+                <li>Centralised audit logging and automated threat detection are not yet enabled; they are planned.</li>
+                <li>To report a security issue, please use the <a href="/contact" className="underline">contact page</a>.</li>
               </ul>
             </div>
           </section>
 
           <section className="mb-10">
             <h2 className="heading-serif text-2xl text-ink mb-4 border-b border-rule pb-2">
-              7. Threat Detection & Updates
-            </h2>
-            <div className="space-y-4 text-sm sm:text-base leading-relaxed">
-              <ul className="list-disc pl-5 space-y-2">
-                <li>Regular patching, vulnerability scans, and malware checks keep systems secure.</li>
-                <li>Threat intelligence updates allow us to stay ahead of evolving cyber threats.</li>
-                <li>Security audits are conducted routinely to validate and strengthen defenses.</li>
-              </ul>
-            </div>
-          </section>
-
-          <section className="mb-10">
-            <h2 className="heading-serif text-2xl text-ink mb-4 border-b border-rule pb-2">
-              8. Incident Response & Recovery
-            </h2>
-            <div className="space-y-4 text-sm sm:text-base leading-relaxed">
-              <ul className="list-disc pl-5 space-y-2">
-                <li>A detailed incident response plan is in place to respond, contain, and report security issues swiftly.</li>
-                <li>Audit logs and alert reviews are used to continuously improve threat detection and response strategies.</li>
-              </ul>
-            </div>
-          </section>
-
-          <section className="mb-10">
-            <h2 className="heading-serif text-2xl text-ink mb-4 border-b border-rule pb-2">
-              9. Legal Compliance
+              7. Legal Compliance
             </h2>
             <div className="space-y-4 text-sm sm:text-base leading-relaxed">
               <p>

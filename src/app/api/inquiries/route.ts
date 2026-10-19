@@ -20,6 +20,8 @@ export async function POST(req: Request) {
       ...parsed.data,
       userId: user?.id,
     })
+    if (!inquiry)
+      return NextResponse.json({ success: false, error: "Property not found" }, { status: 404 })
 
     return NextResponse.json({ success: true, data: inquiry }, { status: 201 })
   } catch (err) {

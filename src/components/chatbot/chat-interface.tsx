@@ -377,7 +377,11 @@ export function ChatInterface({ initialPrompt }: { initialPrompt?: string }) {
           ))}
           <div className="mt-3 rounded-lg border border-rule bg-paper-raised p-2.5">
             <p className="text-[10px] font-semibold uppercase tracking-widest text-ink-muted mb-1">Data Sources</p>
-            <p className="text-[10px] leading-relaxed text-ink-muted">Aarvasa DB • Market APIs • Infrastructure • RERA • Rental Intelligence</p>
+            {/* Only what the production advisor actually reads. The external
+                market, RERA, places, news and rental providers in
+                lib/ai/external-sources.ts are switched off unless their API
+                keys are configured, and none is configured in production. */}
+            <p className="text-[10px] leading-relaxed text-ink-muted">Aarvasa project records (developer filings) • Answers worded by Google Gemini</p>
           </div>
         </div>
       </Card>
