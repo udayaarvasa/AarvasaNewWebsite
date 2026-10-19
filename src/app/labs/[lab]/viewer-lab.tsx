@@ -10,7 +10,7 @@ import { ImmersiveTour } from "@/components/property/immersive-tour";
 import { Button } from "@/components/ui/button";
 import type { ViewerSource, ViewerStatus } from "@/lib/viewer/types";
 
-type SceneChoice = "procedural" | "sample" | "reef998" | "blocked";
+type SceneChoice = "procedural" | "sample" | "reef998" | "reef996v2" | "reef997" | "reef998v2" | "blocked";
 
 const SOURCES: Record<SceneChoice, ViewerSource | undefined> = {
   procedural: undefined,
@@ -25,6 +25,21 @@ const SOURCES: Record<SceneChoice, ViewerSource | undefined> = {
     process.env.NODE_ENV === "production"
       ? undefined
       : { kind: "model", url: "/labs/media/m/3eecb8df7d61b40c456ee53d/0756752510fe54e4/scene.glb" },
+  /* Reconstruction CANDIDATES under review (not approved, not published). Staged
+     only in the gitignored media-pilot/.staging and reachable only through this
+     development lab; production builds fold these to undefined. */
+  reef996v2:
+    process.env.NODE_ENV === "production"
+      ? undefined
+      : { kind: "model", url: "/labs/media/m/244d16103a0cdb3f4754208a/9ea83ecf6f4a8504/scene.glb", initialView: { yawDeg: 26, pitchDeg: 16, distanceFactor: 2.15 } },
+  reef997:
+    process.env.NODE_ENV === "production"
+      ? undefined
+      : { kind: "model", url: "/labs/media/m/051db7257f927a4af894a2fa/05061b40be5e2d6f/scene.glb", initialView: { yawDeg: -50, pitchDeg: 12, distanceFactor: 2.2 } },
+  reef998v2:
+    process.env.NODE_ENV === "production"
+      ? undefined
+      : { kind: "model", url: "/labs/media/m/3eecb8df7d61b40c456ee53d/ee69f8401af04463/scene.glb" },
   // Must be rejected by the same-origin guard without any request being made.
   blocked: { kind: "model", url: "https://example.com/untrusted.glb" },
 };
@@ -99,6 +114,9 @@ export function ViewerLab({ initialLoadOn }: { initialLoadOn: "visible" | "inter
             { value: "procedural", label: "Procedural" },
             { value: "sample", label: "Sample GLB" },
             { value: "reef998", label: "REEF 998" },
+            { value: "reef996v2", label: "REEF 996 v2 (candidate)" },
+            { value: "reef997", label: "REEF 997 (candidate)" },
+            { value: "reef998v2", label: "REEF 998 v2 (candidate)" },
             { value: "blocked", label: "Blocked URL" },
           ]}
         />

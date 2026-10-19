@@ -55,3 +55,8 @@ infra/dist-bundle/
 
 # Migration runner packaging output (see infra/migration-runner/README.md)
 infra/migration-runner/build/
+
+# private architectural reference library (never committed; see research/README in the working copy)
+research/
+
+__pycache__/
