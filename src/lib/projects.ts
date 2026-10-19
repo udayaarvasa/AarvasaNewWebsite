@@ -306,6 +306,10 @@ const REEF_996_RECONSTRUCTION: ProjectImmersiveMedia = {
   provenance: "AARVASA_RECONSTRUCTION",
   view: { yawDeg: 26, pitchDeg: 16, distanceFactor: 2.15 },
   mobileView: { yawDeg: 18, pitchDeg: 10, distanceFactor: 2.0 },
+  /* REEF 996 only: its balconies are S-curves in plan, which the standard high,
+     shadowless light flattens square-on. A low raking light with shadows reads
+     them as the developer's facade render does — same geometry, same file. */
+  lighting: { keyPitchDeg: 35, keyYawDeg: 70, intensity: 1.5, ambient: 0.3, shadows: true },
   /* No map overlay until a plot-precision position exists for REEF 996. */
 };
 

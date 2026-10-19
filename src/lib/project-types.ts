@@ -1,5 +1,5 @@
 import type { MediaProvenance } from "./media/provenance";
-import type { ModelView } from "./viewer/types";
+import type { ModelView, ViewerLighting } from "./viewer/types";
 
 import type { CurrencyCode } from "./currency";
 
@@ -78,6 +78,12 @@ export type ProjectImmersiveMedia = {
   view?: ModelView;
   /** Where it opens on a narrow viewer, where the same camera has far fewer pixels. */
   mobileView?: ModelView;
+  /**
+   * Lighting for this model only, when the standard light cannot show what the
+   * references show (e.g. plan curvature that only reads under raking light).
+   * Absent = the standard lighting every other model uses.
+   */
+  lighting?: ViewerLighting;
   /**
    * Optional XR opt-in (Phase 8). A model is shown in 3D whether or not it is
    * offered in AR or VR: each mode must be listed here, and the project must

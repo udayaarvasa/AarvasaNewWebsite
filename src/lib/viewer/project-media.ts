@@ -2,7 +2,7 @@ import { PROVENANCE_LABEL, PROVENANCE_NOTE, type MediaProvenance } from "../medi
 import { MEDIA_KEY_PATTERN, publishedObjectMetadata } from "../../../shared/media-contract";
 import type { Project } from "../project-types";
 import { MEDIA_CDN_ORIGIN, PUBLIC_MODEL_ORIGIN } from "./media-origin";
-import type { ViewerSource } from "./types";
+import type { ViewerLighting, ViewerSource } from "./types";
 import { xrExperienceFor, type XrExperience } from "./xr-contract";
 
 /**
@@ -26,6 +26,8 @@ export type ProjectViewerConfig = {
   readonly provenance: { readonly label: string; readonly note: string | null } | null;
   /** AR/VR offered for this model, or null. Subject to what the visitor's device supports. */
   readonly xr: XrExperience | null;
+  /** The model's own lighting, or undefined for the standard light. */
+  readonly lighting?: ViewerLighting;
 };
 
 /** Returns viewer props for a project, or null when it has no media that can be shown in this build. */
@@ -77,6 +79,7 @@ export function projectViewerConfig(
       : null,
     // The same published URL the 3D viewer loads, re-checked against the media policy.
     // AR/VR is offered from the media CDN only; a site-hosted model is viewer-only.
+    ...(media.lighting ? { lighting: media.lighting } : {}),
     xr: siteHosted ? null : xrExperienceFor({
       source,
       modes: media.xr?.modes ?? [],

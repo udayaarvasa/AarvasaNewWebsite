@@ -32,6 +32,7 @@ export function ModelViewer({
       source={model.source}
       poster={model.poster ?? undefined}
       loadOn="interaction"
+      lighting={model.lighting}
       onStatusChange={onStatusChange}
       overlay={
         experience

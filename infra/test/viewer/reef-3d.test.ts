@@ -63,3 +63,13 @@ test("the approved model is served from the production model CDN, never the dev 
   assert.equal(cfg.xr, null, "no AR/VR for a reconstruction");
   assert.equal(cfg.provenance?.label !== undefined, true, "labelled as a reconstruction");
 });
+
+test("model-specific lighting: carried for a model that sets it, standard for REEF 998", () => {
+  const reef998 = getProject("reef-998-dlrc")!;
+  const live = projectViewerConfig(reef998, "production");
+  assert.ok(live);
+  assert.equal(live.lighting, undefined, "REEF 998 keeps the standard lighting");
+  const raking = { keyPitchDeg: 35, keyYawDeg: 70, intensity: 1.5, ambient: 0.3, shadows: true };
+  const lit = projectViewerConfig({ ...reef998, immersive: { ...reef998.immersive!, lighting: raking } }, "production");
+  assert.deepEqual(lit?.lighting, raking);
+});
