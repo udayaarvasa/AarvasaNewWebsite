@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import { useCallback, useEffect, useId, useRef, useState, useSyncExternalStore } from "react";
-import { Box, Loader2, Maximize2, Minimize2, RotateCcw, TriangleAlert, ZoomIn, ZoomOut } from "lucide-react";
+import { Box, Loader2, Maximize2, Minimize2, Pause, Play, RotateCcw, TriangleAlert, ZoomIn, ZoomOut } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import {
@@ -16,7 +16,7 @@ import {
 } from "@/lib/viewer/capabilities";
 import { sourceFromKey, sourceKey } from "@/lib/viewer/source";
 import { readViewerTheme } from "@/lib/viewer/theme";
-import type { ViewerEngine, ViewerSource, ViewerStatus } from "@/lib/viewer/types";
+import type { LoadProgress, ViewerEngine, ViewerSource, ViewerStatus } from "@/lib/viewer/types";
 
 const MAX_PIXEL_RATIO = 2;
 const CANVAS_LABELS = {
@@ -90,6 +90,8 @@ export function Aarvasa3DViewer({
   const containerRef = useRef<HTMLElement>(null);
   const hostRef = useRef<HTMLDivElement>(null);
 
+  /* Download progress for the model being loaded. */
+  const [progress, setProgress] = useState<LoadProgress | null>(null);
   const [phase, setPhase] = useState<Phase>({ status: "idle" });
   const [engine, setEngine] = useState<ViewerEngine | null>(null);
   const [attempt, setAttempt] = useState(0);
@@ -156,6 +158,7 @@ export function Aarvasa3DViewer({
           theme: readViewerTheme(host),
           onContextLost: () => setPhase({ status: "context-lost" }),
           onContextRestored: () => setPhase({ status: "running" }),
+          onLoadProgress: (p) => setProgress(p),
         });
         setEngine(created);
         setPhase({ status: "running" });
@@ -210,9 +213,12 @@ export function Aarvasa3DViewer({
     engine?.setActive(active);
   }, [engine, active]);
 
+  /* The visitor's own 360° orbit, on top of any autoRotate the page asked for.
+     Reduced motion still wins inside the controls. */
+  const [orbiting, setOrbiting] = useState(false);
   useEffect(() => {
-    engine?.setMotion({ autoRotate, reducedMotion });
-  }, [engine, autoRotate, reducedMotion]);
+    engine?.setMotion({ autoRotate: autoRotate || orbiting, reducedMotion });
+  }, [engine, autoRotate, orbiting, reducedMotion]);
 
   const status: ViewerStatus = (() => {
     switch (phase.status) {
@@ -298,7 +304,7 @@ export function Aarvasa3DViewer({
       {switching && (
         <p className="pointer-events-none absolute left-1/2 top-3 z-10 flex -translate-x-1/2 items-center gap-2 rounded-full bg-[var(--glass-strong)] px-3 py-1.5 text-xs font-medium text-foreground backdrop-blur-md">
           <Loader2 className="h-3.5 w-3.5 animate-spin text-accent motion-reduce:animate-none" aria-hidden />
-          Loading…
+          Loading…{progress && <span className="tabular-nums">{` ${progressText(progress)}`}</span>}
         </p>
       )}
 
@@ -307,7 +313,26 @@ export function Aarvasa3DViewer({
           translucent
           icon={<Loader2 className="h-7 w-7 animate-spin text-accent motion-reduce:animate-none" aria-hidden />}
           title={status === "loading" ? `Loading ${noun}…` : "Graphics interrupted — restoring…"}
-        />
+        >
+          {status === "loading" && progress && (
+            <div
+              className="mt-1 w-40"
+              role="progressbar"
+              aria-label={`Downloading ${noun}`}
+              aria-valuemin={0}
+              aria-valuemax={100}
+              aria-valuenow={progress.fraction === null ? undefined : Math.round(progress.fraction * 100)}
+              aria-valuetext={progressText(progress)}
+            >
+              {progress.fraction !== null && (
+                <div className="h-1 overflow-hidden rounded-full bg-foreground/15">
+                  <div className="h-full rounded-full bg-accent transition-[width] duration-200" style={{ width: `${Math.round(progress.fraction * 100)}%` }} />
+                </div>
+              )}
+              <p className="mt-1 text-center text-[11px] tabular-nums text-muted-foreground">{progressText(progress)}</p>
+            </div>
+          )}
+        </Panel>
       )}
 
       {status === "unsupported" && phase.status === "unsupported" && (
@@ -379,7 +404,40 @@ export function Aarvasa3DViewer({
               </Button>
             )}
           </div>
-          <p className={cn("pointer-events-none absolute bottom-3 left-3 rounded-full bg-[var(--glass-strong)] px-3 py-1.5 text-[11px] font-medium text-muted-foreground backdrop-blur-md", overlay && "max-sm:hidden")}>
+          {kind === "model" && (
+            /* Named views and a 360° orbit. Yaw 0 looks at the model's +Z face,
+               the face each reconstruction is authored with at the front. */
+            <div
+              role="toolbar"
+              aria-label="Model views"
+              className="absolute bottom-3 left-1/2 z-[1] flex max-w-[calc(100%-1.5rem)] -translate-x-1/2 items-center gap-0.5 overflow-x-auto rounded-full bg-[var(--glass-strong)] p-1 backdrop-blur-md sm:gap-1"
+            >
+              {MODEL_VIEWS.map((v) => (
+                <button
+                  key={v.label}
+                  type="button"
+                  onClick={() => {
+                    setOrbiting(false);
+                    engine?.setView(v.yaw, v.pitch);
+                  }}
+                  className="shrink-0 rounded-full px-2 py-1.5 text-[11px] font-semibold text-foreground transition-colors hover:bg-foreground/10 sm:px-2.5"
+                >
+                  {v.label}
+                </button>
+              ))}
+              <button
+                type="button"
+                aria-pressed={orbiting}
+                onClick={() => setOrbiting((o) => !o)}
+                aria-label={orbiting ? "Stop the 360° orbit" : "Orbit 360°"}
+                className="flex shrink-0 items-center gap-1 rounded-full px-2 py-1.5 text-[11px] font-semibold text-[var(--action-ink)] [background:var(--action)] sm:px-2.5"
+              >
+                {orbiting ? <Pause className="h-3 w-3" aria-hidden /> : <Play className="h-3 w-3" aria-hidden />}
+                {orbiting ? "Stop" : <><span className="max-sm:hidden">Orbit </span>360°</>}
+              </button>
+            </div>
+          )}
+          <p className={cn("pointer-events-none absolute bottom-3 left-3 rounded-full bg-[var(--glass-strong)] px-3 py-1.5 text-[11px] font-medium text-muted-foreground backdrop-blur-md", (overlay || kind === "model") && "max-lg:hidden", kind === "model" && "bottom-auto top-3")}>
             <span className="pointer-coarse:hidden">Drag to {kind === "panorama" ? "look around" : "orbit"} · Scroll to zoom</span>
             <span className="hidden pointer-coarse:inline">Drag to {kind === "panorama" ? "look around" : "orbit"} · Pinch to zoom</span>
           </p>
@@ -395,6 +453,19 @@ export function Aarvasa3DViewer({
     </section>
   );
 }
+
+/** "42%" when the size is known, otherwise how much has arrived: "0.6 MB". */
+function progressText(p: LoadProgress): string {
+  return p.fraction !== null ? `${Math.round(p.fraction * 100)}%` : `${(p.bytes / 1_000_000).toFixed(1)} MB`;
+}
+
+/** The named views offered for a model. Pitch is clamped to the orbit limits. */
+const MODEL_VIEWS = [
+  { label: "Front", yaw: 0, pitch: 10 },
+  { label: "Side", yaw: 90, pitch: 10 },
+  { label: "Rear", yaw: 180, pitch: 10 },
+  { label: "Above", yaw: 35, pitch: 60 },
+] as const;
 
 function Panel({
   icon,

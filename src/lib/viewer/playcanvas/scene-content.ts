@@ -9,6 +9,12 @@ export interface ViewerControls {
   setMotion(autoRotate: boolean, reducedMotion: boolean): void;
   reset(): void;
   zoomBy(factor: number): void;
+  /**
+   * Turn to a named view: yaw is absolute around the content (0 looks at its +Z
+   * face), pitch is clamped to the controls' limits, and the zoom returns to the
+   * opening distance. Optional: look-around controls have no use for it.
+   */
+  setView?(yawDeg: number, pitchDeg: number): void;
   destroy(): void;
 }
 

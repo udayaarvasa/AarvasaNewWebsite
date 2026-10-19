@@ -116,6 +116,16 @@ export class OrbitControls implements ViewerControls {
     this.onChange();
   }
 
+  setView(yawDeg: number, pitchDeg: number): void {
+    // Take the short way round from wherever the camera is now.
+    const target = yawDeg * DEG;
+    const turns = Math.round((this.current.yaw - target) / (2 * Math.PI));
+    this.goal.yaw = target + turns * 2 * Math.PI;
+    this.goal.pitch = clamp(pitchDeg * DEG, this.minPitch, this.maxPitch);
+    this.goal.distance = this.home.distance;
+    this.onChange();
+  }
+
   update(dt: number): void {
     if (this.autoRotateActive) this.goal.yaw += AUTO_ROTATE_SPEED * dt;
 

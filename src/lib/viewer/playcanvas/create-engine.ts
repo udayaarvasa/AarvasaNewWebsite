@@ -214,7 +214,10 @@ export function createViewerEngine(host: HTMLElement, options: ViewerEngineOptio
           case "model": {
             const url = resolveModelUrl(source.url, window.location.origin, cdnOrigins);
             if (!url) throw new Error("Model URL is not allowed: use a same-origin .glb path or the media CDN");
-            next = await loadModel(app, url, source.initialView, source.mobileInitialView);
+            next = await loadModel(app, url, source.initialView, source.mobileInitialView, {
+              onProgress: options.onLoadProgress,
+              signal: ticket.signal,
+            });
             break;
           }
           case "panorama": {
@@ -273,6 +276,11 @@ export function createViewerEngine(host: HTMLElement, options: ViewerEngineOptio
     resetView() {
       if (destroyed) return;
       controls?.reset();
+    },
+
+    setView(yawDeg: number, pitchDeg: number) {
+      if (destroyed || !Number.isFinite(yawDeg) || !Number.isFinite(pitchDeg)) return;
+      controls?.setView?.(yawDeg, pitchDeg);
     },
 
     zoomBy(factor: number) {

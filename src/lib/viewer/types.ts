@@ -128,6 +128,9 @@ export type ViewerXrStart = {
   onEvent: (event: ViewerXrEvent) => void;
 };
 
+/** How far a model download has got. */
+export type LoadProgress = { fraction: number | null; bytes: number };
+
 export type ViewerEngineOptions = {
   /** Upper bound on rendering resolution relative to CSS pixels. */
   maxPixelRatio: number;
@@ -137,6 +140,8 @@ export type ViewerEngineOptions = {
   theme: ViewerTheme;
   onContextLost: () => void;
   onContextRestored: () => void;
+  /** Model download progress: fraction 0..1 (null when the size is unknown) and bytes so far. */
+  onLoadProgress?: (progress: LoadProgress) => void;
 };
 
 /**
@@ -151,6 +156,8 @@ export interface ViewerEngine {
   setActive(active: boolean): void;
   setMotion(motion: { autoRotate: boolean; reducedMotion: boolean }): void;
   resetView(): void;
+  /** Turn a model to a named view (see ViewerControls.setView). No effect on panoramas. */
+  setView(yawDeg: number, pitchDeg: number): void;
   /** Multiplies the zoom (orbit distance or panorama field of view); < 1 zooms in. */
   zoomBy(factor: number): void;
   /**

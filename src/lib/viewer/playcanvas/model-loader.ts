@@ -1,7 +1,7 @@
-import { BoundingBox, type AppBase, type ContainerResource, type RenderComponent } from "playcanvas";
+import { BoundingBox, type AppBase, type Asset, type ContainerResource, type RenderComponent } from "playcanvas";
 import { OrbitControls } from "./orbit-controls";
 import type { SceneContent } from "./scene-content";
-import type { ModelView } from "../types";
+import type { LoadProgress, ModelView } from "../types";
 
 /**
  * Below this viewer width, in CSS pixels, a model opens on its mobile view.
@@ -30,14 +30,56 @@ function isContainerResource(value: object | null): value is ContainerResource {
  * clipping and every control stay exactly as they are, so an asset can choose
  * where the camera starts but not how the viewer behaves.
  */
-export function loadModel(
+/**
+ * Download a GLB with byte progress and return a blob URL for it.
+ *
+ * Only used when someone is listening for progress. Same request the asset
+ * loader would make (anonymous CORS), so the CDN's policy applies unchanged;
+ * a failed fetch rejects exactly as a failed asset load does.
+ */
+async function fetchWithProgress(url: string, onProgress: (p: LoadProgress) => void, signal?: AbortSignal): Promise<string> {
+  const res = await fetch(url, { mode: "cors", credentials: "omit", signal });
+  if (!res.ok || !res.body) throw new Error(`Model failed to load: ${url} (${res.status})`);
+  const total = Number(res.headers.get("content-length")) || 0;
+  const reader = res.body.getReader();
+  const chunks: Uint8Array[] = [];
+  let received = 0;
+  onProgress({ fraction: total ? 0 : null, bytes: 0 });
+  for (;;) {
+    const { done, value } = await reader.read();
+    if (done) break;
+    chunks.push(value);
+    received += value.byteLength;
+    onProgress({ fraction: total ? Math.min(1, received / total) : null, bytes: received });
+  }
+  onProgress({ fraction: 1, bytes: received });
+  return URL.createObjectURL(new Blob(chunks as BlobPart[], { type: "model/gltf-binary" }));
+}
+
+export async function loadModel(
   app: AppBase,
   url: string,
   view?: ModelView,
   mobileView?: ModelView,
+  load: { onProgress?: (progress: LoadProgress) => void; signal?: AbortSignal } = {},
+): Promise<SceneContent> {
+  const blobUrl = load.onProgress ? await fetchWithProgress(url, load.onProgress, load.signal) : null;
+  try {
+    return await instantiate(app, url, blobUrl, view, mobileView);
+  } finally {
+    if (blobUrl) URL.revokeObjectURL(blobUrl);
+  }
+}
+
+function instantiate(
+  app: AppBase,
+  url: string,
+  blobUrl: string | null,
+  view?: ModelView,
+  mobileView?: ModelView,
 ): Promise<SceneContent> {
   return new Promise((resolve, reject) => {
-    app.assets.loadFromUrl(url, "container", (err, asset) => {
+    const done = (err: string | null, asset?: Asset) => {
       if (err || !asset) {
         // PlayCanvas keeps a failed asset registered under its URL and hands it back,
         // without the error, on the next loadFromUrl. Drop it so a retry refetches.
@@ -95,6 +137,10 @@ export function loadModel(
         },
       };
       resolve(content);
-    });
+    };
+    const cb = (err: string | null, asset?: Asset) => done(err, asset);
+    // A blob URL carries no extension, so name the file for the glTF parser.
+    if (blobUrl) app.assets.loadFromUrlAndFilename(blobUrl, "scene.glb", "container", cb);
+    else app.assets.loadFromUrl(url, "container", cb);
   });
 }
