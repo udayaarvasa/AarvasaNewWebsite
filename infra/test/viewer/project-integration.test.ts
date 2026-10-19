@@ -169,9 +169,10 @@ describe("project page integration: no project carries test media", () => {
     }
   });
 
-  it("attaches no site-hosted reconstruction until its public release is approved", () => {
-    assert.deepEqual([...PUBLIC_MODEL_APPROVALS], []);
-    for (const slug of ["reef-996-dubai-production-city", "reef-997-dubai-islands", "reef-998-dlrc"]) {
+  it("attaches a site-hosted reconstruction only once its public release is approved", () => {
+    // REEF 998 is the one recorded approval (see reef-3d.test.ts); the rest stay bare.
+    assert.deepEqual([...PUBLIC_MODEL_APPROVALS], ["reef-998-dlrc"]);
+    for (const slug of ["reef-996-dubai-production-city", "reef-997-dubai-islands"]) {
       const reef = getProject(slug) as Project;
       for (const env of ["development", "production"]) {
         assert.equal(projectViewerConfig(reef, env), null, `${slug} ${env}`);

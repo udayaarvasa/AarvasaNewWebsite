@@ -20,6 +20,7 @@ import {
   type LedgerRow,
 } from "@/components/av/primitives";
 import { getProject, publishedProjects } from "@/lib/projects";
+import { PUBLIC_MODEL_ORIGIN } from "@/lib/viewer/media-origin";
 import type { Project } from "@/lib/project-types";
 import { formatCurrency, inrEstimate, AED_TO_INR } from "@/lib/currency";
 import { loadProjectModel } from "@/lib/services/project-models";
@@ -126,7 +127,7 @@ export default async function ProjectPage({
   const media = project.immersive;
   const mapModel =
     media && media.review === "approved" && media.hosting === "site" && media.mapOverlay
-      ? { url: `/media/${media.storageKey}/${media.entryFile}`, baseOffsetMetres: media.mapOverlay.baseOffsetMetres }
+      ? { url: `${PUBLIC_MODEL_ORIGIN}/${media.storageKey}/${media.entryFile}`, baseOffsetMetres: media.mapOverlay.baseOffsetMetres }
       : null;
 
   /* Capability marks come from what actually passed server-side gating. A
@@ -314,11 +315,13 @@ export default async function ProjectPage({
                       location={`${project.location}, ${project.city}`}
                       coordinates={area.center}
                       apiKey={process.env.NEXT_PUBLIC_GOOGLE_MAPS_BROWSER_KEY ?? null}
+                      approximate={project.coordinatesPrecision !== "plot"}
                       modelOverlay={mapModel}
                     />
                     <NearbyPlaces
                       center={area.center}
                       apiKey={process.env.NEXT_PUBLIC_GOOGLE_MAPS_BROWSER_KEY ?? ""}
+                      approximate={project.coordinatesPrecision !== "plot"}
                     />
                   </>
                 }
@@ -386,6 +389,7 @@ export default async function ProjectPage({
                       location={`${project.location}, ${project.city}`}
                       coordinates={area.center}
                       apiKey={process.env.NEXT_PUBLIC_GOOGLE_MAPS_BROWSER_KEY ?? null}
+                      approximate={project.coordinatesPrecision !== "plot"}
                       modelOverlay={mapModel}
                     />
                     {/* Shares the map's gate exactly: same key, same verified
@@ -394,6 +398,7 @@ export default async function ProjectPage({
                     <NearbyPlaces
                       center={area.center}
                       apiKey={process.env.NEXT_PUBLIC_GOOGLE_MAPS_BROWSER_KEY ?? ""}
+                      approximate={project.coordinatesPrecision !== "plot"}
                     />
                   </MotionReveal>
                 </div>

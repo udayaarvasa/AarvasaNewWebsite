@@ -15,7 +15,7 @@ import {
 import { detectDeviceClass } from "../capabilities";
 import { LoadGate } from "../load-gate";
 import { RenderDemand } from "../render-demand";
-import { MEDIA_CDN_ORIGIN } from "../media-origin";
+import { MEDIA_CDN_ORIGIN, PUBLIC_MODEL_ORIGIN } from "../media-origin";
 import { resolveModelUrl, resolvePanoramaUrl, resolveSplatUrl } from "../source";
 import type { RGB, ViewerEngine, ViewerEngineOptions, ViewerSource, ViewerTheme, ViewerXrStart } from "../types";
 import { directionFor } from "./look-controls";
@@ -201,7 +201,10 @@ export function createViewerEngine(host: HTMLElement, options: ViewerEngineOptio
     async setSource(source: ViewerSource | undefined) {
       if (destroyed) return;
       const ticket = loads.begin();
-      const cdnOrigins = MEDIA_CDN_ORIGIN ? [MEDIA_CDN_ORIGIN] : [];
+      const cdnOrigins = [
+        ...(MEDIA_CDN_ORIGIN ? [MEDIA_CDN_ORIGIN] : []),
+        ...(PUBLIC_MODEL_ORIGIN.startsWith("https://") ? [PUBLIC_MODEL_ORIGIN] : []),
+      ];
 
       let next: SceneContent;
       if (!source) {

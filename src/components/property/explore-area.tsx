@@ -19,6 +19,7 @@ import {
   type ExploreAreaBlocker,
   type ExploreAreaMode,
   type VerifiedCoordinates,
+  AREA_APPROXIMATE_LOCATION,
 } from "@/lib/maps/google-3d";
 import { importMapsLibrary, keyWasRejected, loadMaps } from "@/lib/maps/loader";
 
@@ -114,12 +115,15 @@ export function ExploreArea({
   location,
   coordinates,
   apiKey,
+  approximate = false,
   modelOverlay = null,
 }: {
   name: string;
   location: string;
   coordinates: VerifiedCoordinates | null;
   apiKey: string | null;
+  /** The coordinate is locality precision: say so under the map. */
+  approximate?: boolean;
   /**
    * A reconstructed model to stand at `coordinates`, or null.
    *
@@ -526,6 +530,12 @@ export function ExploreArea({
         </div>
       )}
 
+      {approximate && (
+        <p className="mt-2 flex items-center gap-1.5 text-[12.5px] text-stage-muted">
+          <MapPin className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
+          {AREA_APPROXIMATE_LOCATION}
+        </p>
+      )}
       <p id={statusId} aria-live="polite" className="av-meta mt-2 text-ink-disabled">
         {phase.k === "ready"
           ? phase.mode === "3d"

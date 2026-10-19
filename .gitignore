@@ -43,6 +43,10 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 
+# building models are served from the production model CDN, never from the
+# public repository; a local copy under public/media is for development only
+public/media/
+
 # generated CDK deploy outputs (--outputs-file)
 infra/cdk-outputs*.json
 

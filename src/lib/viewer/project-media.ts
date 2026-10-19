@@ -1,7 +1,7 @@
 import { PROVENANCE_LABEL, PROVENANCE_NOTE, type MediaProvenance } from "../media/provenance";
 import { MEDIA_KEY_PATTERN, publishedObjectMetadata } from "../../../shared/media-contract";
 import type { Project } from "../project-types";
-import { MEDIA_CDN_ORIGIN } from "./media-origin";
+import { MEDIA_CDN_ORIGIN, PUBLIC_MODEL_ORIGIN } from "./media-origin";
 import type { ViewerSource } from "./types";
 import { xrExperienceFor, type XrExperience } from "./xr-contract";
 
@@ -37,10 +37,11 @@ export function projectViewerConfig(
   if (!media) return null;
   if (media.review !== "approved" && nodeEnv === "production") return null;
 
-  // A reviewed asset hosted with the site is served from /media on the same
-  // origin. Otherwise: the DEV media CDN in development, nothing in production.
+  // A reviewed, publicly approved model is served from the approved-model origin
+  // (the production model CDN, or /media in development). Otherwise: the DEV
+  // media CDN in development, nothing in production.
   const siteHosted = media.hosting === "site" && media.review === "approved";
-  const origin = siteHosted ? "/media" : nodeEnv === "production" ? null : MEDIA_CDN_ORIGIN;
+  const origin = siteHosted ? PUBLIC_MODEL_ORIGIN : nodeEnv === "production" ? null : MEDIA_CDN_ORIGIN;
   if (!origin) return null;
 
   // The data is hand-copied from a manifest, so re-check it against the storage

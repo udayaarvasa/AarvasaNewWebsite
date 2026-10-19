@@ -186,7 +186,12 @@ export function exploreAreaMode(input: {
 /**
  * The Maps JavaScript API script URL.
  *
- * `v=alpha` because the 3D map element is not in the stable channel yet, and
+ * `v=beta` because the 3D map element is not in the stable channel yet. It was
+ * `v=alpha`, which works too but makes Google stamp every page with "Using the
+ * alpha channel … For development purposes only" — not something the live site
+ * may show. Beta (3.66, Oct 2026) renders the 3D element and its camera
+ * controls with no banner; verified in the browser, not assumed.
+ *
  * `libraries=maps3d` because loading the whole API to show one element is the
  * difference between a few hundred kilobytes and a few megabytes on a phone.
  *
@@ -196,7 +201,7 @@ export function exploreAreaMode(input: {
  * here — see docs/google-maps.md.
  */
 export function mapsScriptUrl(apiKey: string, library: "maps3d" | "maps" = "maps3d"): string {
-  const params = new URLSearchParams({ key: apiKey, v: "alpha", libraries: library });
+  const params = new URLSearchParams({ key: apiKey, v: "beta", libraries: library });
   return `https://maps.googleapis.com/maps/api/js?${params.toString()}`;
 }
 
@@ -217,6 +222,14 @@ export const GOOGLE_ATTRIBUTION = "Map data and imagery ©Google";
  * visitor sees speaks for itself.
  */
 export const AREA_3D_READY = "3D view of the surrounding area.";
+
+/**
+ * Shown under the map whenever the coordinate is locality precision. The map
+ * is centred on the right community, not on a surveyed plot, and Google's real
+ * buildings around the centre make any point look exact — so the page says so.
+ */
+export const AREA_APPROXIMATE_LOCATION =
+  "Approximate location: centred on the neighbourhood, not the exact plot.";
 
 /**
  * Shown on the flat map when Google's 3D element reported an error here.

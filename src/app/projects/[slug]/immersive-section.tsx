@@ -1,6 +1,7 @@
 import { MotionReveal } from "@/components/layout/motion-reveal";
 import { SectionHead, Wrap } from "@/components/av/primitives";
 import { ImmersiveExperience } from "./immersive-viewer";
+import { PROVENANCE_LABEL } from "@/lib/media/provenance";
 import type { ProjectViewerConfig } from "@/lib/viewer/project-media";
 import type { ProjectSplatConfig } from "@/lib/viewer/project-splat";
 import type { PanoramaTour } from "@/lib/viewer/tour";
@@ -58,6 +59,16 @@ export default function ImmersiveSection({
           </p>
         )}
       </MotionReveal>
+      )}
+      {/* What the model is, always beside it and never dismissible: a
+          reconstruction must not be read as the developer's own model or as
+          the as-built building. Shown inside the combined board as well. */}
+      {viewer?.provenance && !viewer.placeholder && (
+        <p role="note" className="mb-[var(--s-4)] text-[12.5px] leading-relaxed text-stage-muted">
+          <span className="av-label text-[11px] text-stage-ink">{viewer.provenance.label}</span>
+          {viewer.provenance.note && <> · {viewer.provenance.note}</>}
+          {viewer.provenance.label === PROVENANCE_LABEL.AARVASA_RECONSTRUCTION && <> Proportions and height are approximate, not surveyed.</>}
+        </p>
       )}
       {/* Outside MotionReveal so the canvas is never inside an animating transform. */}
       <ImmersiveExperience model={viewer} tour={tour} splat={splat} analyticsId={projectSlug} />

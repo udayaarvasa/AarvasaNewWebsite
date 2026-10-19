@@ -40,9 +40,12 @@ type Phase =
 export function NearbyPlaces({
   center,
   apiKey,
+  approximate = false,
 }: {
   center: VerifiedCoordinates;
   apiKey: string;
+  /** The coordinate is locality precision; the copy says results are measured from it. */
+  approximate?: boolean;
 }) {
   const [phase, setPhase] = useState<Phase>({ k: "idle" });
   const statusId = useId();
@@ -108,7 +111,8 @@ export function NearbyPlaces({
       <div id={statusId} aria-live="polite" className="mt-[var(--s-4)]">
         {phase.k === "idle" && (
           <p className="text-[13px] leading-relaxed text-stage-muted">
-            Pick a category to see what Google lists within walking distance.
+            Pick a category to see what Google lists within walking distance
+            {approximate ? " of the approximate, neighbourhood-level location." : "."}
           </p>
         )}
 

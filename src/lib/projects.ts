@@ -254,9 +254,9 @@ const SPLAT_BY_SLUG: Readonly<Record<string, ProjectSplatMedia>> = {
  * the developer's supplied films and validated in the viewer lab (sha256
  * 0756752510fe54e4…, 1,132,676 bytes, 28,290 triangles; regenerated
  * byte-identically by tools/reef-998-massing.py). Approved for the project page
- * by Aarvasa on 19 Oct 2026 and shipped with the site under /media until a
- * production media CDN exists. Labelled as an Aarvasa reconstruction — not an
- * official developer model — wherever it is shown.
+ * by Aarvasa on 19 Oct 2026 and served from the production model CDN
+ * (PUBLIC_MODEL_ORIGIN), never from the repository. Labelled as an Aarvasa
+ * reconstruction — not an official developer model — wherever it is shown.
  */
 const REEF_998_RECONSTRUCTION: ProjectImmersiveMedia = {
   mediaId: "3eecb8df7d61b40c456ee53d",
@@ -272,8 +272,13 @@ const REEF_998_RECONSTRUCTION: ProjectImmersiveMedia = {
   review: "approved",
   hosting: "site",
   provenance: "AARVASA_RECONSTRUCTION",
-  // ±5.0 units on Y at 1:10 → 100 m tall; half lifts the base to the ground.
-  mapOverlay: { baseOffsetMetres: 50 },
+  /* No map overlay. Placement validation, 19 Oct 2026: stood on the recorded
+     locality-precision coordinate, the tower lands in the middle of a multi-lane
+     highway interchange in Google's scene — a false statement about the site that
+     an "approximate" label cannot undo. The model is shown in the standalone
+     viewer only. Restore `mapOverlay: { baseOffsetMetres: 50 }` (±5.0 units on Y
+     at 1:10 → 100 m tall) once the developer's plot position is recorded with
+     precision "plot". */
 };
 
 /**
@@ -302,14 +307,22 @@ const REEF_996_RECONSTRUCTION: ProjectImmersiveMedia = {
 };
 
 /**
- * Public visibility approvals for the site-hosted reconstructions.
+ * Public visibility approvals for the reconstructions.
  *
- * The repository is public and the GLBs ship from /media, so a reconstruction
- * is attached to its project page only once its public release is approved in
- * writing and recorded here (slug, date, approver). Until then the files are
- * not in the release and the pages show no model. Empty in the 20 Oct release.
+ * A reconstruction is attached to its project page only once its public release
+ * is approved and recorded here (slug, date, approver), and its file is on the
+ * production model CDN — the GLBs are never in the public repository.
+ *
+ *   reef-998-dlrc — 19 Oct 2026, Aarvasa (Ansh Dubey). File sha256
+ *     0756752510fe54e4…, validated in the viewer lab. Shown in the standalone
+ *     viewer; NOT placed on the map (placement validation failed on the
+ *     locality-precision coordinate — see REEF_998_RECONSTRUCTION).
+ *
+ * REEF 996 is NOT listed: its reconstruction last recorded a recognition-gate
+ * FAIL (4 of 6 criteria; the balcony wave is not legible at default framing),
+ * and nothing since documents a pass. REEF 997 has no reconstruction.
  */
-export const PUBLIC_MODEL_APPROVALS: readonly string[] = [];
+export const PUBLIC_MODEL_APPROVALS: readonly string[] = ["reef-998-dlrc"];
 
 const SITE_RECONSTRUCTIONS: Readonly<Record<string, ProjectImmersiveMedia>> = {
   "reef-996-dubai-production-city": REEF_996_RECONSTRUCTION,
