@@ -2,6 +2,15 @@
 """
 REEF 997 — reference-based massing reconstruction (DRAFT CANDIDATE).
 
+1.1.0 (19 Oct 2026). v1.0.0 (sha256 05061b40…, reproducible from commit
+d2f790c) drew the north block's south face as one straight line, which merged
+the wings into a single banded mass. Re-read on S3 with a pixel grid: the
+north block's south face sits at ~y 520 between the west wing and the stub,
+the EAST wing runs on to ~y 623 (its south edge carries the pergola), and the
+stub projects to ~y 717. So the plan is stepped, with the wave-balcony
+connector recessed between the wings. S1 also shows dark vertical joints where
+the wings meet; they are added full height. Nothing else changes.
+
 A visual reconstruction, not a survey, not CAD, not an official model. Built
 from REEF's own published material; every number below says where it came from.
 
@@ -52,7 +61,7 @@ import sys
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from massing_glb import Mesh, export, offset_path, rounded_rect  # noqa: E402
 
-VERSION = "1.0.0"
+VERSION = "1.1.0"
 SCALE = 0.1
 
 # ── Storeys ─────────────────────────────────────────────────────────────────
@@ -78,9 +87,10 @@ POD_X0, POD_Z0 = m(660, 185)
 POD_X1, POD_Z1 = m(1310, 805)
 # Residential blocks (glazing line), from the roof outlines in S3.
 BLOCKS = {
-    "north": (*m(800, 200), *m(1290, 590)),   # main mass across the north
-    "west":  (*m(688, 198), *m(832, 548)),    # narrow west wing
-    "stub":  (*m(978, 520), *m(1088, 722)),   # central wing reaching south
+    "north": (*m(797, 200), *m(1287, 520)),   # 1.1: south face at y 520 (recessed connector)
+    "east":  (*m(1083, 200), *m(1287, 623)),  # 1.1: east wing runs further south (pergola edge)
+    "west":  (*m(687, 190), *m(847, 550)),    # narrow west wing
+    "stub":  (*m(973, 520), *m(1087, 717)),   # central wing reaching south
 }
 CORNER_R = 3.2          # observed: heavily radiused; radius assumed
 BALCONY = 2.0           # assumed depth beyond the glazing line
@@ -183,7 +193,7 @@ def build():
         balcony = densify(block_outline(name, BALCONY, 8), 0.8)
         if name == "north":
             # Wave balconies on the connector face between the west wing and the stub.
-            bx0 = BLOCKS["west"][2] + 1.0
+            bx0 = BLOCKS["west"][2] + 0.5
             bx1 = BLOCKS["stub"][0] - 0.5
             balcony = wave_south(balcony, bx0, bx1, WAVE_AMP)
         for f in range(FLOORS):
@@ -195,6 +205,15 @@ def build():
             ring(mesh, "rail", balcony, y + BAND_H, RAIL_H, 0.04)
         # Roof slab over the last floor.
         mesh.prism("white", balcony, TOWER_TOP, SLAB_T)
+
+    # ── 1.1: dark vertical joints where the wings meet (S1), full residential height
+    for (jx, jz) in (m(849, 535), m(1085, 640)):
+        mesh.box("crown", jx, PODIUM_TOP, jz, 1.4, FLOORS * FLOOR_H + CROWN_H, BALCONY * 2 + 1.0)
+    # The east wing's roof edge is a pergola, not the dark crown (S3, S1).
+    ex0, ez0, ex1, ez1 = BLOCKS["east"]
+    for k in range(18):
+        x = ex0 + 1.0 + k * (ex1 - ex0 - 2.0) / 17
+        mesh.box("white", x, TOWER_TOP + SLAB_T, ez1 + BALCONY - 0.6, 0.25, 1.6, 2.2)
 
     # ── Crown: dark stone band on the north block (signage face) and the west wing
     # A perimeter band, not a lid: S3 shows a white roof inside it.

@@ -312,17 +312,18 @@ const REEF_996_RECONSTRUCTION: ProjectImmersiveMedia = {
 /**
  * REEF 997: Aarvasa's reconstruction from the developer's three full-height
  * exterior renders, top-down aerial and brochure ("G + 2P + 8") —
- * tools/reef-997-massing.py. Plan scaled from the aerial (+/-15%), storey
+ * tools/reef-997-massing.py 1.1.0 (stepped south face and wing joints from the
+ * aerial and hero; 1.0.0 = 05061b40…). Plan scaled from the aerial (+/-15%), storey
  * heights assumed. CANDIDATE: not in PUBLIC_MODEL_APPROVALS.
  */
 const REEF_997_RECONSTRUCTION: ProjectImmersiveMedia = {
   mediaId: "051db7257f927a4af894a2fa",
   kind: "MODEL",
   format: "GLB",
-  storageKey: "m/051db7257f927a4af894a2fa/05061b40be5e2d6f",
+  storageKey: "m/051db7257f927a4af894a2fa/3ec2651523f35f1b",
   entryFile: "scene.glb",
-  contentHash: "05061b40be5e2d6fb7fcb70da24ee0451dd9d79aa0a8363841c0123fe10b9d1a",
-  sizeBytes: 2_007_752,
+  contentHash: "3ec2651523f35f1b45e1f80fa52e1dae5b7b1fa4bb0d037c5e8030fef70fc482",
+  sizeBytes: 2_560_520,
   poster: null,
   processingVersion: "1.0.0/passthrough-v1",
   altText: "REEF 997, reconstructed by Aarvasa from the developer's renders: two rounded residential wings over a slatted podium with a pool deck. Not an official developer model.",
