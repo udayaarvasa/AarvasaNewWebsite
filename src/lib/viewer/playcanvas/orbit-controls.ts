@@ -55,11 +55,16 @@ export class OrbitControls implements ViewerControls {
   private autoRotate = false;
   private reducedMotion = false;
 
-  constructor(
-    private readonly camera: Entity,
-    private readonly element: HTMLElement,
-    private readonly onChange: () => void,
-  ) {
+  private readonly camera: Entity;
+  private readonly element: HTMLElement;
+  private readonly onChange: () => void;
+
+  // Plain assignments rather than parameter properties, so the class also runs
+  // under Node's type stripping (test/orbit-controls.test.ts).
+  constructor(camera: Entity, element: HTMLElement, onChange: () => void) {
+    this.camera = camera;
+    this.element = element;
+    this.onChange = onChange;
     element.addEventListener("pointerdown", this.onPointerDown);
     element.addEventListener("pointermove", this.onPointerMove);
     element.addEventListener("pointerup", this.onPointerUp);

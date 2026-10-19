@@ -425,6 +425,10 @@ export function Aarvasa3DViewer({
                   {v.label}
                 </button>
               ))}
+              {/* No orbit under reduced motion: the controls would (rightly)
+                  refuse to animate it, and a button that does nothing is worse
+                  than none. Presets still work; they jump instead of easing. */}
+              {!reducedMotion && (
               <button
                 type="button"
                 aria-pressed={orbiting}
@@ -435,6 +439,7 @@ export function Aarvasa3DViewer({
                 {orbiting ? <Pause className="h-3 w-3" aria-hidden /> : <Play className="h-3 w-3" aria-hidden />}
                 {orbiting ? "Stop" : <><span className="max-sm:hidden">Orbit </span>360°</>}
               </button>
+              )}
             </div>
           )}
           <p className={cn("pointer-events-none absolute bottom-3 left-3 rounded-full bg-[var(--glass-strong)] px-3 py-1.5 text-[11px] font-medium text-muted-foreground backdrop-blur-md", (overlay || kind === "model") && "max-lg:hidden", kind === "model" && "bottom-auto top-3")}>
