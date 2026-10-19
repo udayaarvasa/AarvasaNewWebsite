@@ -10,7 +10,7 @@ import { ImmersiveTour } from "@/components/property/immersive-tour";
 import { Button } from "@/components/ui/button";
 import type { ViewerSource, ViewerStatus } from "@/lib/viewer/types";
 
-type SceneChoice = "procedural" | "sample" | "reef998" | "reef996v2" | "reef996v3" | "reef997" | "reef998v2" | "blocked";
+type SceneChoice = "procedural" | "sample" | "reef998" | "reef996v2" | "reef996v3" | "reef997" | "reef998v2" | "reef1000" | "blocked";
 
 const SOURCES: Record<SceneChoice, ViewerSource | undefined> = {
   procedural: undefined,
@@ -44,6 +44,12 @@ const SOURCES: Record<SceneChoice, ViewerSource | undefined> = {
     process.env.NODE_ENV === "production"
       ? undefined
       : { kind: "model", url: "/labs/media/m/3eecb8df7d61b40c456ee53d/589b15693f0a2ef6/scene.glb" },
+  /* REEF 1000 draft v0.1 (tools/reef-1000-massing.py): U-plan from the
+     developer's front and rear renders. Draft — never on a project page. */
+  reef1000:
+    process.env.NODE_ENV === "production"
+      ? undefined
+      : { kind: "model", url: "/labs/media/m/27cfb97645c9b41b486ca506/aeb69aa08baf1b75/scene.glb", initialView: { yawDeg: -40, pitchDeg: 14, distanceFactor: 1.9 } },
   // Must be rejected by the same-origin guard without any request being made.
   blocked: { kind: "model", url: "https://example.com/untrusted.glb" },
 };
@@ -127,6 +133,7 @@ export function ViewerLab({ initialLoadOn }: { initialLoadOn: "visible" | "inter
             { value: "reef996v3", label: "REEF 996 v3 (candidate)" },
             { value: "reef997", label: "REEF 997 (candidate)" },
             { value: "reef998v2", label: "REEF 998 v3 (candidate)" },
+            { value: "reef1000", label: "REEF 1000 v0.1 (draft)" },
             { value: "blocked", label: "Blocked URL" },
           ]}
         />

@@ -204,3 +204,38 @@ property page loaded its own model (996 → 9ea83ecf…, 997 → 3ec26515…, 99
 589b1569…) with the reconstruction label, the presets, reset and the toolbar at
 1440, 390 and 375 px, no overflow and no broken images; REEF 998's overlay
 loaded at 44.25 m. The approval list was restored to REEF 998 v1 only.
+
+## REEF 999 and REEF 1000 (20 Oct 2026)
+
+### REEF 1000 — draft v0.1 (not reviewed, not published)
+
+| Item | Value |
+| --- | --- |
+| Generator | `tools/reef-1000-massing.py` (regenerates byte-identically) |
+| File | sha256 `aeb69aa08baf1b75a3bcff465d1e1d8af636e393f74d6043dafffcb946db9ffc`, 702,964 B, 16,144 triangles |
+| Staged key | `m/27cfb97645c9b41b486ca506/aeb69aa08baf1b75` (gitignored staging; lab only) |
+| Sources | Developer front render and rear aerial render from the channel-partner tour (hashes in docs/reef-portfolio.md); tour floor picker 1–7; residence count and sizes from the project page |
+| Renders | `research/review-package/renders/1000-v0.1-{front,sw,side,rear,nw,aerial}.png` |
+
+Established from two opposite views: the U plan (street bar, two wings round a
+podium pool deck), seven residential levels above one podium storey, the dark
+slatted top floor under a wide canopy, wavy balconies on the street, end and
+courtyard faces, the sculpted street fascia and the rear car-park arc.
+
+Approximations: every plan dimension and storey height (no drawing exists), the
+podium's north and east faces, balcony depth and wave, the central balcony-free
+bay. Portals' "G+6" conflicts with the developer's seven levels and is not
+resolved. Height to the canopy ~29.8 m is an estimate, so no map overlay is
+proposed; the coordinate is a developer place pin, not a plot.
+
+Next step before review: an elevation or section from the developer to replace
+the assumed dimensions.
+
+### REEF 999 — no candidate
+
+Only one exterior angle exists (the developer's day and night renders show the
+same front corner). It establishes two connected blocks on a slatted podium
+with an arched entrance, but not the rear, the depth of either block, or the
+floor count (portals say "two 12-storey towers"; the developer states none).
+A model would invent at least half of the building, so none is built. Needed:
+any rear or side render, or elevations.
