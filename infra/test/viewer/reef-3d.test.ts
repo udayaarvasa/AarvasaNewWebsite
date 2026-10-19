@@ -50,6 +50,9 @@ test("only REEF 998's validated model is approved for public release", () => {
   // 996's reconstruction failed its recognition gate; 997 has none.
   assert.equal(getProject("reef-996-dubai-production-city")!.immersive, undefined);
   assert.equal(getProject("reef-997-dubai-islands")!.immersive, undefined);
+  // 999 has no defensible model; 1000's draft v0.1 is lab-only.
+  assert.equal(getProject("reef-999-al-furjan")!.immersive, undefined);
+  assert.equal(getProject("reef-1000-dlrc")!.immersive, undefined);
 });
 
 test("the approved model is served from the production model CDN, never the dev CDN or the repository", () => {

@@ -1,6 +1,6 @@
 # REEF portfolio — sources, tours and search
 
-Status as of 20 October 2026. Companion to `docs/reef-3d-validation.md` (3D
+Status as of 20 October 2026. Developer/partner request: `docs/reef-developer-request.md`. Companion to `docs/reef-3d-validation.md` (3D
 reconstructions). Reference files (renders, tour pages) are kept in the
 gitignored `research/sources/`; this document records only URLs, facts and
 hashes.
@@ -68,13 +68,16 @@ was wrong: REEF's channel-partner portal hosts **genuine 360° panoramas**
 (3DVista, cube-map) for four of the five buildings. They are computer-generated
 renders, not photographs, and must be labelled so.
 
-| Project | Tour URL | Scenes | Format | Content | Rights |
+| Project | Tour URL | Panoramas (re-verified 20 Oct) | By label | Format | Rights |
 | --- | --- | --- | --- | --- | --- |
-| REEF 996 | reefchannelpartners.com/vr/996/ | 88 panoramas | 3DVista cube-map | 1–3BR rooms (living, bedrooms, bathrooms, corridors), numbered views | Unknown |
-| REEF 997 | reefchannelpartners.com/vr/997/ | 108 panoramas | cube-map, faces to 6144 px, WebP | 1–4BR rooms incl. 4BR terrace, balconies, BBQ, cabana, Baja shelf | Unknown |
-| REEF 998 | reefchannelpartners.com/vr/998/ | 140 panoramas | cube-map, faces to 6144 px, JPEG | 1–3BR unit types, balconies, BBQ, Baja shelf, aqua bikes | Unknown |
-| REEF 999 | none found (vr/999 → 404) | — | — | — | — |
-| REEF 1000 | reefchannelpartners.com/vr/vr1000/ | 10 amenity scenes + unit tours from an interactive elevation | cube-map | Lobby, co-working, parking, hallway, gym, yoga, locker room, roof, guesthouse, pool | Unknown |
+| REEF 996 | reefchannelpartners.com/vr/996/ | 67 | 21 unit-type views, 10 bathrooms, 5 bedrooms, 5 living/entrance/corridor, 5 lobby, 21 numbered (content unlabelled) | 3DVista cube-map | Unconfirmed |
+| REEF 997 | reefchannelpartners.com/vr/997/ | 108 | 41 entrance/living/dining/kitchen, 17 balcony/terrace, 17 amenity (vegetable garden, Baja shelf, outdoor cinema, BBQ, cabana), 15 bathrooms, 14 bedrooms, 1 lift, 3 other | cube-map, faces to 6144 px, WebP | Unconfirmed |
+| REEF 998 | reefchannelpartners.com/vr/998/ | 140 | 53 "CAMxx" camera views and 38 numbered views (content unlabelled), 20 amenity (Baja shelf, yoga, BBQ, aqua bikes), 17 unit types, 6 balcony, 5 bathroom, 1 lobby | cube-map, faces to 6144 px, JPEG | Unconfirmed |
+| REEF 999 | none found (vr/999 → 404) | 0 | — | — | — |
+| REEF 1000 | reefchannelpartners.com/vr/vr1000/ | 10 amenity scenes (all load) + unit tours from an interactive elevation | lobby, co-working, parking, hallway, gym, yoga, locker room, roof, guesthouse, pool | cube-map | Unconfirmed |
+
+The earlier figure of 88 for REEF 996 counted duplicate internal ids; 67 is the
+number of panorama objects in the tour definition.
 
 Conventional (flat) video: the developer's YouTube channel
 (youtube.com/@ReefLuxuryDevelopments) and the films already held locally
@@ -92,15 +95,15 @@ from equirectangular sources), which avoids reassembling cube faces.
 
 ### Scene inventory per property (target)
 
-| Scene | 996 | 997 | 998 | 999 | 1000 |
+| Scene (tour chapter) | 996 | 997 | 998 | 999 | 1000 |
 | --- | --- | --- | --- | --- | --- |
-| Exterior / arrival | need | need | need | need | need |
-| Lobby / common areas | need | need | need | need | **source exists** |
-| Typical residence | **source exists** | **source exists** | **source exists** | need | **source exists** (unit tours) |
-| Balcony / winter garden | unknown (88 scenes include numbered views not yet inspected) | **source exists** | **source exists** | need | need |
-| Pool / amenity deck | need | **source exists** (Baja shelf, cabana, BBQ) | **source exists** | need | **source exists** |
-| Rooftop | need | need | need | need | **source exists** |
-| Retail / communal | n/a | n/a | need | need | **source exists** (co-working) |
+| Exterior / arrival | need | need | unconfirmed (CAMxx views) | need | need |
+| Lobby / common areas | **source** (5) | **source** (lift, entrances) | **source** (1) | need | **source** (lobby, hallway) |
+| Residence interiors | **source** (41) | **source** (70+) | **source** (22+) | need | **source** (unit tours) |
+| Balcony / winter garden | need | **source** (17) | **source** (6) | need | need |
+| Pool / amenities | need | **source** (17) | **source** (20) | need | **source** (pool, gym, yoga, locker room) |
+| Rooftop | need | need | need | need | **source** (roof) |
+| Retail / communal | n/a | n/a | need | need | **source** (co-working, guesthouse) |
 
 "need" = no 360° source found; the developer request lists them.
 
@@ -140,10 +143,9 @@ To create one (domain owner, ~15 minutes):
 5. After 28 days, record impressions, clicks, top queries, and the Pages report
    (indexed / not indexed and why). That is the baseline.
 
-Also recommended (infrastructure, needs approval): the apex redirect
-`https://aarvasa.com → https://www.aarvasa.com` is a **302**; it should be a
-**301** so search engines consolidate on www. It is set in the Amplify domain
-settings, not in the application.
+Apex redirect: `https://aarvasa.com/* → https://www.aarvasa.com/*` was a
+**302**; on 20 Oct 2026 the Amplify custom rule was changed to **301** (paths and
+query strings preserved), so search engines consolidate on www.
 
 Success measures: impressions and clicks on the project clusters above, the
 share of queries that name a REEF building, and qualified enquiries from
