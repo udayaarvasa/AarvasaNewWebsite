@@ -7,6 +7,19 @@ import { isCompromisedPassword } from "@/lib/compromised-passwords"
 import bcrypt from "bcryptjs"
 // Removed Prisma type imports for local build compatibility
 
+/**
+ * Sessions are only honoured if they were issued under the current epoch.
+ * The claim is stamped once, at sign-in, and survives every rolling refresh,
+ * so bumping this number signs every existing session out on the next request.
+ *
+ * Epoch 1 (20 Oct 2026): the page proxy refreshed signed-in visitors' session
+ * cookies on statically cached pages, and CloudFront replayed those Set-Cookie
+ * headers to later visitors — who were then signed in as someone else. The
+ * proxy no longer touches public pages; this voids every session issued before
+ * that fix, including any copied that way.
+ */
+export const SESSION_EPOCH = 1
+
 export const { handlers, auth, signIn, signOut } = NextAuth({
   secret: process.env.AUTH_SECRET,
   trustHost: true,
@@ -149,7 +162,10 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       if (user) {
         token.role = (user as any).role;
         token.id = user.id;
+        token.epoch = SESSION_EPOCH;
       }
+      // Issued before the current epoch (or never stamped): not a valid session.
+      if (token.epoch !== SESSION_EPOCH) return null;
       if (trigger === "update" && session?.name) {
         token.name = session.name;
       }

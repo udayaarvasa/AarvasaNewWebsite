@@ -97,11 +97,7 @@ export function LuxuryFooter() {
             <Link href="/" aria-label="Aarvasa home" className="inline-block">
               <Image src="/aarvasa-navbar-logo-light.png" alt="Aarvasa" width={652} height={143} sizes="170px" className="h-10 w-auto" />
             </Link>
-            <p className="mt-6 max-w-[34ch] text-[13.5px] leading-relaxed">
-              Premium property, examined properly. Find it, explore what has been captured, and compare it on the
-              specification that decides it.
-            </p>
-            <ul className="mt-7 flex gap-3">
+            <ul className="mt-6 flex gap-3">
               {socials.map((s) => (
                 <li key={s.label}>
                   <a
