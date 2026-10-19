@@ -68,16 +68,12 @@ export default function SecurityPolicyPage() {
 
           <section className="mb-10">
             <h2 className="heading-serif text-2xl text-ink mb-4 border-b border-rule pb-2">
-              5. Payment & Transaction Security
+              5. Payments
             </h2>
             <div className="space-y-4 text-sm sm:text-base leading-relaxed">
               <ul className="list-disc pl-5 space-y-2">
-                <li>Payments are handled by secure gateways like Razorpay, Stripe, and Paytm using SSL/TLS encryption.</li>
-                <li>No card details are stored on our servers to avoid potential breaches.</li>
-                <li>Two-factor authentication may be required for added transaction security.</li>
-                <li>Customers receive instant confirmation via email, SMS, or push notification.</li>
-                <li>Refunds follow the same secure channels with tracking and verification.</li>
-                <li>High-risk transactions are flagged for manual verification to prevent fraud.</li>
+                <li>Online payments and paid packages are not currently available through the Aarvasa website, and no payment gateway is connected to it.</li>
+                <li>The website does not collect or store card, UPI or bank account details.</li>
               </ul>
             </div>
           </section>

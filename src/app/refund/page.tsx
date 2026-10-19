@@ -13,6 +13,10 @@ export default function RefundPolicyPage() {
       <div className="mx-auto mt-4 max-w-4xl rounded-[28px] border border-rule bg-paper-raised/60 px-6 py-12 sm:px-12">
 
         <div className="prose prose-lg max-w-none text-ink-muted">
+          <p className="mb-10 rounded-2xl border border-rule bg-paper-raised p-6 text-sm text-ink sm:text-base">
+            Online payments and paid packages are not currently available through the Aarvasa website. The policy below
+            describes paid packages; it does not mean that any package can currently be purchased here.
+          </p>
           <section className="mb-10">
             <h2 className="heading-serif text-2xl text-ink mb-4 border-b border-rule pb-2">
               Moneyback Packages

@@ -167,6 +167,10 @@ export default function TermsPage() {
               Article 7: Costs, Deposits, and Financial Terms
             </h2>
             <div className="space-y-4 text-sm sm:text-base leading-relaxed">
+              <p className="rounded-2xl border border-rule bg-paper-raised p-4 text-ink">
+                Online payments and paid packages are not currently available through the Aarvasa website. Nothing in this
+                Article means that any fee-bearing service can currently be purchased here.
+              </p>
               <p>
                 <strong>7.1. Fee Schedule:</strong> You consent to pay all relevant fees listed in our Fee Schedule, which may include fees for premium services, platform access, and investment transaction fees. GST and other applicable taxes are not included in any fees.
               </p>

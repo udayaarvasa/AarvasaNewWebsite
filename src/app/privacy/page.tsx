@@ -33,7 +33,7 @@ export default function PrivacyPolicyPage() {
                 <strong className="text-ink">A. User-Provided Data:</strong>
                 <ul className="list-disc pl-5 mt-2 space-y-1">
                   <li><strong>Account Info:</strong> Name, DOB, Aadhaar/PAN, address, phone, email, job info.</li>
-                  <li><strong>Transactions:</strong> UPI, card, bank details, investment behavior.</li>
+                  <li><strong>Transactions:</strong> None through the website. Online payments are not currently available, so we do not collect UPI, card or bank details here.</li>
                   <li><strong>Support:</strong> Emails, chats, feedback, survey responses.</li>
                 </ul>
               </div>
@@ -66,7 +66,7 @@ export default function PrivacyPolicyPage() {
             </h2>
             <div className="space-y-4 text-sm sm:text-base leading-relaxed">
               <ul className="list-disc pl-5 space-y-2">
-                <li><strong>Service Providers:</strong> AWS (Mumbai), Razorpay, BillDesk.</li>
+                <li><strong>Service Providers:</strong> AWS (Mumbai). No payment provider is used, as online payments are not currently available.</li>
                 <li><strong>Regulators:</strong> SEBI, RBI, law enforcement.</li>
                 <li><strong>Business Transfers:</strong> In mergers/acquisitions with notice.</li>
               </ul>
