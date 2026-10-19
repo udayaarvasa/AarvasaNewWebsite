@@ -21,6 +21,11 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       clientId: process.env.AUTH_GOOGLE_ID,
       clientSecret: process.env.AUTH_GOOGLE_SECRET,
       allowDangerousEmailAccountLinking: true,
+      /* Always show Google's account chooser. Without it Google silently signs
+         in with whichever account is active in the browser, so on a shared or
+         multi-account browser a click on "Continue with Google" lands the
+         visitor in someone else's Aarvasa account without being asked. */
+      authorization: { params: { prompt: "select_account" } },
     }),
     CredentialsProvider({
       id: "credentials",

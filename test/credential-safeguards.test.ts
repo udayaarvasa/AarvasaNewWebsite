@@ -71,3 +71,11 @@ test("the actually published password is refused by both guards (read from Git h
   const env = { DATABASE_URL: LOCAL, SEED_PASSWORD: published };
   assert.throws(() => seedPassword(env), published.length < 16 ? /at least 16/ : /publicly exposed/);
 });
+
+test("Google sign-in always asks which account to use", async () => {
+  const { readFile } = await import("node:fs/promises");
+  const src = await readFile(new URL("../src/auth.ts", import.meta.url), "utf8");
+  // Without prompt=select_account Google reuses the browser's active account,
+  // which signed a visitor into a colleague's Aarvasa account on a shared browser.
+  assert.match(src, /Google\(\{[\s\S]*?authorization:\s*\{\s*params:\s*\{\s*prompt:\s*"select_account"\s*\}\s*\}/);
+});
