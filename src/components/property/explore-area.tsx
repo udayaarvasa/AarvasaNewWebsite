@@ -21,7 +21,7 @@ import {
   type VerifiedCoordinates,
   AREA_APPROXIMATE_LOCATION,
 } from "@/lib/maps/google-3d";
-import { importMapsLibrary, keyWasRejected, loadMaps } from "@/lib/maps/loader";
+import { importMapsLibrary, keyRefusedByGoogle, keyWasRejected, loadMaps } from "@/lib/maps/loader";
 
 /**
  * Explore Area — the property's surroundings on Google's photorealistic 3D map.
@@ -280,7 +280,10 @@ export function ExploreArea({
           map.addEventListener("gmp-error", onError);
         });
 
-        if (keyWasRejected()) {
+        /* A frame that never settled may be slow tiles — or a key Google refuses
+           for this origin, which raises no event at all on the 3D path. Ask
+           Google, once, only in that case. */
+        if (keyWasRejected() || (outcome === "timeout" && (await keyRefusedByGoogle(resolved.apiKey)))) {
           host.replaceChildren();
           setPhase({ k: "failed", blocker: "INVALID_API_KEY" });
           return;

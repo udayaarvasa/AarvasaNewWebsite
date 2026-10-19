@@ -42,6 +42,39 @@ let authFailed = false;
 /** Has Google rejected this deployment's key at any point on this page? */
 export const keyWasRejected = (): boolean => authFailed;
 
+/** Google's reasons that mean "this key may not be used from here", not "try again". */
+const KEY_REFUSALS = new Set(["API_KEY_HTTP_REFERRER_BLOCKED", "API_KEY_INVALID", "API_KEY_SERVICE_BLOCKED", "API_KEY_EXPIRED"]);
+
+/**
+ * Ask Google directly whether it accepts this key from this page.
+ *
+ * Needed because a key refused for this origin does not surface on the 3D
+ * path: gm_authFailure never fires (alpha or beta, measured) and the element
+ * emits no gmp-error — it simply never settles, while Google paints its own
+ * "Oops! Something went wrong" panel inside it. One Places (New) autocomplete
+ * request answers unambiguously, because the browser sends the page's origin
+ * and Google replies 403 API_KEY_HTTP_REFERRER_BLOCKED when the key does not
+ * allow it. Called only after the 3D frame failed to settle, so a normal load
+ * never makes it. A network failure is not evidence either way: false.
+ */
+export async function keyRefusedByGoogle(apiKey: string): Promise<boolean> {
+  try {
+    const res = await fetch("https://places.googleapis.com/v1/places:autocomplete", {
+      method: "POST",
+      headers: { "content-type": "application/json", "X-Goog-Api-Key": apiKey },
+      body: JSON.stringify({ input: "a", includedPrimaryTypes: ["locality"] }),
+      signal: AbortSignal.timeout(8000),
+    });
+    if (res.ok) return false;
+    const body = (await res.json().catch(() => null)) as { error?: { details?: Array<{ reason?: string }> } } | null;
+    const refused = (body?.error?.details ?? []).some((d) => d.reason !== undefined && KEY_REFUSALS.has(d.reason));
+    if (refused) authFailed = true;
+    return refused;
+  } catch {
+    return false;
+  }
+}
+
 let scriptPromise: Promise<void> | null = null;
 
 /** Load the Maps JS API once per document, whatever calls it. */
