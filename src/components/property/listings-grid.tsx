@@ -116,7 +116,9 @@ export function ListingsGrid() {
               ? "Loading…"
               : failed
                 ? "Results unavailable"
-                : `${total} ${total === 1 ? "property" : "properties"}`}
+                : total === 0 && !hasFilters
+                  ? "No individual listings yet"
+                  : `${total} ${total === 1 ? "property" : "properties"}`}
           </p>
           <div className="ml-auto hidden items-center gap-2 lg:flex">
             <span className="av-label text-ink-muted">View</span>
