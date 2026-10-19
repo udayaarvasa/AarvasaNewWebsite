@@ -14,6 +14,7 @@ import { StatementBanner } from "@/components/av/banner";
 
 export const metadata = {
   title: "Services | Aarvasa",
+  alternates: { canonical: "/services" },
   description:
     "What Aarvasa does for buyers, owners, builders and channel partners — and what is still in development." };
 

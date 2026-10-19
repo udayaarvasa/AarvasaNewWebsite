@@ -3,6 +3,7 @@ import Image from "next/image"
 
 export const metadata = {
   title: "Login | Aarvasa",
+  robots: { index: false, follow: true },
   description: "Sign in to your Aarvasa premium PropTech account",
 }
 

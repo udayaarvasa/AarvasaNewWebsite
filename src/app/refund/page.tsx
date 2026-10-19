@@ -3,6 +3,7 @@ import { PageHero } from "@/components/lux/page-hero";
 
 export const metadata: Metadata = {
   title: "Refund and Cancellation Policy | Aarvasa",
+  alternates: { canonical: "/refund" },
   description: "Refund and Cancellation Policy for Aarvasa Innovations Pvt. Ltd.",
 };
 

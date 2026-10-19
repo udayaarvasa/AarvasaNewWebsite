@@ -3,6 +3,7 @@ import { PageHero } from "@/components/lux/page-hero";
 
 export const metadata: Metadata = {
   title: "Security Policy | Aarvasa",
+  alternates: { canonical: "/security" },
   description: "Security Policy and Data Protection measures for Aarvasa Innovations Pvt. Ltd.",
 };
 

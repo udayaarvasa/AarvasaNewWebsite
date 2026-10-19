@@ -9,6 +9,7 @@ import { Reveal } from "@/components/av/motion";
 
 export const metadata = {
   title: "Contact | Aarvasa",
+  alternates: { canonical: "/contact" },
   description:
     "Talk to the Aarvasa desk. A property enquiry reaches the developer directly; anything else reaches us." };
 

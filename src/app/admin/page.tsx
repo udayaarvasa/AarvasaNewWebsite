@@ -5,6 +5,7 @@ import { mediaFeaturesEnabled } from "@/lib/media-features"
 
 export const metadata = {
   title: "Admin Panel | Aarvasa",
+  robots: { index: false, follow: true },
   description: "Platform administration and moderation",
 }
 

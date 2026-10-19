@@ -4,6 +4,7 @@ import { EditPropertyForm } from "@/components/property/edit-property-form"
 
 export const metadata = {
   title: "Edit Property | Aarvasa",
+  robots: { index: false, follow: true },
   description: "Update your property listing on Aarvasa",
 }
 

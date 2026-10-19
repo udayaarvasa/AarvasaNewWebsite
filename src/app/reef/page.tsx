@@ -15,16 +15,17 @@ import { formatCurrency, inrEstimate } from "@/lib/currency";
  * One developer, five numbered towers, in one place — so a reader can see the
  * family rather than meeting each building as an unrelated listing.
  *
- * Three of the five carry a sourced project record and are listed in full. Two
- * do not: REEF 999 and REEF 1000 appear in the developer's own launch and
- * construction material but no location, price, configuration or completion
- * date has been supplied. They are named, and say exactly that. No figure is
- * estimated to make the row look complete.
+ * All five now carry a sourced project record and are listed: 996-998 from
+ * the inventory sheet, 999 and 1000 from the developer's own project pages.
+ * Where the developer publishes no figure (REEF 1000's prices), the row says
+ * "On request" rather than estimating one. The unlisted section remains for
+ * any future tower that appears before its record does.
  */
 export const metadata = {
   title: "The REEF Collection | Aarvasa",
   description:
-    "REEF Luxury Developments' numbered towers in Dubai — what is listed, what is under construction, and what each one has actually produced." };
+    "REEF 996, 997, 998, 999 and 1000 by REEF Luxury Developments — five Dubai towers in Dubai Production City, Dubai Islands, Al Furjan and DLRC, with sizes, completion dates and published prices.",
+  alternates: { canonical: "/reef" } };
 
 export default function ReefCollectionPage() {
   const entries = reefCollection();
@@ -37,7 +38,7 @@ export default function ReefCollectionPage() {
       <PageHero
         eyebrow="REEF Luxury Developments"
         title="The REEF *Collection.*"
-        body="Five numbered towers across Dubai, built by one developer to one idea: outdoor space that stays usable in summer. Three are listed here with the specification their developer filed. Two are under way, and say so."
+        body={`Five numbered towers across Dubai, built by one developer to one idea: outdoor space that stays usable in summer. ${listed.length === entries.length ? "Each is listed here" : `${listed.length} are listed here`} with the specification its developer published.`}
         image="/images/reef-996/amenities/reef-996-sunken-balcony-sunset-16x9.jpg"
         caption="REEF 996 sunken balcony · Developer render"
         size="tall"
@@ -125,7 +126,7 @@ export default function ReefCollectionPage() {
                       </>
                     ) : (
                       <div className="absolute inset-0 flex items-end bg-paper-sunken p-4">
-                        <span className="av-meta text-ink-disabled">Not yet photographed</span>
+                        <span className="av-meta text-ink-disabled">No image published</span>
                       </div>
                     )}
                   </Plate>

@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { SITE_NAME, SITE_URL } from "@/lib/site";
 import { Cormorant_Garamond, IBM_Plex_Mono, Manrope } from "next/font/google";
 import { Navbar } from "@/components/layout/navbar";
 import { NavOverlayProvider } from "@/components/layout/nav-overlay";
@@ -41,9 +42,13 @@ const plexMono = IBM_Plex_Mono({
    and "investment dashboards" — a return claim and a product that does not
    exist — so it describes what the site actually does instead. */
 export const metadata: Metadata = {
+  // Relative canonical and Open Graph URLs resolve against the public www origin.
+  metadataBase: new URL(SITE_URL),
   title: "Aarvasa | Premium property, examined properly",
   description:
     "Find premium homes, plots and offices, explore what has been captured in 3D and 360°, and compare a shortlist on the specification that decides it.",
+  openGraph: { siteName: SITE_NAME, type: "website", locale: "en" },
+  twitter: { card: "summary_large_image" },
 };
 
 export default function RootLayout({

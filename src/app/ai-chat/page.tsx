@@ -5,6 +5,7 @@ import { Note, Wrap } from "@/components/av/primitives";
 
 export const metadata = {
   title: "Advisor | Aarvasa",
+  alternates: { canonical: "/ai-chat" },
   description:
     "Describe what you are looking for. The advisor answers from the specification behind every listing, and shows its sources.",
 };

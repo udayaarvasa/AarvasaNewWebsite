@@ -14,6 +14,7 @@ import { publishedProjects } from "@/lib/projects";
 
 export const metadata = {
   title: "Properties | Aarvasa",
+  alternates: { canonical: "/listings" },
   description:
     "Browse premium homes, plots and offices. Filter on specification, explore what has been captured in 3D and 360°, and compare a shortlist side by side." };
 

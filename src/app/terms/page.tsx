@@ -3,6 +3,7 @@ import { PageHero } from "@/components/lux/page-hero";
 
 export const metadata: Metadata = {
   title: "Terms and Conditions | Aarvasa",
+  alternates: { canonical: "/terms" },
   description: "Terms and Conditions for Aarvasa Innovations Pvt. Ltd.",
 };
 

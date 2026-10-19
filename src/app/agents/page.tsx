@@ -21,6 +21,7 @@ import { TextReveal, RevealGroup, RevealItem } from "@/components/av/motion";
  */
 export const metadata = {
   title: "Agents | Aarvasa",
+  robots: { index: false, follow: true },
   description: "Channel partners and agents listing on Aarvasa.",
 };
 

@@ -4,6 +4,7 @@ import { CompareView } from "./compare-view";
 
 export const metadata = {
   title: "Compare | Aarvasa",
+  alternates: { canonical: "/compare" },
   description:
     "Put up to three properties side by side on price, specification and locality. No scores, no forecasts.",
 };

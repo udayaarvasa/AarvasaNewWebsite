@@ -20,6 +20,9 @@ import {
   type LedgerRow,
 } from "@/components/av/primitives";
 import { getProject, publishedProjects } from "@/lib/projects";
+import { PROJECT_SEO } from "@/lib/project-seo";
+import { jsonLdScript, projectJsonLd } from "@/lib/project-structured-data";
+import { reefCollection } from "@/lib/reef-collection";
 import { PUBLIC_MODEL_ORIGIN } from "@/lib/viewer/media-origin";
 import type { Project } from "@/lib/project-types";
 import { formatCurrency, inrEstimate, AED_TO_INR } from "@/lib/currency";
@@ -69,11 +72,26 @@ export async function generateMetadata({
   const project = getProject(slug);
   if (!project) return { title: "Project not found" };
   const { primary } = headlinePrice(project);
-  return {
-    title: `${project.name} — ${project.location}, ${project.city} | Aarvasa`,
-    description: `${project.name} by ${project.developer} in ${project.location}, ${project.city}. ${
+  const seo = PROJECT_SEO[project.slug];
+  const title = `${seo?.title ?? `${project.name} — ${project.location}, ${project.city}`} | Aarvasa`;
+  const description =
+    seo?.description ??
+    `${project.name} by ${project.developer} in ${project.location}, ${project.city}. ${
       project.kind === "plots" ? "Residential plots" : "Residences"
-    } from ${primary}.`,
+    } from ${primary}.`;
+  const hero = project.imagery?.hero;
+  return {
+    title,
+    description,
+    alternates: { canonical: `/projects/${project.slug}` },
+    openGraph: {
+      title,
+      description,
+      url: `/projects/${project.slug}`,
+      siteName: "Aarvasa",
+      type: "website",
+      ...(hero ? { images: [{ url: projectImageSrc(hero, "16x9"), alt: hero.alt }] } : {}),
+    },
   };
 }
 
@@ -197,8 +215,17 @@ export default async function ProjectPage({
     <SectionIndex n={sections.indexOf(key) + 1} total={sections.length} className="mb-[var(--s-3)]" />
   );
 
+  const seo = PROJECT_SEO[project.slug];
+  /* The other REEF buildings, so a reader comparing the family can move
+     between them without going back to the collection. */
+  const relatedReef =
+    project.developer === "REEF Luxury Developments"
+      ? reefCollection().filter((e) => e.project && e.project.slug !== project.slug)
+      : [];
+
   return (
     <div className="pb-[var(--s-24)]">
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLdScript(projectJsonLd(project)) }} />
       {/* ── DISCOVER ──────────────────────────────────────────────────────
           Cinematic hero. Photography where it exists, otherwise a typographic
           panel — never a stock photo standing in for the real site. */}
@@ -417,7 +444,36 @@ export default async function ProjectPage({
             <MotionReveal>
               {indexOf("overview")}
               <SectionHead label="Overview" />
+              {seo && (
+                <div className="-mt-[var(--s-4)] mb-[var(--s-8)] max-w-[68ch] space-y-3 text-[15.5px] leading-relaxed text-ink">
+                  {seo.intro.map((para) => (
+                    <p key={para.slice(0, 24)}>{para}</p>
+                  ))}
+                </div>
+              )}
               <Ledger rows={specRows} className="-mt-[var(--s-6)]" />
+              {relatedReef.length > 0 && (
+                <nav aria-label="Other REEF buildings" className="mt-[var(--s-8)]">
+                  <div className="av-meta text-[10px] text-ink-muted">
+                    Also by REEF ·{" "}
+                    <Link href="/reef" className="underline decoration-rule underline-offset-4 hover:text-ink">
+                      the REEF collection
+                    </Link>
+                  </div>
+                  <ul className="mt-3 flex flex-wrap gap-2">
+                    {relatedReef.map((e) => (
+                      <li key={e.number}>
+                        <Link
+                          href={`/projects/${e.project!.slug}`}
+                          className="inline-flex rounded-full border border-rule px-4 py-2 text-[13px] text-ink transition-colors hover:border-gold/60"
+                        >
+                          {e.name} · {e.project!.location.replace(/ \(.*\)$/, "")}
+                        </Link>
+                      </li>
+                    ))}
+                  </ul>
+                </nav>
+              )}
             </MotionReveal>
 
             {/* Availability / configurations */}
@@ -462,9 +518,9 @@ export default async function ProjectPage({
                             </td>
                             <td className="av-num px-5 py-4">
                               <span className="font-semibold">
-                                {formatCurrency(unit.fromPrice, project.currency)}
+                                {unit.fromPrice > 0 ? formatCurrency(unit.fromPrice, project.currency) : "On request"}
                               </span>
-                              {inrEstimate(unit.fromPrice, project.currency) && (
+                              {unit.fromPrice > 0 && inrEstimate(unit.fromPrice, project.currency) && (
                                 <span className="ml-2 text-[12px] text-ink-muted">
                                   {inrEstimate(unit.fromPrice, project.currency)}
                                 </span>
@@ -478,7 +534,9 @@ export default async function ProjectPage({
                   <p className="mt-3 text-[12px] leading-relaxed text-ink-muted">
                     {isPlots
                       ? `Plot prices are calculated at the developer's quoted rate of ${formatCurrency(project.ratePerSqft ?? 0, project.currency)} per sq.ft. Confirm final figures and registry costs with Aarvasa before purchase.`
-                      : `Prices are the lowest of ${project.planLabels.length} published payment plans (${project.planLabels.join(", ")}), quoted in AED. Rupee figures are indicative only, converted at AED 1 = ₹${AED_TO_INR}.`}
+                      : project.planLabels.length > 0
+                        ? `Prices are the lowest of ${project.planLabels.length} published payment plans (${project.planLabels.join(", ")}), quoted in AED. Rupee figures are indicative only, converted at AED 1 = ₹${AED_TO_INR}.`
+                        : `Sizes are the developer's published ranges. ${project.rateNote ?? "The developer has not published prices for this project; Aarvasa confirms current prices on enquiry."}`}
                   </p>
                 </section>
               </MotionReveal>

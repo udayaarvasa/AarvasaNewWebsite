@@ -5,17 +5,14 @@ import type { Project } from "./project-types";
  * The REEF family, as a collection.
  *
  * REEF Luxury Developments numbers its towers sequentially, and the supplied
- * media covers five of them. Only some have a project record: 996, 997 and 998
- * are sourced from the inventory sheet and are listed. 999 and 1000 exist in
- * the developer's own material — launch films and dated construction updates —
- * but no location, price, configuration or completion date has been supplied
- * for either.
+ * media covers five of them, and all five now have a project record: 996, 997
+ * and 998 from the inventory sheet, and 999 and 1000 from the developer's own
+ * project pages (src/lib/reef-portfolio-additions.ts), which publish location,
+ * residence sizes and completion but — for 1000 — no price.
  *
- * They are named here anyway, because the family is genuinely five buildings
- * and pretending otherwise misrepresents it just as much as inventing figures
- * would. What is NOT done is fill the gap: an entry with no record carries no
- * specification, no price, no imagery and no link, and says plainly that
- * nothing is published yet.
+ * An entry without a published record would carry no specification, price,
+ * imagery or link and say plainly that nothing is published yet; mediaNote
+ * remains for that case.
  */
 export type ReefEntry = {
   readonly number: string;
@@ -52,14 +49,14 @@ export function reefCollection(): ReefEntry[] {
     {
       number: "999",
       name: "REEF 999",
-      project: null,
-      mediaNote: "Launch film and construction updates through August 2026.",
+      project: bySlug("reef-999-al-furjan"),
+      mediaNote: null,
     },
     {
       number: "1000",
       name: "REEF 1000",
-      project: null,
-      mediaNote: "Launch film and construction updates through June 2026.",
+      project: bySlug("reef-1000-dlrc"),
+      mediaNote: null,
     },
   ];
 }

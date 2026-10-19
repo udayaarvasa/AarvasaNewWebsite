@@ -194,7 +194,7 @@ export function FeaturedShowcase() {
                     <StaggerItem key={u.type}>
                       <div className="flex items-center justify-between rounded-full border border-rule px-4 py-2.5 text-[13.5px] transition-colors hover:border-gold/60">
                         <span className="font-semibold text-ink">{u.label}</span>
-                        <span className="text-ink-muted">from {formatCurrency(u.fromPrice, p.currency)}</span>
+                        <span className="text-ink-muted">{u.fromPrice > 0 ? `from ${formatCurrency(u.fromPrice, p.currency)}` : "price on request"}</span>
                       </div>
                     </StaggerItem>
                   ))}

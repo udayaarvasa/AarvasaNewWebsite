@@ -36,7 +36,7 @@ function toCandidate(project: Project): MatchedProperty {
   if (project.unitTypes.length > 0) {
     summaryParts.push(
       `Configurations: ${project.unitTypes
-        .map((u) => `${u.label} (${u.minSqft.toLocaleString()} sq.ft, from ${formatCurrency(u.fromPrice, project.currency)})`)
+        .map((u) => `${u.label} (${u.minSqft.toLocaleString()} sq.ft, ${u.fromPrice > 0 ? `from ${formatCurrency(u.fromPrice, project.currency)}` : "price on request"})`)
         .join("; ")}.`,
     );
   }

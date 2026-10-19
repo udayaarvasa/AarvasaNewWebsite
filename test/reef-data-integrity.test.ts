@@ -11,19 +11,30 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 
 import { reefProjects } from "../src/lib/reef-projects.ts";
+import { reef1000, reef999 } from "../src/lib/reef-portfolio-additions.ts";
 import { REEF_997_IMAGERY } from "../src/lib/reef-997-imagery.ts";
 import { REEF_998_IMAGERY } from "../src/lib/reef-998-imagery.ts";
 
 const FAMILY = ["996", "997", "998", "999", "1000"];
 
-test("no project record exists for REEF 999 or REEF 1000", () => {
+test("REEF 999 and 1000 are not in the generated inventory; their hand-authored records carry only published figures", () => {
   for (const n of ["999", "1000"]) {
-    const found = reefProjects.find((p) => p.name.includes(n));
-    assert.equal(
-      found,
-      undefined,
-      `A record for REEF ${n} would mean inventing its location, price and completion date — none has been filed`,
-    );
+    assert.equal(reefProjects.find((p) => p.name.includes(n)), undefined, `the 28 June inventory has no REEF ${n}`);
+  }
+  // Figures from the developer's own project pages (research/sources/reef-999-1000-register.md).
+  assert.equal(reef999.totalUnits, 142);
+  assert.equal(reef999.completion, "Q2 2027");
+  assert.equal(reef999.fromPrice, 1_158_334);
+  assert.equal(reef1000.totalUnits, 125);
+  assert.equal(reef1000.completion, "Q4 2026");
+  assert.equal(reef1000.fromPrice, 0, "the developer publishes no REEF 1000 price; none may be invented");
+  for (const p of [reef999, reef1000]) {
+    assert.equal(p.buildingConfig, null, `${p.name}: the developer states no floor count`);
+    assert.ok(p.unitTypes.every((u) => u.fromPrice === 0), `${p.name}: no per-unit price is published`);
+    assert.ok(p.unitTypes.every((u) => u.available === null), `${p.name}: no released-unit counts are published`);
+    assert.deepEqual(p.images, [], `${p.name}: no imagery until reuse permission is recorded`);
+    assert.equal(p.imagery, undefined);
+    assert.deepEqual(p.paymentPlans, [], `${p.name}: no instalment schedule is published`);
   }
 });
 
@@ -106,8 +117,9 @@ test("each curated frame declares at least one generated ratio", () => {
   }
 });
 
-test("the family is the five towers the supplied media covers", () => {
+test("the family is five towers, and each now has a record", () => {
   assert.equal(FAMILY.length, 5);
-  const withRecords = FAMILY.filter((n) => reefProjects.some((p) => p.name.includes(n)));
-  assert.deepEqual(withRecords, ["996", "997", "998"]);
+  const all = [...reefProjects, reef999, reef1000];
+  const withRecords = FAMILY.filter((n) => all.some((p) => p.name === `REEF ${n}`));
+  assert.deepEqual(withRecords, FAMILY);
 });

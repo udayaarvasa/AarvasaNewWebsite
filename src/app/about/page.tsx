@@ -9,6 +9,7 @@ import { StatementBanner } from "@/components/av/banner";
 
 export const metadata = {
   title: "About | Aarvasa",
+  alternates: { canonical: "/about" },
   description:
     "Aarvasa publishes what the developer files, shows a property in three dimensions where it has been captured, and lets you compare what you found." };
 

@@ -11,7 +11,7 @@ import { exploreAreaMode, AREA_APPROXIMATE_LOCATION } from "../../../src/lib/map
 import { MEDIA_CDN_ORIGIN, PROD_PUBLIC_MODEL_ORIGIN } from "../../../src/lib/viewer/media-origin";
 import { projectViewerConfig } from "../../../src/lib/viewer/project-media";
 
-const REEF = ["reef-996-dubai-production-city", "reef-997-dubai-islands", "reef-998-dlrc"] as const;
+const REEF = ["reef-996-dubai-production-city", "reef-997-dubai-islands", "reef-998-dlrc", "reef-999-al-furjan", "reef-1000-dlrc"] as const;
 
 test("each REEF property has its own coordinate, recorded as locality precision", () => {
   const seen = new Set<string>();

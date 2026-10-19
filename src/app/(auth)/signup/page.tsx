@@ -3,6 +3,7 @@ import Image from "next/image"
 
 export const metadata = {
   title: "Create Account | Aarvasa",
+  robots: { index: false, follow: true },
   description: "Join Aarvasa's premium PropTech platform",
 }
 

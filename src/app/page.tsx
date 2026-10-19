@@ -10,11 +10,13 @@ import {
   Pillars,
   PlacesMarquee,
 } from "@/components/lux/home";
+import { jsonLdScript, siteJsonLd } from "@/lib/project-structured-data";
 
 export const metadata = {
   title: "Aarvasa | Luxury real estate, examined properly",
+  alternates: { canonical: "/" },
   description:
-    "Premium residences and plots in Dubai and India, set out exactly as their developers filed them — specification, approvals, payment plans and imagery.",
+    "Off-plan apartments in Dubai — REEF 996, 997, 998, 999 and 1000 — and residential plots in Bhopal, set out as their developers filed them: sizes, prices, payment plans and approvals.",
 };
 
 /**
@@ -29,6 +31,7 @@ export const metadata = {
 export default function Home() {
   return (
     <>
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLdScript(siteJsonLd()) }} />
       <LuxHero />
       <PlacesMarquee />
       <FeaturedShowcase />

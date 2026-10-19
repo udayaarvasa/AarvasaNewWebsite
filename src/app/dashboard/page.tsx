@@ -4,6 +4,7 @@ import { DashboardView } from "@/components/dashboard/dashboard-view"
 
 export const metadata = {
   title: "Dashboard | Aarvasa",
+  robots: { index: false, follow: true },
   description: "Manage your property portfolio and investments",
 }
 

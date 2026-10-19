@@ -7,6 +7,7 @@ import {
   type ProjectSplatMedia,
 } from "./project-types";
 import { reefProjects } from "./reef-projects";
+import { reef1000, reef999 } from "./reef-portfolio-additions";
 import { REEF_997_IMAGERY } from "./reef-997-imagery";
 import { REEF_998_IMAGERY } from "./reef-998-imagery";
 import {
@@ -458,6 +459,22 @@ const REEF_COORDINATES: Readonly<
     precision: "locality",
     source: "Third-party candidate, reconciled to Wadi Al Safa 5, which contains DLRC, by OpenStreetMap reverse geocode, 4 October 2026",
   },
+  /* 999 and 1000: the developer's own Google Maps place links on their project
+     pages, resolved 20 Oct 2026. A named place pin, not a surveyed plot, so
+     still locality precision. (The developer's pins for 996-998 fall within
+     ~60 m of the coordinates above, which corroborates them.) */
+  "reef-999-al-furjan": {
+    lat: 25.0180659,
+    lng: 55.1333461,
+    precision: "locality",
+    source: "Developer's Google Maps place 'REEF 999' linked from reefdevelopments.ae/projects/reef-999, resolved 20 October 2026",
+  },
+  "reef-1000-dlrc": {
+    lat: 25.0862283,
+    lng: 55.3800196,
+    precision: "locality",
+    source: "Developer's Google Maps place 'REEF 1000' linked from reefdevelopments.ae/projects/reef-1000, resolved 20 October 2026",
+  },
 };
 
 const PUBLISH_OVERRIDE: Readonly<Record<string, boolean>> = {
@@ -494,6 +511,8 @@ const attachIfApproved = <T extends { review: "placeholder" | "approved" }>(
 
 export const projects: Project[] = [
   ...reefProjects,
+  reef999,
+  reef1000,
   aaradhyamPearl,
   aaradhyamPrime,
 ].map((p) => ({

@@ -6,6 +6,7 @@ import { ArrowLeft } from "lucide-react"
 
 export const metadata = {
   title: "List a Property | Aarvasa",
+  robots: { index: false, follow: true },
   description: "Create a new property listing on Aarvasa",
 }
 

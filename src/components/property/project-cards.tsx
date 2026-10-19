@@ -73,7 +73,7 @@ export async function ProjectCards({ query = {} }: { query?: ProjectQuery } = {}
                   />
                 ) : (
                   <div className="absolute inset-0 flex items-end bg-[radial-gradient(circle_at_30%_20%,#4f060c,#110c0d_70%)] p-5">
-                    <span className="av-meta text-[10px] text-ink-muted">Not yet photographed</span>
+                    <span className="av-meta text-[10px] text-ink-muted">No image published</span>
                   </div>
                 )}
                 {!isPlanCover && cover && (
