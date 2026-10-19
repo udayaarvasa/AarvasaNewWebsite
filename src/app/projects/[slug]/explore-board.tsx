@@ -34,7 +34,7 @@ export function ExploreBoard({
           <h3 className="av-display text-[26px] font-normal leading-none text-ink">{projectName} in 3D</h3>
           <p className="mt-1 text-[13px] text-ink-muted">
             {view === "surroundings"
-              ? "The reconstruction standing on its site, among the real neighbourhood."
+              ? "The reconstruction among the real neighbourhood, at an approximate position."
               : "Orbit and zoom the reconstruction on its own."}
           </p>
         </div>
