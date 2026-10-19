@@ -252,7 +252,7 @@ export async function getUserFavorites(userId: string) {
     include: { property: { select: PROPERTY_SELECT } },
     orderBy: { createdAt: "desc" },
   });
-  return favs.filter((f: any) => !isHiddenListing(f.property.id)).map((f: any) => ({
+  return favs.filter((f: { property: { id: string } }) => !isHiddenListing(f.property.id)).map((f: any) => ({
     ...f.property,
     createdAt: f.property.createdAt.toISOString(),
     updatedAt: f.property.updatedAt.toISOString(),
