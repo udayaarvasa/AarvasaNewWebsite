@@ -41,11 +41,11 @@ test("each REEF property offers the 3D surroundings once a key is configured", (
 test("only REEF 998's validated model is approved for public release", () => {
   assert.deepEqual([...PUBLIC_MODEL_APPROVALS], ["reef-998-dlrc"]);
   const reef998 = getProject("reef-998-dlrc")!;
-  assert.equal(reef998.immersive?.contentHash, "0756752510fe54e4b41d325682bcb27461d68952df1f0de2dfa22fdea3958f7d");
+  assert.equal(reef998.immersive?.contentHash, "589b15693f0a2ef6db8a416dea3a2043b13a30860cc62649f091cd9a219ace20");
   assert.equal(reef998.immersive?.provenance, "AARVASA_RECONSTRUCTION");
   // Stood in the 3D surroundings at an approximate position: base on the ground
-  // (half its 100 m height), and the coordinate stays labelled locality precision.
-  assert.deepEqual(reef998.immersive?.mapOverlay, { baseOffsetMetres: 50 });
+  // (half its 88.5 m height), and the coordinate stays labelled locality precision.
+  assert.deepEqual(reef998.immersive?.mapOverlay, { baseOffsetMetres: 44.25 });
   assert.equal(reef998.coordinatesPrecision, "locality");
   // 996's reconstruction failed its recognition gate; 997 has none.
   assert.equal(getProject("reef-996-dubai-production-city")!.immersive, undefined);
@@ -59,7 +59,7 @@ test("the approved model is served from the production model CDN, never the dev 
   const cfg = projectViewerConfig(getProject("reef-998-dlrc")!, "production");
   assert.ok(cfg, "998 has a viewer in production");
   assert.equal(cfg.source.kind, "model");
-  assert.ok(cfg.source.url.endsWith("/m/3eecb8df7d61b40c456ee53d/0756752510fe54e4/scene.glb"));
+  assert.ok(cfg.source.url.endsWith("/m/3eecb8df7d61b40c456ee53d/589b15693f0a2ef6/scene.glb"));
   assert.equal(cfg.xr, null, "no AR/VR for a reconstruction");
   assert.equal(cfg.provenance?.label !== undefined, true, "labelled as a reconstruction");
 });

@@ -250,25 +250,30 @@ const SPLAT_BY_SLUG: Readonly<Record<string, ProjectSplatMedia>> = {
 };
 
 /**
- * REEF 998: Aarvasa's reference-based reconstruction of the tower, built from
- * the developer's supplied films and validated in the viewer lab (sha256
- * 0756752510fe54e4…, 1,132,676 bytes, 28,290 triangles; regenerated
- * byte-identically by tools/reef-998-massing.py). Approved for the project page
- * by Aarvasa on 19 Oct 2026 and served from the production model CDN
- * (PUBLIC_MODEL_ORIGIN), never from the repository. Labelled as an Aarvasa
- * reconstruction — not an official developer model — wherever it is shown.
+ * REEF 998: Aarvasa's reference-based reconstruction of the tower, v3 —
+ * tools/reef-998-massing-v3.py (sha256 589b15693f0a2ef6…, 1,135,668 bytes,
+ * 27,100 triangles): 20 residential floors over ground and a 3-level podium
+ * (brochure "3B + G + 3P + 20"), the 65 x 19.5 m typical floor plan and its
+ * separate balcony units. Approved by Aarvasa (Ansh Dubey) on 20 Oct 2026 to
+ * replace v1 and served from the production model CDN (PUBLIC_MODEL_ORIGIN),
+ * never from the repository. Labelled as an Aarvasa reconstruction — not an
+ * official developer model — wherever it is shown.
+ *
+ * Rollback: v1 (tools/reef-998-massing.py; sha256 0756752510fe54e4…,
+ * 1,132,676 bytes) stays on the CDN at m/3eecb8df7d61b40c456ee53d/0756752510fe54e4
+ * with baseOffsetMetres 50. Restore those three values to roll back.
  */
 const REEF_998_RECONSTRUCTION: ProjectImmersiveMedia = {
   mediaId: "3eecb8df7d61b40c456ee53d",
   kind: "MODEL",
   format: "GLB",
-  storageKey: "m/3eecb8df7d61b40c456ee53d/0756752510fe54e4",
+  storageKey: "m/3eecb8df7d61b40c456ee53d/589b15693f0a2ef6",
   entryFile: "scene.glb",
-  contentHash: "0756752510fe54e4b41d325682bcb27461d68952df1f0de2dfa22fdea3958f7d",
-  sizeBytes: 1_132_676,
+  contentHash: "589b15693f0a2ef6db8a416dea3a2043b13a30860cc62649f091cd9a219ace20",
+  sizeBytes: 1_135_668,
   poster: null,
   processingVersion: "1.0.0/passthrough-v1",
-  altText: "REEF 998, reconstructed by Aarvasa from the developer's films: the tower's massing, sunken balconies and podium. Not an official developer model.",
+  altText: "REEF 998, reconstructed by Aarvasa from the developer's renders and floor plans: the tower's massing, balconies and podium. Not an official developer model.",
   review: "approved",
   hosting: "site",
   provenance: "AARVASA_RECONSTRUCTION",
@@ -277,8 +282,9 @@ const REEF_998_RECONSTRUCTION: ProjectImmersiveMedia = {
      "approximate geographic placement" note beside it. The point is the
      community, not the plot: replace it with the developer's plot position,
      precision "plot", when that arrives.
-     ±5.0 units on Y at 1:10 → 100 m tall; half lifts the base to the ground. */
-  mapOverlay: { baseOffsetMetres: 50 },
+     88.5 m tall (v3) → half, 44.25 m, lifts the base to the ground (checked
+     visually against Google's terrain on 19 Oct 2026). */
+  mapOverlay: { baseOffsetMetres: 44.25 },
 };
 
 /**
@@ -344,8 +350,9 @@ const REEF_997_RECONSTRUCTION: ProjectImmersiveMedia = {
  * is approved and recorded here (slug, date, approver), and its file is on the
  * production model CDN — the GLBs are never in the public repository.
  *
- *   reef-998-dlrc — 19 Oct 2026, Aarvasa (Ansh Dubey). File sha256
- *     0756752510fe54e4…, validated in the viewer lab. Shown in the viewer and
+ *   reef-998-dlrc — 19 Oct 2026, Aarvasa (Ansh Dubey); v3 (sha256
+ *     589b15693f0a2ef6…) approved as its replacement on 20 Oct 2026 after the
+ *     final visual validation (v1 0756752510fe54e4… kept for rollback). Shown in the viewer and
  *     stood in the 3D surroundings at an approximate (locality-precision)
  *     position, labelled as such — see REEF_998_RECONSTRUCTION.
  *
