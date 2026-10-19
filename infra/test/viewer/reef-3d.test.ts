@@ -43,9 +43,9 @@ test("only REEF 998's validated model is approved for public release", () => {
   const reef998 = getProject("reef-998-dlrc")!;
   assert.equal(reef998.immersive?.contentHash, "0756752510fe54e4b41d325682bcb27461d68952df1f0de2dfa22fdea3958f7d");
   assert.equal(reef998.immersive?.provenance, "AARVASA_RECONSTRUCTION");
-  // Placement on the locality coordinate failed validation (it lands on a highway):
-  // no model is stood in the map until a plot-precision position exists.
-  assert.equal(reef998.immersive?.mapOverlay, undefined, "998 is not placed on the map");
+  // Stood in the 3D surroundings at an approximate position: base on the ground
+  // (half its 100 m height), and the coordinate stays labelled locality precision.
+  assert.deepEqual(reef998.immersive?.mapOverlay, { baseOffsetMetres: 50 });
   assert.equal(reef998.coordinatesPrecision, "locality");
   // 996's reconstruction failed its recognition gate; 997 has none.
   assert.equal(getProject("reef-996-dubai-production-city")!.immersive, undefined);

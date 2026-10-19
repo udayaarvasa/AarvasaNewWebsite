@@ -272,13 +272,13 @@ const REEF_998_RECONSTRUCTION: ProjectImmersiveMedia = {
   review: "approved",
   hosting: "site",
   provenance: "AARVASA_RECONSTRUCTION",
-  /* No map overlay. Placement validation, 19 Oct 2026: stood on the recorded
-     locality-precision coordinate, the tower lands in the middle of a multi-lane
-     highway interchange in Google's scene — a false statement about the site that
-     an "approximate" label cannot undo. The model is shown in the standalone
-     viewer only. Restore `mapOverlay: { baseOffsetMetres: 50 }` (±5.0 units on Y
-     at 1:10 → 100 m tall) once the developer's plot position is recorded with
-     precision "plot". */
+  /* Stood in Google's 3D surroundings on the locality-precision coordinate, as
+     approved by Aarvasa (Ansh Dubey, 19 Oct 2026) with the non-dismissible
+     "approximate geographic placement" note beside it. The point is the
+     community, not the plot: replace it with the developer's plot position,
+     precision "plot", when that arrives.
+     ±5.0 units on Y at 1:10 → 100 m tall; half lifts the base to the ground. */
+  mapOverlay: { baseOffsetMetres: 50 },
 };
 
 /**
@@ -314,9 +314,9 @@ const REEF_996_RECONSTRUCTION: ProjectImmersiveMedia = {
  * production model CDN — the GLBs are never in the public repository.
  *
  *   reef-998-dlrc — 19 Oct 2026, Aarvasa (Ansh Dubey). File sha256
- *     0756752510fe54e4…, validated in the viewer lab. Shown in the standalone
- *     viewer; NOT placed on the map (placement validation failed on the
- *     locality-precision coordinate — see REEF_998_RECONSTRUCTION).
+ *     0756752510fe54e4…, validated in the viewer lab. Shown in the viewer and
+ *     stood in the 3D surroundings at an approximate (locality-precision)
+ *     position, labelled as such — see REEF_998_RECONSTRUCTION.
  *
  * REEF 996 is NOT listed: its reconstruction last recorded a recognition-gate
  * FAIL (4 of 6 criteria; the balcony wave is not legible at default framing),
