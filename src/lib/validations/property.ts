@@ -7,6 +7,14 @@ export const PropertyTypeEnum = z.enum([
 export const RiskLevelEnum = z.enum(["LOW", "MODERATE", "BALANCED", "HIGH"]);
 export const PropertyStatusEnum = z.enum(["ACTIVE", "INACTIVE", "SOLD", "RENTED", "PENDING"]);
 
+/**
+ * What a lister may say about their own listing: its content, nothing about its
+ * standing. `status`, `verified` and `featured` are moderation decisions and are
+ * absent here on purpose; zod drops unknown keys, so a request that sends them
+ * has them stripped before it reaches the database. The server sets them
+ * (src/lib/listing-moderation.ts) and only an admin changes them afterwards
+ * (adminListingReviewSchema, via /api/admin/properties/[id]).
+ */
 export const createPropertySchema = z.object({
   title: z.string().min(5, "Title must be at least 5 characters").max(150),
   description: z.string().min(20, "Description must be at least 20 characters").max(2000),
@@ -22,14 +30,22 @@ export const createPropertySchema = z.object({
   roi: z.number().min(0).max(100).default(0),
   amenities: z.array(z.string()).default([]),
   images: z.array(z.string().url()).default([]),
-  featured: z.boolean().default(false),
   riskLevel: RiskLevelEnum.default("MODERATE"),
 });
 
-export const updatePropertySchema = createPropertySchema.partial().extend({
-  status: PropertyStatusEnum.optional(),
-  verified: z.boolean().optional(),
-});
+/** An owner's edit: content only, like creation. */
+export const updatePropertySchema = createPropertySchema.partial();
+
+/** An admin's review decision. At least one field, each validated. */
+export const adminListingReviewSchema = z
+  .object({
+    status: PropertyStatusEnum.optional(),
+    verified: z.boolean().optional(),
+    featured: z.boolean().optional(),
+  })
+  .refine((d) => d.status !== undefined || d.verified !== undefined || d.featured !== undefined, {
+    message: "Nothing to update",
+  });
 
 export const propertyFiltersSchema = z.object({
   city: z.string().optional(),

@@ -11,6 +11,9 @@ import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
 import toast from "react-hot-toast"
 import { MediaManager } from "@/components/admin/media-manager"
+import { PropertyStatusEnum } from "@/lib/validations/property"
+
+const LISTING_STATUSES = PropertyStatusEnum.options
 
 type Tab = "overview" | "users" | "properties" | "inquiries" | "media"
 
@@ -141,6 +144,29 @@ export function AdminPanel({ mediaEnabled = true }: { mediaEnabled?: boolean } =
           prev.map((p) => (p.id === propertyId ? { ...p, featured } : p))
         )
         toast.success(featured ? "Property featured" : "Feature removed")
+      }
+    } catch {
+      toast.error("Something went wrong")
+    }
+  }
+
+  /* Listings arrive PENDING; setting ACTIVE here is what approves one for the
+     public catalogue. This is the only route that changes a listing's status. */
+  const handleSetStatus = async (propertyId: string, status: string) => {
+    try {
+      const res = await fetch(`/api/admin/properties/${propertyId}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ status }),
+      })
+      const data = await res.json()
+      if (data.success) {
+        setProperties((prev) =>
+          prev.map((p) => (p.id === propertyId ? { ...p, status } : p))
+        )
+        toast.success(status === "ACTIVE" ? "Listing approved and public" : `Status set to ${status}`)
+      } else {
+        toast.error(data.error || "Failed")
       }
     } catch {
       toast.error("Something went wrong")
@@ -396,7 +422,9 @@ export function AdminPanel({ mediaEnabled = true }: { mediaEnabled?: boolean } =
             {tab === "properties" && (
               <div className="space-y-4">
                 <div className="flex items-center justify-between">
-                  <p className="text-sm text-ink-muted">{properties.length} properties total</p>
+                  <p className="text-sm text-ink-muted">
+                    {properties.length} properties total · {properties.filter((p) => p.status === "PENDING").length} awaiting review
+                  </p>
                 </div>
                 <Card className="overflow-hidden border-rule bg-paper-raised">
                   <div className="overflow-x-auto">
@@ -429,15 +457,24 @@ export function AdminPanel({ mediaEnabled = true }: { mediaEnabled?: boolean } =
                               {formatCurrency(p.price)}
                             </td>
                             <td className="px-5 py-4">
-                              <span className={`rounded-full px-2 py-0.5 text-[10px] font-bold uppercase ${
-                                p.status === "ACTIVE"
-                                  ? "bg-emerald-100 text-emerald-700"
-                                  : p.status === "SOLD"
-                                  ? "bg-blue-100 text-blue-700"
-                                  : "bg-paper-sunken text-ink-muted"
-                              }`}>
-                                {p.status}
-                              </span>
+                              <select
+                                aria-label={`Status of ${p.title}`}
+                                value={p.status}
+                                onChange={(e) => handleSetStatus(p.id, e.target.value)}
+                                className={`rounded-full px-2 py-0.5 text-[10px] font-bold uppercase outline-none ${
+                                  p.status === "ACTIVE"
+                                    ? "bg-emerald-100 text-emerald-700"
+                                    : p.status === "PENDING"
+                                    ? "bg-amber-100 text-amber-700"
+                                    : p.status === "SOLD"
+                                    ? "bg-blue-100 text-blue-700"
+                                    : "bg-paper-sunken text-ink-muted"
+                                }`}
+                              >
+                                {LISTING_STATUSES.map((s) => (
+                                  <option key={s} value={s}>{s === "ACTIVE" ? "ACTIVE (public)" : s}</option>
+                                ))}
+                              </select>
                             </td>
                             <td className="px-5 py-4">
                               <button

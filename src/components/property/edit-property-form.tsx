@@ -29,14 +29,6 @@ const RISK_LEVELS = [
   { value: "HIGH", label: "High" },
 ]
 
-const STATUS_OPTIONS = [
-  { value: "ACTIVE", label: "Active" },
-  { value: "INACTIVE", label: "Inactive" },
-  { value: "SOLD", label: "Sold" },
-  { value: "RENTED", label: "Rented" },
-  { value: "PENDING", label: "Pending" },
-]
-
 const AMENITIES_OPTIONS = [
   "Swimming Pool", "Gym", "Parking", "Garden", "Security", "Club House",
   "Power Backup", "Elevator", "Smart Home", "Terrace", "Balcony", "Fireplace",
@@ -89,9 +81,7 @@ export function EditPropertyForm({ propertyId }: EditPropertyFormProps) {
             bathrooms: p.bathrooms,
             area: p.area,
             roi: p.roi,
-            featured: p.featured,
             riskLevel: p.riskLevel,
-            status: p.status,
           })
           setImages(p.images || [])
           setSelectedAmenities(p.amenities || [])
@@ -120,7 +110,7 @@ export function EditPropertyForm({ propertyId }: EditPropertyFormProps) {
       })
       const result = await res.json()
       if (result.success) {
-        toast.success("Property updated successfully!")
+        toast.success("Saved. The listing is back in review until an admin approves it.")
         router.push("/dashboard")
       } else {
         toast.error(typeof result.error === "string" ? result.error : "Update failed")
@@ -181,12 +171,6 @@ export function EditPropertyForm({ propertyId }: EditPropertyFormProps) {
                 <label className={labelClass}>Property Type *</label>
                 <select {...register("propertyType")} className={inputClass}>
                   {PROPERTY_TYPES.map((t) => <option key={t.value} value={t.value}>{t.label}</option>)}
-                </select>
-              </div>
-              <div>
-                <label className={labelClass}>Status</label>
-                <select {...register("status")} className={inputClass}>
-                  {STATUS_OPTIONS.map((s) => <option key={s.value} value={s.value}>{s.label}</option>)}
                 </select>
               </div>
               <div>

@@ -1,10 +1,11 @@
 import { NextResponse } from "next/server"
 import { auth } from "@/auth"
 import { prisma } from "@/lib/prisma"
+import { adminListingReviewSchema } from "@/lib/validations/property"
 
 type Params = { params: Promise<{ id: string }> }
 
-// PATCH /api/admin/properties/[id] — verify/feature/remove property (admin only)
+// PATCH /api/admin/properties/[id] — approve/verify/feature a property (admin only)
 export async function PATCH(req: Request, { params }: Params) {
   try {
     const session = await auth()
@@ -15,17 +16,15 @@ export async function PATCH(req: Request, { params }: Params) {
       return NextResponse.json({ success: false, error: "Forbidden" }, { status: 403 })
 
     const { id } = await params
-    const body = await req.json()
-
-    // Admin can toggle verified, featured, and status
-    const data: Record<string, any> = {}
-    if (typeof body.verified === "boolean") data.verified = body.verified
-    if (typeof body.featured === "boolean") data.featured = body.featured
-    if (body.status) data.status = body.status
+    // The only place a listing's status, verification or featuring changes —
+    // including approving a PENDING listing by setting it ACTIVE.
+    const parsed = adminListingReviewSchema.safeParse(await req.json())
+    if (!parsed.success)
+      return NextResponse.json({ success: false, error: "Invalid data" }, { status: 400 })
 
     const updated = await prisma.property.update({
       where: { id },
-      data,
+      data: parsed.data,
       select: {
         id: true,
         title: true,

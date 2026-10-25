@@ -54,7 +54,6 @@ export function CreatePropertyForm() {
       bedrooms: 0,
       bathrooms: 0,
       roi: 0,
-      featured: false,
       riskLevel: "MODERATE",
     },
   })
@@ -70,7 +69,7 @@ export function CreatePropertyForm() {
       })
       const result = await res.json()
       if (result.success) {
-        toast.success("Property created successfully!")
+        toast.success("Submitted for review. It goes live once an admin approves it.")
         router.push("/dashboard")
       } else {
         toast.error(typeof result.error === "string" ? result.error : "Validation error")

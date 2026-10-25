@@ -223,7 +223,7 @@ export function DashboardView({ userName, userRole }: { userName: string; userRo
                             {p.roi > 0 && <span className="text-emerald-600">{p.roi}% ROI</span>}
                             <span className={`rounded-full px-2 py-0.5 text-[10px] font-bold uppercase ${
                               p.status === "ACTIVE" ? "bg-emerald-100 text-emerald-700" : "bg-paper-sunken text-ink-muted"
-                            }`}>{p.status}</span>
+                            }`}>{p.status === "PENDING" ? "In review" : p.status}</span>
                           </div>
                         </div>
                         <div className="flex gap-2">

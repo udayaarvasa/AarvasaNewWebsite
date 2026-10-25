@@ -1,6 +1,7 @@
 // @ts-ignore
 import { prisma } from "@/lib/prisma";
 import { isPubliclyVisible, isHiddenListing, publicListingWhere } from "@/lib/listing-visibility";
+import { listingEditData, newListingData } from "@/lib/listing-moderation";
 import type { PropertyFilters, CreatePropertyInput, UpdatePropertyInput } from "@/lib/validations/property";
 import {
   PRIVILEGED_OWNER_SELECT,
@@ -168,9 +169,10 @@ export async function getPropertyById(
 
 // ─── Create property ────────────────────────────────────────────────────────
 
+/** A new listing waits for an admin: PENDING, unverified, unfeatured (see listing-moderation). */
 export async function createProperty(data: CreatePropertyInput, ownerId: string) {
   const property = await prisma.property.create({
-    data: { ...data, ownerId },
+    data: newListingData(data, ownerId),
     select: PROPERTY_SELECT,
   });
   return {
@@ -188,9 +190,10 @@ export async function updateProperty(id: string, data: UpdatePropertyInput, requ
   if (existing.ownerId !== requesterId && requesterRole !== "ADMIN")
     return { error: "Forbidden", status: 403 };
 
+  // An owner's edit goes back to review; an admin's keeps the listing's standing.
   const property = await prisma.property.update({
     where: { id },
-    data,
+    data: listingEditData(data, requesterRole),
     select: PROPERTY_SELECT,
   });
   return {
