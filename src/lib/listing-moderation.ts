@@ -57,3 +57,28 @@ export function listingEditData<T extends object>(
   const content = contentOnly(input);
   return requesterRole === "ADMIN" ? content : { ...content, ...OWNER_EDIT_MODERATION };
 }
+
+type ListingStatus = "ACTIVE" | "INACTIVE" | "SOLD" | "RENTED" | "PENDING";
+export type OwnerListingAction = "withdraw" | "mark_sold" | "mark_rented" | "resubmit";
+
+/**
+ * The status changes an owner may make without an admin, and from which states.
+ *
+ * None leads to ACTIVE: going public is always an admin's approval. A listing an
+ * admin rejected (INACTIVE) can be resubmitted, which only puts it back in the
+ * review queue; it does not publish it.
+ */
+export const OWNER_TRANSITIONS: Readonly<
+  Record<OwnerListingAction, { readonly from: readonly ListingStatus[]; readonly to: ListingStatus }>
+> = {
+  withdraw: { from: ["PENDING", "ACTIVE"], to: "INACTIVE" },
+  mark_sold: { from: ["ACTIVE"], to: "SOLD" },
+  mark_rented: { from: ["ACTIVE"], to: "RENTED" },
+  resubmit: { from: ["INACTIVE"], to: "PENDING" },
+};
+
+/** The status an owner's action leads to, or null when it is not allowed from `current`. */
+export function ownerTransition(action: OwnerListingAction, current: string): ListingStatus | null {
+  const rule = OWNER_TRANSITIONS[action];
+  return rule && (rule.from as readonly string[]).includes(current) ? rule.to : null;
+}

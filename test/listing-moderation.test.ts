@@ -6,11 +6,12 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 
-import { listingEditData, newListingData, NEW_LISTING_MODERATION } from "../src/lib/listing-moderation.ts";
+import { listingEditData, newListingData, NEW_LISTING_MODERATION, OWNER_TRANSITIONS, ownerTransition } from "../src/lib/listing-moderation.ts";
 import { isPubliclyVisible } from "../src/lib/listing-visibility.ts";
 import {
   adminListingReviewSchema,
   createPropertySchema,
+  ownerListingActionSchema,
   updatePropertySchema,
 } from "../src/lib/validations/property.ts";
 
@@ -117,4 +118,37 @@ test("signed-in checks require a user id, not just a session object", async () =
     const src = await readFile(new URL(`../src/app/${page}`, import.meta.url), "utf8");
     assert.doesNotMatch(src, /if \(!session\) redirect/, page);
   }
+});
+
+test("a partial edit changes only the fields sent — no defaults fill in the rest", () => {
+  assert.deepEqual(updatePropertySchema.parse({ title: "Only the title changes" }), { title: "Only the title changes" });
+  assert.deepEqual(updatePropertySchema.parse({}), {});
+  // Creation still applies its defaults.
+  const created = createPropertySchema.parse(listing);
+  assert.deepEqual([created.bedrooms, created.images, created.amenities, created.country], [0, [], [], "India"]);
+});
+
+test("no owner action leads to ACTIVE, and each is allowed only from its states", () => {
+  for (const [action, rule] of Object.entries(OWNER_TRANSITIONS)) assert.notEqual(rule.to, "ACTIVE", action);
+  const all = ["ACTIVE", "INACTIVE", "SOLD", "RENTED", "PENDING"];
+  const allowed: Record<string, Record<string, string>> = {
+    withdraw: { PENDING: "INACTIVE", ACTIVE: "INACTIVE" },
+    mark_sold: { ACTIVE: "SOLD" },
+    mark_rented: { ACTIVE: "RENTED" },
+    resubmit: { INACTIVE: "PENDING" },
+  };
+  for (const action of Object.keys(allowed) as (keyof typeof OWNER_TRANSITIONS)[]) {
+    for (const from of all) assert.equal(ownerTransition(action, from), allowed[action][from] ?? null, `${action} from ${from}`);
+  }
+  assert.equal(ownerListingActionSchema.safeParse({ action: "approve" }).success, false);
+  assert.equal(ownerListingActionSchema.safeParse({ action: "withdraw", status: "ACTIVE" }).data?.action, "withdraw");
+});
+
+test("the owner status route is owner-only and race-safe", async () => {
+  const svc = await readFile(new URL("../src/lib/services/property.service.ts", import.meta.url), "utf8");
+  assert.match(svc, /if \(existing\.ownerId !== requesterId\) return \{ error: "Forbidden", status: 403 \};/);
+  assert.match(svc, /where: \{ id, ownerId: requesterId, status: existing\.status \}/);
+  const route = await readFile(new URL("../src/app/api/properties/[id]/status/route.ts", import.meta.url), "utf8");
+  assert.match(route, /ownerListingActionSchema\.safeParse/);
+  assert.match(route, /changeListingStatus\(id, parsed\.data\.action, user\.id\)/);
 });

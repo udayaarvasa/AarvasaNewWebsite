@@ -175,4 +175,34 @@ await step("signed-out visitors are sent to sign-in; the ledger endpoints are go
   assert.equal((await api("/api/blockchain/transaction", { method: "POST", body: {} })).status, 410);
 });
 
+await step("a partial edit leaves every field it did not send untouched", async () => {
+  const before = sql(`select bedrooms || ',' || bathrooms || ',' || array_length(amenities,1) || ',' || array_length(images,1) || ',' || country from "Property" where id = '${id}'`);
+  sql(`update "Property" set bedrooms = 3, bathrooms = 2, amenities = '{Gym,Parking}', images = '{https://example.test/a.jpg}', country = 'UAE' where id = '${id}'`);
+  const r = await api(`/api/properties/${id}`, { method: "PATCH", token: owner.token, body: { title: `E2E title-only edit ${run}` } });
+  assert.equal(r.status, 200);
+  assert.equal(sql(`select bedrooms || ',' || bathrooms || ',' || array_to_string(amenities,'|') || ',' || array_to_string(images,'|') || ',' || country from "Property" where id = '${id}'`),
+    "3,2,Gym|Parking,https://example.test/a.jpg,UAE", `was ${before}`);
+});
+
+await step("owner transitions: withdraw, resubmit, sold — never approve; others and admins-by-token refused", async () => {
+  sql(`update "User" set role = 'ADMIN' where id = '${admin.id}'`); // restored for this step
+  const act = (action, who = owner) => api(`/api/properties/${id}/status`, { method: "POST", token: who.token, body: { action } });
+  assert.equal(sql(`select status from "Property" where id = '${id}'`), "PENDING");
+  assert.equal((await act("mark_sold")).status, 409, "cannot sell what is not live");
+  assert.equal((await act("approve")).status, 400, "no approve action exists");
+  assert.equal((await act("withdraw", other)).status, 403, "only the owner");
+  assert.equal((await act("withdraw")).json.data.status, "INACTIVE");
+  assert.equal((await act("resubmit")).json.data.status, "PENDING");
+  assert.equal(await publicTotal(), 0, "resubmitting does not publish");
+  // Admin rejects (INACTIVE), owner resubmits, admin approves, owner marks sold.
+  assert.equal((await api(`/api/admin/properties/${id}`, { method: "PATCH", cookie: adminCookie, body: { status: "INACTIVE" } })).status, 200);
+  assert.equal((await act("resubmit")).json.data.status, "PENDING");
+  assert.equal((await api(`/api/admin/properties/${id}`, { method: "PATCH", cookie: adminCookie, body: { status: "ACTIVE" } })).status, 200);
+  assert.equal(await publicTotal(), 1);
+  assert.equal((await act("resubmit")).status, 409, "a live listing is not resubmitted");
+  assert.equal((await act("mark_sold")).json.data.status, "SOLD");
+  assert.equal(await publicTotal(), 0, "a sold listing leaves the catalogue");
+  assert.equal((await api(`/api/properties/${id}`)).status, 404);
+});
+
 console.log(`${passed} steps passed`);

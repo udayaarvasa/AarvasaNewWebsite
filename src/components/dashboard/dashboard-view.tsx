@@ -13,6 +13,14 @@ import { DbPropertyCard } from "@/components/property/db-property-card"
 import type { PropertyListing } from "@/types/property"
 import toast from "react-hot-toast"
 import { currencyForCountry, formatCurrency } from "@/lib/currency"
+import { OWNER_TRANSITIONS, type OwnerListingAction } from "@/lib/listing-moderation"
+
+const ACTION_LABEL: Record<OwnerListingAction, string> = {
+  withdraw: "Withdraw",
+  mark_sold: "Mark sold",
+  mark_rented: "Mark rented",
+  resubmit: "Resubmit for review",
+}
 
 type Tab = "overview" | "properties" | "favorites" | "account"
 
@@ -64,6 +72,27 @@ export function DashboardView({ userName, userRole }: { userName: string; userRo
         toast.success("Property deleted")
       } else {
         toast.error(data.error || "Delete failed")
+      }
+    } catch {
+      toast.error("Something went wrong")
+    }
+  }
+
+  /* An owner's own status changes. The server enforces OWNER_TRANSITIONS; the
+     buttons only offer what it would accept. */
+  const handleStatusAction = async (id: string, action: OwnerListingAction) => {
+    try {
+      const res = await fetch(`/api/properties/${id}/status`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action }),
+      })
+      const data = await res.json()
+      if (data.success) {
+        setMyProperties((prev) => prev.map((p) => (p.id === id ? { ...p, status: data.data.status } : p)))
+        toast.success(action === "resubmit" ? "Sent back for review" : "Listing updated")
+      } else {
+        toast.error(data.error || "Update failed")
       }
     } catch {
       toast.error("Something went wrong")
@@ -226,7 +255,14 @@ export function DashboardView({ userName, userRole }: { userName: string; userRo
                             }`}>{p.status === "PENDING" ? "In review" : p.status}</span>
                           </div>
                         </div>
-                        <div className="flex gap-2">
+                        <div className="flex flex-wrap gap-2">
+                          {(Object.keys(OWNER_TRANSITIONS) as OwnerListingAction[])
+                            .filter((a) => (OWNER_TRANSITIONS[a].from as readonly string[]).includes(p.status))
+                            .map((a) => (
+                              <Button key={a} variant="outline" size="sm" className="rounded-lg text-xs" onClick={() => handleStatusAction(p.id, a)}>
+                                {ACTION_LABEL[a]}
+                              </Button>
+                            ))}
                           <Button asChild variant="outline" size="sm" className="gap-1 rounded-lg text-xs">
                             <Link href={`/properties/edit/${p.id}`}><Edit className="h-3 w-3" /> Edit</Link>
                           </Button>

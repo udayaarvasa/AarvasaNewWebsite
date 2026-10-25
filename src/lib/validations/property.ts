@@ -15,26 +15,54 @@ export const PropertyStatusEnum = z.enum(["ACTIVE", "INACTIVE", "SOLD", "RENTED"
  * (src/lib/listing-moderation.ts) and only an admin changes them afterwards
  * (adminListingReviewSchema, via /api/admin/properties/[id]).
  */
-export const createPropertySchema = z.object({
+/** The listing's content fields, with no defaults (see updatePropertySchema). */
+const listingFields = {
   title: z.string().min(5, "Title must be at least 5 characters").max(150),
   description: z.string().min(20, "Description must be at least 20 characters").max(2000),
   price: z.number().positive("Price must be positive").max(1_000_000_000),
   location: z.string().min(3, "Location is required").max(200),
   city: z.string().min(2, "City is required").max(100),
   state: z.string().min(2, "State is required").max(100),
-  country: z.string().default("India"),
+  country: z.string(),
   propertyType: PropertyTypeEnum,
-  bedrooms: z.number().int().min(0).max(50).default(0),
-  bathrooms: z.number().int().min(0).max(50).default(0),
+  bedrooms: z.number().int().min(0).max(50),
+  bathrooms: z.number().int().min(0).max(50),
   area: z.number().positive("Area must be positive").max(1_000_000),
-  roi: z.number().min(0).max(100).default(0),
-  amenities: z.array(z.string()).default([]),
-  images: z.array(z.string().url()).default([]),
-  riskLevel: RiskLevelEnum.default("MODERATE"),
+  roi: z.number().min(0).max(100),
+  amenities: z.array(z.string()),
+  images: z.array(z.string().url()),
+  riskLevel: RiskLevelEnum,
+};
+
+export const createPropertySchema = z.object({
+  ...listingFields,
+  country: listingFields.country.default("India"),
+  bedrooms: listingFields.bedrooms.default(0),
+  bathrooms: listingFields.bathrooms.default(0),
+  roi: listingFields.roi.default(0),
+  amenities: listingFields.amenities.default([]),
+  images: listingFields.images.default([]),
+  riskLevel: listingFields.riskLevel.default("MODERATE"),
 });
 
-/** An owner's edit: content only, like creation. */
-export const updatePropertySchema = createPropertySchema.partial();
+/**
+ * An owner's edit: content only, like creation, and only the fields sent.
+ *
+ * Built from the fields WITHOUT their defaults. In zod 4 a default still
+ * applies inside .partial(), so createPropertySchema.partial() turned a
+ * title-only edit into one that also reset images, amenities, bedrooms,
+ * bathrooms, ROI, country and risk level — silently, for any client that did
+ * not resend every field.
+ */
+export const updatePropertySchema = z.object(listingFields).partial();
+
+/**
+ * Status changes an owner may make themselves, each from specific states only
+ * (see src/lib/listing-moderation.ts). Approval is never one of them.
+ */
+export const ownerListingActionSchema = z.object({
+  action: z.enum(["withdraw", "mark_sold", "mark_rented", "resubmit"]),
+});
 
 /** An admin's review decision. At least one field, each validated. */
 export const adminListingReviewSchema = z
@@ -73,5 +101,6 @@ export const inquirySchema = z.object({
 
 export type CreatePropertyInput = z.input<typeof createPropertySchema>;
 export type UpdatePropertyInput = z.input<typeof updatePropertySchema>;
+export type OwnerListingAction = z.infer<typeof ownerListingActionSchema>["action"];
 export type PropertyFilters = z.input<typeof propertyFiltersSchema>;
 export type InquiryInput = z.input<typeof inquirySchema>;

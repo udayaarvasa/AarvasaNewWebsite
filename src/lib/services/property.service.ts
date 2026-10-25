@@ -1,7 +1,7 @@
 // @ts-ignore
 import { prisma } from "@/lib/prisma";
 import { isPubliclyVisible, publicListingWhere } from "@/lib/listing-visibility";
-import { listingEditData, newListingData } from "@/lib/listing-moderation";
+import { listingEditData, newListingData, ownerTransition, type OwnerListingAction } from "@/lib/listing-moderation";
 import type { PropertyFilters, CreatePropertyInput, UpdatePropertyInput } from "@/lib/validations/property";
 import {
   PRIVILEGED_OWNER_SELECT,
@@ -203,6 +203,30 @@ export async function updateProperty(id: string, data: UpdatePropertyInput, requ
       updatedAt: property.updatedAt.toISOString(),
     },
   };
+}
+
+// ─── Owner status change ────────────────────────────────────────────────────
+
+/**
+ * Withdraw, mark sold or rented, or resubmit for review — the owner's own
+ * listing only, and only along OWNER_TRANSITIONS. Admins use the admin route.
+ * The update is conditional on the status read, so a concurrent admin decision
+ * is not overwritten.
+ */
+export async function changeListingStatus(id: string, action: OwnerListingAction, requesterId: string) {
+  const existing = await prisma.property.findUnique({ where: { id }, select: { ownerId: true, status: true } });
+  if (!existing) return { error: "Property not found", status: 404 };
+  if (existing.ownerId !== requesterId) return { error: "Forbidden", status: 403 };
+
+  const next = ownerTransition(action, existing.status);
+  if (!next) return { error: `Cannot ${action.replace("_", " ")} a listing that is ${existing.status}`, status: 409 };
+
+  const { count } = await prisma.property.updateMany({
+    where: { id, ownerId: requesterId, status: existing.status },
+    data: { status: next },
+  });
+  if (count !== 1) return { error: "The listing changed meanwhile; reload and try again", status: 409 };
+  return { data: { id, status: next } };
 }
 
 // ─── Delete property ────────────────────────────────────────────────────────
