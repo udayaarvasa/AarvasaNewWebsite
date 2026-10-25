@@ -47,6 +47,10 @@ const nextConfig: NextConfig = {
   // Framework and version disclosure serves no one but an attacker fingerprinting
   // the stack for known advisories.
   poweredByHeader: false,
+  /* A self-contained server bundle for the container runtime that will reach the
+     database privately (Dockerfile, docs/private-database-runbook.md). Off unless
+     asked for, so the Amplify build is unchanged. */
+  ...(process.env.NEXT_OUTPUT === "standalone" ? { output: "standalone" as const } : {}),
   images: {
     remotePatterns: [
       {

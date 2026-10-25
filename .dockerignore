@@ -1,0 +1,13 @@
+.git
+.next
+node_modules
+.env*
+research
+media-pilot/.staging
+infra/cdk.out
+infra/dist
+infra/dist-bundle
+infra/node_modules
+test
+tools
+*.zip
