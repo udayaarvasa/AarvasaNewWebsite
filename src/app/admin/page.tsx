@@ -11,7 +11,7 @@ export const metadata = {
 
 export default async function AdminPage() {
   const session = await auth()
-  if (!session) redirect("/login?callbackUrl=/admin")
+  if (!session?.user?.id) redirect("/login?callbackUrl=/admin")
 
   // Double-check role server-side (middleware also guards this)
   if ((session.user as any).role !== "ADMIN") {

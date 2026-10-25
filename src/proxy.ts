@@ -25,7 +25,9 @@ const privateResponse = (res: NextResponse) => {
 
 export const proxy = auth((req) => {
   const { nextUrl } = req
-  const isLoggedIn = !!req.auth
+  /* A user id, not merely a populated auth object: Auth.js can populate it with
+     an error on a configuration fault, and an existence check would then pass. */
+  const isLoggedIn = !!req.auth?.user?.id
   const userRole = (req.auth?.user as any)?.role || "USER"
   
   const isProtectedRoute = protectedRoutes.some((route) => 

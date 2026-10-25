@@ -1,16 +1,12 @@
 import { NextResponse } from "next/server"
-import { auth } from "@/auth"
 import { prisma } from "@/lib/prisma"
+import { requireAdmin } from "@/lib/admin-guard"
 
 // GET /api/admin/stats — platform-wide statistics (admin only)
 export async function GET() {
   try {
-    const session = await auth()
-    if (!session?.user?.id)
-      return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 })
-
-    if ((session.user as any).role !== "ADMIN")
-      return NextResponse.json({ success: false, error: "Forbidden" }, { status: 403 })
+    const admin = await requireAdmin()
+    if (!admin.ok) return admin.response
 
     const [
       totalUsers,

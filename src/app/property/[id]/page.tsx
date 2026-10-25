@@ -177,7 +177,7 @@ export default async function PropertyDetailPage({
           <div>
             <p className="text-xs uppercase tracking-[0.14em] text-ink-muted">Status</p>
             <p className="text-2xl font-bold text-emerald-600">
-              {property.status === "ACTIVE" ? "Active" : property.status}
+              {property.status === "ACTIVE" ? "Active" : property.status === "PENDING" ? "In review" : property.status}
             </p>
           </div>
         </div>

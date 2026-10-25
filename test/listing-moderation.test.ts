@@ -81,5 +81,40 @@ test("the service and routes use the moderation rule", async () => {
 
   const adminRoute = await readFile(new URL("../src/app/api/admin/properties/[id]/route.ts", import.meta.url), "utf8");
   assert.match(adminRoute, /adminListingReviewSchema\.safeParse/);
-  assert.match(adminRoute, /role !== "ADMIN"/);
+  assert.match(adminRoute, /const admin = await requireAdmin\(\)\n\s*if \(!admin\.ok\) return admin\.response/);
+});
+
+test("every admin API checks the role in the database, not the token", async () => {
+  const guard = await readFile(new URL("../src/lib/admin-guard.ts", import.meta.url), "utf8");
+  assert.match(guard, /prisma\.user\.findUnique\(\{ where: \{ id: userId \}, select: \{ role: true \} \}\)/);
+  assert.match(guard, /if \(user\?\.role !== "ADMIN"\)/);
+  for (const route of ["properties/route.ts", "properties/[id]/route.ts", "users/route.ts", "users/[id]/route.ts", "stats/route.ts"]) {
+    const src = await readFile(new URL(`../src/app/api/admin/${route}`, import.meta.url), "utf8");
+    const handlers = src.match(/export async function (GET|POST|PATCH|DELETE)/g) ?? [];
+    const guarded = src.match(/const admin = await requireAdmin\(\)\n\s*if \(!admin\.ok\) return admin\.response/g) ?? [];
+    assert.ok(handlers.length > 0, route);
+    assert.equal(guarded.length, handlers.length, `${route}: every handler is guarded`);
+    assert.doesNotMatch(src, /session\.user as any\)\.role/, `${route}: no token-role check`);
+  }
+});
+
+test("an admin cannot remove their own admin role", async () => {
+  const src = await readFile(new URL("../src/app/api/admin/users/[id]/route.ts", import.meta.url), "utf8");
+  assert.match(src, /if \(id === admin\.userId && parsed\.data\.role && parsed\.data\.role !== "ADMIN"\)/);
+});
+
+test("favourites cannot reach a non-public listing or its owner's private fields", async () => {
+  const svc = await readFile(new URL("../src/lib/services/property.service.ts", import.meta.url), "utf8");
+  assert.match(svc, /where: \{ userId, property: publicListingWhere\(\) \}/);
+  assert.match(svc, /include: \{ property: \{ select: PUBLIC_PROPERTY_SELECT \} \}/);
+  assert.match(svc, /if \(!listing \|\| !isPubliclyVisible\(listing\)\) return null;\n\s*await prisma\.favorite\.create/);
+});
+
+test("signed-in checks require a user id, not just a session object", async () => {
+  const proxy = await readFile(new URL("../src/proxy.ts", import.meta.url), "utf8");
+  assert.match(proxy, /const isLoggedIn = !!req\.auth\?\.user\?\.id/);
+  for (const page of ["admin/page.tsx", "dashboard/page.tsx", "properties/create/page.tsx", "properties/edit/[id]/page.tsx"]) {
+    const src = await readFile(new URL(`../src/app/${page}`, import.meta.url), "utf8");
+    assert.doesNotMatch(src, /if \(!session\) redirect/, page);
+  }
 });

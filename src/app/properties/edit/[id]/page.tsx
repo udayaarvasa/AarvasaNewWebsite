@@ -14,7 +14,7 @@ export default async function EditPropertyPage({
   params: Promise<{ id: string }>
 }) {
   const session = await auth()
-  if (!session) redirect("/login?callbackUrl=/dashboard")
+  if (!session?.user?.id) redirect("/login?callbackUrl=/dashboard")
 
   const { id } = await params
 

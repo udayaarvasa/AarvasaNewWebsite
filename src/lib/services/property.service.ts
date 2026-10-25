@@ -1,6 +1,6 @@
 // @ts-ignore
 import { prisma } from "@/lib/prisma";
-import { isPubliclyVisible, isHiddenListing, publicListingWhere } from "@/lib/listing-visibility";
+import { isPubliclyVisible, publicListingWhere } from "@/lib/listing-visibility";
 import { listingEditData, newListingData } from "@/lib/listing-moderation";
 import type { PropertyFilters, CreatePropertyInput, UpdatePropertyInput } from "@/lib/validations/property";
 import {
@@ -234,6 +234,8 @@ export async function getUserProperties(ownerId: string) {
 
 // ─── Toggle favorite ────────────────────────────────────────────────────────
 
+/** Returns null when the listing is not publicly visible: a pending, inactive or
+ *  hidden listing cannot be saved. Removing an existing save is always allowed. */
 export async function toggleFavorite(userId: string, propertyId: string) {
   const existing = await prisma.favorite.findUnique({
     where: { userId_propertyId: { userId, propertyId } },
@@ -243,24 +245,34 @@ export async function toggleFavorite(userId: string, propertyId: string) {
     await prisma.favorite.delete({ where: { id: existing.id } });
     return { isFavorited: false };
   }
+  const listing = await prisma.property.findUnique({ where: { id: propertyId }, select: { id: true, status: true } });
+  if (!listing || !isPubliclyVisible(listing)) return null;
   await prisma.favorite.create({ data: { userId, propertyId } });
   return { isFavorited: true };
 }
 
 // ─── Get user favorites ─────────────────────────────────────────────────────
 
+/**
+ * Saved listings, in the public projection: a saved listing is someone else's,
+ * so its owner's email, id and internal scoring are not the saver's to read.
+ * Listings no longer public (pending, inactive, hidden) drop out; the save
+ * itself is kept and reappears if the listing is approved again.
+ */
 export async function getUserFavorites(userId: string) {
   const favs = await prisma.favorite.findMany({
-    where: { userId },
-    include: { property: { select: PROPERTY_SELECT } },
+    where: { userId, property: publicListingWhere() },
+    include: { property: { select: PUBLIC_PROPERTY_SELECT } },
     orderBy: { createdAt: "desc" },
   });
-  return favs.filter((f: { property: { id: string } }) => !isHiddenListing(f.property.id)).map((f: any) => ({
-    ...f.property,
-    createdAt: f.property.createdAt.toISOString(),
-    updatedAt: f.property.updatedAt.toISOString(),
-    isFavorited: true,
-  }));
+  return favs.map((f: any) =>
+    toPublicProperty({
+      ...f.property,
+      createdAt: f.property.createdAt.toISOString(),
+      updatedAt: f.property.updatedAt.toISOString(),
+      isFavorited: true,
+    }),
+  );
 }
 
 // ─── Create inquiry ─────────────────────────────────────────────────────────

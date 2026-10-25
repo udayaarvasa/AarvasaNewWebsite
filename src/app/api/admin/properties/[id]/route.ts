@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server"
-import { auth } from "@/auth"
 import { prisma } from "@/lib/prisma"
+import { requireAdmin } from "@/lib/admin-guard"
 import { adminListingReviewSchema } from "@/lib/validations/property"
 
 type Params = { params: Promise<{ id: string }> }
@@ -8,12 +8,8 @@ type Params = { params: Promise<{ id: string }> }
 // PATCH /api/admin/properties/[id] — approve/verify/feature a property (admin only)
 export async function PATCH(req: Request, { params }: Params) {
   try {
-    const session = await auth()
-    if (!session?.user?.id)
-      return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 })
-
-    if ((session.user as any).role !== "ADMIN")
-      return NextResponse.json({ success: false, error: "Forbidden" }, { status: 403 })
+    const admin = await requireAdmin()
+    if (!admin.ok) return admin.response
 
     const { id } = await params
     // The only place a listing's status, verification or featuring changes —
@@ -44,12 +40,8 @@ export async function PATCH(req: Request, { params }: Params) {
 // DELETE /api/admin/properties/[id] — force-remove property (admin only)
 export async function DELETE(_req: Request, { params }: Params) {
   try {
-    const session = await auth()
-    if (!session?.user?.id)
-      return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 })
-
-    if ((session.user as any).role !== "ADMIN")
-      return NextResponse.json({ success: false, error: "Forbidden" }, { status: 403 })
+    const admin = await requireAdmin()
+    if (!admin.ok) return admin.response
 
     const { id } = await params
     await prisma.property.delete({ where: { id } })

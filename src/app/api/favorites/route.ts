@@ -33,6 +33,8 @@ export async function POST(req: Request) {
       return NextResponse.json({ success: false, error: "Invalid property ID" }, { status: 400 })
 
     const result = await toggleFavorite(user.id, parsed.data.propertyId)
+    if (!result)
+      return NextResponse.json({ success: false, error: "Property not found" }, { status: 404 })
     return NextResponse.json({ success: true, ...result })
   } catch (err) {
     console.error("[POST /api/favorites]", err)

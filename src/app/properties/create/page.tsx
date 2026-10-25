@@ -12,7 +12,7 @@ export const metadata = {
 
 export default async function CreatePropertyPage() {
   const session = await auth()
-  if (!session) redirect("/login?callbackUrl=/properties/create")
+  if (!session?.user?.id) redirect("/login?callbackUrl=/properties/create")
 
   return (
     <div className="min-h-screen bg-paper-sunken">
