@@ -11,6 +11,7 @@ import {
   SectionIndex } from "@/components/av/graphics";
 import { Reveal, RevealGroup, RevealItem } from "@/components/av/motion";
 import { StatementBanner } from "@/components/av/banner";
+import { STOCK } from "@/lib/stock-imagery";
 
 export const metadata = {
   title: "Services | Aarvasa",
@@ -50,10 +51,10 @@ const audiences: {
       ["Search and filters", "City, budget, configuration, type and verified-only, held in the URL"],
       ["Immersive exploration", "3D models, 360° tours and scans, wherever they have been captured"],
       ["Side-by-side comparison", "Up to three properties on price, specification and locality"],
-      ["Direct enquiry", "Routed to the developer or their appointed channel partner"],
+      ["Enquiry by email", "Written in your own mail app and sent to Aarvasa"],
     ],
     motif: "elevation",
-    image: { src: "/images/reef-996/gallery/showapt-living-3x2.jpg", alt: "A furnished show apartment living room at REEF 996", caption: "Show apartment · REEF 996" } },
+    image: STOCK.livingRoom },
   {
     label: "For owners and occupiers",
     title: "Information that survives scrutiny",
@@ -65,7 +66,7 @@ const audiences: {
       ["Layout drawings", "Published as drawings and labelled as such, never as photography"],
     ],
     motif: "plan",
-    image: { src: "/images/reef-996/architecture/reef-996-facade-detail-3x2.jpg", alt: "Facade detail of REEF 996", caption: "Developer render · REEF 996" } },
+    image: STOCK.glassTowers },
   {
     label: "For builders",
     title: "Show the building properly",
@@ -77,7 +78,7 @@ const audiences: {
       ["Enquiry routing", "Enquiries delivered with the context the buyer already gave"],
     ],
     motif: "contour",
-    image: { src: "/images/reef-996/architecture/reef-996-tower-elevation-day-3x2.jpg", alt: "REEF 996 tower elevation in daylight", caption: "Developer render · REEF 996" } },
+    image: STOCK.towerDetail },
   {
     label: "For channel partners",
     title: "One place to send a serious buyer",
@@ -89,7 +90,7 @@ const audiences: {
       ["Agent network", "A listed presence on the Aarvasa agents directory"],
     ],
     motif: "plan",
-    image: { src: "/images/reef-996/amenities/reef-996-pool-cabanas-3x2.jpg", alt: "Pool cabanas at REEF 996", caption: "Developer render · REEF 996" } },
+    image: STOCK.staircase },
 ];
 
 function Motif({ kind, tone }: { kind: Motif; tone: "paper" | "stage" }) {
@@ -117,8 +118,8 @@ export default function ServicesPage() {
         eyebrow="Services"
         title="Four people use Aarvasa. It is built for *all four.*"
         body="Buyers and occupiers on one side, builders and their channel partners on the other. The same captured project serves both."
-        image="/images/reef-996/banners/reef-996-tower-facade-night-16x9.jpg"
-        caption="REEF 996 · Developer render"
+        image={STOCK.dubaiDusk.src}
+        caption={STOCK.dubaiDusk.caption}
         size="tall"
       >
         <div className="flex flex-wrap gap-3">
@@ -208,10 +209,10 @@ export default function ServicesPage() {
           title="No yields. No forecasts. No ownership claims."
           body="Aarvasa is a property discovery and marketing platform. Everything below is in development and is not offered today."
           image={{
-            backdrop: "/images/reef-996/banners/reef-996-tower-facade-night-16x9.jpg",
-            inset: "/images/reef-997/interiors/reef-997-bedroom-4x5.jpg",
-            alt: "A REEF 997 bedroom",
-            caption: "Developer render · REEF 997" }}
+            backdrop: STOCK.dubaiSunset.src,
+            inset: STOCK.livingRoom.src,
+            alt: STOCK.livingRoom.alt,
+            caption: STOCK.livingRoom.caption }}
         />
       </div>
 

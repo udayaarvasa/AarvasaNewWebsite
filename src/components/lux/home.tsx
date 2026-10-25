@@ -25,13 +25,15 @@ import { projectImageSrc } from "@/lib/project-types";
 import { publishedProjects } from "@/lib/projects";
 import { featuredProject, platformFigures, priceOf, railProjects } from "@/lib/lux-data";
 import { formatCurrency } from "@/lib/currency";
+import { STOCK } from "@/lib/stock-imagery";
 
-/* Every frame here is a developer render of a real project, and says so. */
+/* Stock photography of Dubai, captioned as such (src/lib/stock-imagery.ts).
+   The REEF renders that were here are withheld until permission is on record. */
 const HERO_SLIDES: HeroSlide[] = [
-  { src: "/images/reef-996/hero/reef-996-balconies-stacked-16x9.jpg", alt: "REEF 996 sunken balconies", caption: "REEF 996 · Developer render", position: "50% 40%" },
-  { src: "/images/reef-997/hero/reef-997-pool-sunset-16x9.jpg", alt: "REEF 997 pool at sunset", caption: "REEF 997 · Developer render" },
-  { src: "/images/reef-998/hero/reef-998-pool-facade-16x9.jpg", alt: "REEF 998 pool and facade", caption: "REEF 998 · Developer render" },
-  { src: "/images/reef-996/banners/reef-996-tower-crown-night-16x9.jpg", alt: "REEF 996 tower crown at night", caption: "REEF 996 · Developer render", position: "50% 30%" },
+  STOCK.dubaiSunset,
+  { ...STOCK.dubaiDusk, position: "50% 40%" },
+  STOCK.downtownDubai,
+  { ...STOCK.towerDetail, position: "50% 30%" },
 ];
 
 /* ── 1 · Hero ─────────────────────────────────────────────────────────── */
@@ -54,7 +56,7 @@ export function LuxHero() {
         />
         <FadeUp immediate delay={0.9} className="mt-6 max-w-[52ch] text-[clamp(15px,1.3vw,18px)] leading-relaxed text-stage-muted">
           Premium residences and plots, set out exactly as their developers filed them — the specification,
-          the approvals, the payment plans — and the imagery to see them by.
+          the approvals, the payment plans — and a 3D model wherever one has been captured.
         </FadeUp>
 
         {/* Search: posts straight into the listings filters */}
@@ -147,7 +149,9 @@ export function FeaturedShowcase() {
       <Aurora />
       <Container>
         <SectionTitle
-          eyebrow="Featured · Exclusive to Aarvasa"
+          /* "Exclusive to Aarvasa" was removed: no exclusivity agreement is on
+             record. Restore it only with that agreement in hand. */
+          eyebrow="Featured"
           title={`${p.name} *${p.city}*`}
           note="One project takes the full spread. Inventory, prices and plans come from the developer's own release."
         />
@@ -248,19 +252,19 @@ const PILLARS = [
     icon: ScanSearch,
     title: "Discover",
     body: "Search on city, budget, configuration and specification. Filters that hold, and a link you can share.",
-    image: "/images/reef-996/hero/reef-996-tower-aerial-3x2.jpg",
+    image: STOCK.glassTowers.src,
   },
   {
     icon: Compass,
     title: "Explore",
-    body: "The developer's imagery and measured plans — and 3D or 360° wherever a building has been captured.",
-    image: "/images/reef-996/gallery/showapt-living-dining-3x2.jpg",
+    body: "Measured plans and the developer's specification — and 3D or 360° wherever a building has been captured.",
+    image: STOCK.openPlan.src,
   },
   {
     icon: Scale,
     title: "Evaluate",
-    body: "Three properties side by side on price, specification and locality. Then one enquiry, to the developer.",
-    image: "/images/reef-996/amenities/reef-996-pool-cabanas-3x2.jpg",
+    body: "Three properties side by side on price, specification and locality. Then one enquiry, by email.",
+    image: STOCK.staircase.src,
   },
 ];
 
@@ -348,7 +352,7 @@ export function FiguresBand() {
   return (
     <section data-surface="stage" className="relative isolate overflow-hidden">
       <ParallaxLayer className="absolute inset-0 -z-10" speed={0.15}>
-        <Image src="/images/reef-996/amenities/reef-996-sunken-balcony-sunset-16x9.jpg" alt="" fill sizes="100vw" className="object-cover opacity-35" />
+        <Image src={STOCK.dubaiSunset.src} alt="" fill sizes="100vw" className="object-cover opacity-35" />
       </ParallaxLayer>
       <div aria-hidden="true" className="absolute inset-0 -z-10 bg-[linear-gradient(90deg,rgba(12,9,9,0.95),rgba(79,6,12,0.75),rgba(12,9,9,0.95))]" />
       <Container className="py-[clamp(64px,9vw,120px)]">
@@ -489,7 +493,7 @@ export function ClosingInvitation() {
   return (
     <section data-surface="stage" className="relative isolate overflow-hidden">
       <ParallaxLayer className="absolute inset-0 -z-10" speed={0.18}>
-        <Image src="/images/reef-996/banners/reef-996-tower-facade-night-16x9.jpg" alt="" fill sizes="100vw" className="object-cover" />
+        <Image src={STOCK.dubaiDusk.src} alt="" fill sizes="100vw" className="object-cover" />
       </ParallaxLayer>
       <div aria-hidden="true" className="absolute inset-0 -z-10 bg-[radial-gradient(80%_80%_at_50%_50%,rgba(7,5,5,0.55),rgba(7,5,5,0.95))]" />
       <Container className="flex min-h-[80vh] flex-col items-center justify-center py-28 text-center">

@@ -6,6 +6,7 @@ import { FramedImage } from "@/components/av/framed-image";
 import { Note, Wrap } from "@/components/av/primitives";
 import { ContourField, DraftingGrid } from "@/components/av/graphics";
 import { Reveal } from "@/components/av/motion";
+import { STOCK } from "@/lib/stock-imagery";
 
 export const metadata = {
   title: "Contact | Aarvasa",
@@ -38,9 +39,9 @@ export default function ContactPage() {
       <PageHero
         eyebrow="Contact"
         title="Talk to *the desk.*"
-        body="A property enquiry reaches the developer or their appointed channel partner directly. Anything else reaches us."
-        image="/images/reef-996/gallery/showapt-terrace-16x9.jpg"
-        caption="Show apartment terrace · REEF 996"
+        body="Every enquiry comes to Aarvasa by email, written and sent from your own mail app."
+        image={STOCK.downtownDubai.src}
+        caption={STOCK.downtownDubai.caption}
       >
         <div className="flex flex-wrap gap-3">
           <LuxGold href="mailto:contact@aarvasa.com" external>Email the desk</LuxGold>
@@ -167,9 +168,9 @@ export default function ContactPage() {
             </div>
 
             <FramedImage
-              src="/images/reef-996/gallery/showapt-living-dining-4x5.jpg"
-              alt="Living and dining room of the REEF 996 show apartment"
-              caption="Show apartment · REEF 996"
+              src={STOCK.livingRoom.src}
+              alt={STOCK.livingRoom.alt}
+              caption={STOCK.livingRoom.caption}
               sizes="(min-width: 1024px) 380px, 100vw"
               className="aspect-[4/5] w-full max-lg:hidden"
             />

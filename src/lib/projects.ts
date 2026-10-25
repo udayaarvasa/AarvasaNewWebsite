@@ -401,6 +401,29 @@ const IMAGERY_BY_SLUG: Readonly<Record<string, ProjectImagery>> = {
 };
 
 /**
+ * Written permission to republish a developer's imagery, per project.
+ *
+ * The REEF libraries above are cut from the developer's (and its agency's)
+ * films and renders. Public availability is not a licence, and no permission is
+ * on record (request: docs/reef-developer-request.md), so since 25 Oct 2026 no
+ * REEF image is shown: the pages fall back to the typographic panel REEF 999 and
+ * REEF 1000 already use, and the files were taken out of public/ so they are no
+ * longer served either. The curation above is kept so that, once permission
+ * arrives, publishing is one line here plus restoring the files.
+ *
+ * An entry is the permission's filing reference (for example "email from REEF
+ * marketing, 2026-11-03, filed at …"). An empty string does not count.
+ */
+const IMAGERY_PERMISSION: Readonly<Record<string, string>> = {};
+
+const REEF_DEVELOPER = "REEF Luxury Developments";
+
+const imageryCleared = (slug: string): boolean => Boolean(IMAGERY_PERMISSION[slug]?.trim());
+
+/** Developer media is shown only with permission; other projects are governed by their own notes. */
+const needsImageryPermission = (p: Project): boolean => p.developer === REEF_DEVELOPER;
+
+/**
  * Publication decided here, not in the generated inventory.
  *
  * reef-projects.ts is generated from the 28 June 2026 inventory sheet, which
@@ -520,9 +543,11 @@ export const projects: Project[] = [
   ...(attachIfApproved(IMMERSIVE_BY_SLUG, p.slug) ? { immersive: IMMERSIVE_BY_SLUG[p.slug] } : {}),
   ...(attachIfApproved(TOUR_BY_SLUG, p.slug) ? { tour: TOUR_BY_SLUG[p.slug] } : {}),
   ...(attachIfApproved(SPLAT_BY_SLUG, p.slug) ? { splat: SPLAT_BY_SLUG[p.slug] } : {}),
-  ...(IMAGERY_BY_SLUG[p.slug]
-    ? { imagery: IMAGERY_BY_SLUG[p.slug], images: flatImages(IMAGERY_BY_SLUG[p.slug]) }
-    : {}),
+  ...(needsImageryPermission(p) && !imageryCleared(p.slug)
+    ? { images: [] }
+    : IMAGERY_BY_SLUG[p.slug]
+      ? { imagery: IMAGERY_BY_SLUG[p.slug], images: flatImages(IMAGERY_BY_SLUG[p.slug]) }
+      : {}),
   ...(p.slug in PUBLISH_OVERRIDE ? { published: PUBLISH_OVERRIDE[p.slug] } : {}),
   ...(REEF_COORDINATES[p.slug]
     ? {
