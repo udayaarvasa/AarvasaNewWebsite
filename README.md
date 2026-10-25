@@ -35,10 +35,12 @@ src/
 
 ## Data stores
 
-The app uses **two** datastores, which is easy to trip over:
+The app uses one datastore:
 
 - **PostgreSQL via Prisma** (`DATABASE_URL`) is the primary store — users, auth, properties. NextAuth's Prisma adapter and every credentials login read from here, so **if Postgres is unreachable, login fails** with NextAuth's "Server error / There is a problem with the server configuration" page.
-- **MongoDB via Mongoose** (`MONGODB_URI`) backs only `/api/blockchain/*`.
+
+The MongoDB store that backed the simulated `/api/blockchain/*` endpoints was removed
+with them (both now answer 410 Gone); `MONGODB_URI` is no longer read.
 
 ## Environment
 
@@ -53,7 +55,6 @@ AUTH_URL=https://www.aarvasa.com
 AUTH_GOOGLE_ID=
 AUTH_GOOGLE_SECRET=
 AUTH_DIAG_KEY=            # optional; unlocks detailed output at /api/diag?key=...
-MONGODB_URI=mongodb+srv://USER:PASSWORD@cluster.mongodb.net/aarvasa
 CLOUDINARY_CLOUD_NAME=
 CLOUDINARY_UPLOAD_PRESET=
 GEMINI_API_KEY=
@@ -73,7 +74,7 @@ without `MEDIA_PROCESSING_QUEUE_URL`, completion still succeeds and processing
 waits for the sweeper. None of these are set for production.
 
 Note that `amplify.yml` only forwards variables matching a fixed prefix list
-(`DATABASE_URL`, `AUTH_`, `MONGODB_URI`, `GEMINI_`, `CLOUDINARY_`, `MEDIA_`, …),
+(`DATABASE_URL`, `AUTH_`, `GEMINI_`, `CLOUDINARY_`, `MEDIA_`, …),
 and only those actually set in the Amplify console. A new variable outside those
 prefixes will not reach the running app until that pattern is extended.
 

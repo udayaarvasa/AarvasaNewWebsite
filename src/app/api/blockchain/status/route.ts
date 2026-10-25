@@ -1,61 +1,20 @@
-import { NextResponse } from "next/server";
-import { resolveStatus, transactionStore } from "@/lib/blockchain";
-import { connectDb } from "@/lib/db";
-import { Transaction } from "@/models/Transaction";
+/**
+ * Retired. This endpoint used to simulate a ledger: it minted a random "hash",
+ * reported it "verified" a few seconds later and claimed an escrow lock and a
+ * 4/5 MPC quorum — none of which existed. Aarvasa has no blockchain
+ * integration, so the endpoint now says so and returns nothing that could be
+ * mistaken for a transaction. 410 Gone, because the resource was removed on
+ * purpose and will not come back in this form.
+ *
+ * No imports, so the test can load this module directly.
+ */
+const body = {
+  error: "Gone",
+  message: "Aarvasa has no blockchain or escrow integration. This endpoint has been retired.",
+};
 
-export async function GET(request: Request) {
-  const url = new URL(request.url);
-  const hash = url.searchParams.get("hash");
+const gone = () =>
+  Response.json(body, { status: 410, headers: { "Cache-Control": "no-store" } });
 
-  try {
-    await connectDb();
-    const record = hash
-      ? await Transaction.findOne({ hash }).lean()
-      : await Transaction.findOne().sort({ createdAt: -1 }).lean();
-
-    if (record) {
-      const createdAt = record.createdAt
-        ? new Date(record.createdAt).toISOString()
-        : new Date().toISOString();
-      const status = resolveStatus({
-        hash: record.hash,
-        status: record.status as "pending" | "verified",
-        propertyId: record.propertyId,
-        amount: record.amount,
-        smartContract: record.smartContract,
-        events: record.events || [],
-        createdAt,
-      });
-
-      if (status === "verified" && record.status !== "verified") {
-        await Transaction.updateOne({ hash: record.hash }, { status });
-      }
-
-      return NextResponse.json({ transaction: { ...record, status } });
-    }
-  } catch {
-    // Fall through to in-memory demo store.
-  }
-
-  const transaction = hash
-    ? transactionStore.find((item) => item.hash === hash)
-    : transactionStore[0];
-
-  if (!transaction) {
-    return NextResponse.json({
-      transaction: {
-        hash: "0xdemo",
-        status: "verified",
-        propertyId: "goa-cliff-villas",
-        amount: 2500000,
-        smartContract: "AARVASA_ESCROW_V1",
-        events: ["Demo verification ready"],
-        createdAt: new Date().toISOString(),
-      },
-    });
-  }
-
-  const status = resolveStatus(transaction);
-  transaction.status = status;
-  return NextResponse.json({ transaction: { ...transaction, status } });
-}
+export const GET = gone;
+export const POST = gone;

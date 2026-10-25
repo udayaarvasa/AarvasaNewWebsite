@@ -1,38 +1,20 @@
-import { NextResponse } from "next/server";
-import { z } from "zod";
-import { createTransaction } from "@/lib/blockchain";
-import { connectDb } from "@/lib/db";
-import { Transaction } from "@/models/Transaction";
+/**
+ * Retired. This endpoint used to simulate a ledger: it minted a random "hash",
+ * reported it "verified" a few seconds later and claimed an escrow lock and a
+ * 4/5 MPC quorum — none of which existed. Aarvasa has no blockchain
+ * integration, so the endpoint now says so and returns nothing that could be
+ * mistaken for a transaction. 410 Gone, because the resource was removed on
+ * purpose and will not come back in this form.
+ *
+ * No imports, so the test can load this module directly.
+ */
+const body = {
+  error: "Gone",
+  message: "Aarvasa has no blockchain or escrow integration. This endpoint has been retired.",
+};
 
-const TransactionSchema = z.object({
-  propertyId: z.string().optional(),
-  amount: z.coerce.number().optional(),
-});
+const gone = () =>
+  Response.json(body, { status: 410, headers: { "Cache-Control": "no-store" } });
 
-export async function POST(request: Request) {
-  const body = await request.json().catch(() => ({}));
-  const parsed = TransactionSchema.safeParse(body);
-
-  if (!parsed.success) {
-    return NextResponse.json({ error: "Invalid transaction payload" }, { status: 400 });
-  }
-
-  const transaction = createTransaction(parsed.data);
-
-  try {
-    await connectDb();
-    await Transaction.create(transaction);
-  } catch {
-    // Demo mode keeps an in-memory transaction when MongoDB is unavailable.
-  }
-
-  return NextResponse.json({
-    transaction,
-    smartContract: {
-      name: transaction.smartContract,
-      execution: "simulated",
-      escrowLocked: true,
-      mpcQuorum: "4/5 nodes",
-    },
-  });
-}
+export const GET = gone;
+export const POST = gone;

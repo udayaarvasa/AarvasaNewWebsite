@@ -9,7 +9,10 @@ import { EASE } from "./motion";
  *
  * The first four links are how Aarvasa works today: a listing is built from
  * the developer's filing and its approvals, published, and an enquiry is
- * routed to the developer. The last two — an on-chain title record and escrow
+ * sent by email. There is no stored lead workflow: the contact form opens the
+ * visitor's own mail app addressed to Aarvasa (app/contact/contact-form.tsx),
+ * so the block says exactly that rather than "routed to the developer's desk",
+ * which it once claimed. The last two — an on-chain title record and escrow
  * — are the roadmap and are marked as such on the block itself, never
  * implied to be live.
  *
@@ -22,7 +25,7 @@ const BLOCKS = [
   { icon: ScrollText, title: "Developer filing", body: "Specification, areas and plans as filed", live: true },
   { icon: FileCheck2, title: "Approvals", body: "Planning approvals, where the developer has supplied them", live: true },
   { icon: Link2, title: "Listing published", body: "Inventory and payment plans, from the filing", live: true },
-  { icon: Send, title: "Enquiry routed", body: "Straight to the developer's desk", live: true },
+  { icon: Send, title: "Enquiry by email", body: "Written in your own mail app and sent to Aarvasa", live: true },
   { icon: Lock, title: "Title on-chain", body: "Verifiable record of ownership", live: false },
   { icon: Landmark, title: "Escrow", body: "Milestone-linked release of funds", live: false },
 ];
