@@ -1,3 +1,4 @@
+import { REEF_1000_IMAGERY, REEF_999_IMAGERY } from "./reef-portfolio-imagery";
 import {
   projectImageSrc,
   type Project,
@@ -398,23 +399,31 @@ const IMAGERY_BY_SLUG: Readonly<Record<string, ProjectImagery>> = {
   "reef-996-dubai-production-city": REEF_996_IMAGERY,
   "reef-997-dubai-islands": REEF_997_IMAGERY,
   "reef-998-dlrc": REEF_998_IMAGERY,
+  "reef-999-al-furjan": REEF_999_IMAGERY,
+  "reef-1000-dlrc": REEF_1000_IMAGERY,
 };
 
 /**
  * Written permission to republish a developer's imagery, per project.
  *
  * The REEF libraries above are cut from the developer's (and its agency's)
- * films and renders. Public availability is not a licence, and no permission is
- * on record (request: docs/reef-developer-request.md), so since 25 Oct 2026 no
- * REEF image is shown: the pages fall back to the typographic panel REEF 999 and
- * REEF 1000 already use, and the files were taken out of public/ so they are no
- * longer served either. The curation above is kept so that, once permission
- * arrives, publishing is one line here plus restoring the files.
+ * films and renders. Public availability is not a licence, so a project's
+ * imagery is shown only with an entry here. Withdrawn 25 Oct 2026 when none was
+ * on record; restored 30 Oct 2026 on the owner's confirmation that REEF has
+ * agreed, and REEF 999 and 1000 added the same day on the owner's confirmation
+ * that all five are cleared. This covers images only, not 360° tours or films.
  *
- * An entry is the permission's filing reference (for example "email from REEF
- * marketing, 2026-11-03, filed at …"). An empty string does not count.
+ * An entry is the permission's filing reference. An empty string does not count.
+ * TODO(owner): replace the entries below with the written reference.
  */
-const IMAGERY_PERMISSION: Readonly<Record<string, string>> = {};
+const REEF_IMAGERY_PERMISSION = "Owner confirmed all REEF projects cleared, 30 Oct 2026; written reference to be filed";
+const IMAGERY_PERMISSION: Readonly<Record<string, string>> = {
+  "reef-996-dubai-production-city": REEF_IMAGERY_PERMISSION,
+  "reef-997-dubai-islands": REEF_IMAGERY_PERMISSION,
+  "reef-998-dlrc": REEF_IMAGERY_PERMISSION,
+  "reef-999-al-furjan": REEF_IMAGERY_PERMISSION,
+  "reef-1000-dlrc": REEF_IMAGERY_PERMISSION,
+};
 
 const REEF_DEVELOPER = "REEF Luxury Developments";
 

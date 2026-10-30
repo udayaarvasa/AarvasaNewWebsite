@@ -15,9 +15,8 @@ import type { Project } from "./project-types";
  *    starting price; REEF 1000 has none.
  *  - Floor counts. Secondary portals say "two 12-storey towers" (999) and
  *    "G+6" (1000); the developer states neither, so buildingConfig is null.
- *  - Imagery. Public access to the developer's renders is not a licence to
- *    republish them; both pages use the typographic panel until permission is
- *    recorded.
+ *  - Imagery. It lives in reef-portfolio-imagery.ts and is attached in projects.ts
+ *    under the recorded permission.
  *  - Instalment schedules. REEF 999 is advertised as "60% - 40%" without the
  *    milestones; REEF 1000's plan is not published by the developer.
  */

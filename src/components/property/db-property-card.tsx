@@ -114,7 +114,7 @@ export function DbPropertyCard({
           {property.location}
           {property.city ? `, ${property.city}` : ""}
         </p>
-        <p className="av-num mt-3 text-[17px] font-semibold text-gold-pale">
+        <p className="av-num mt-3 text-[17px] font-semibold text-gold-ink">
           {formatCurrency(property.price, currencyForCountry(property.country))}
           <span className="ml-2 font-normal text-ink-muted">
             {TYPE_LABEL[property.propertyType] ?? property.propertyType}

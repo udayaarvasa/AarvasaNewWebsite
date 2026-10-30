@@ -296,7 +296,7 @@ export default async function ProjectPage({
         <div className="lux-glass-strong flex flex-wrap items-center gap-[var(--s-4)] rounded-full px-5 py-2.5 shadow-[0_20px_40px_rgba(0,0,0,0.4)] md:px-6">
           <span className="av-display text-[22px] leading-none text-ink">{project.name}</span>
           <span className="hidden h-4 w-px bg-white/15 sm:block" />
-          <span className="text-[15px] font-semibold text-gold-pale">{price.primary}</span>
+          <span className="text-[15px] font-semibold text-gold-ink">{price.primary}</span>
           {price.secondary && <span className="hidden text-[13px] text-ink-muted sm:inline">{price.secondary}</span>}
           <Status tone={isPlots ? "ready" : "pending"}>
             {isPlots ? "Selling" : (project.completion ?? "Under construction")}

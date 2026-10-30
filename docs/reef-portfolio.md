@@ -58,8 +58,10 @@ developer copy error; ignored).
 | REEF 1000 front elevation render | reefchannelpartners.com/vr/vr1000/images/lastbg.jpg | 00052fe918a998e8 | Research only — 3D reference |
 | REEF 1000 rear aerial render | reefchannelpartners.com/vr/vr1000/images/lastbgb.jpg | 832e0fcc699fcd75 | Research only — 3D reference |
 
-Public availability is not a licence. Neither page shows any of these until the
-developer confirms reuse in writing (request: `research/requests/reef-developer-request.md`).
+Update 30 Oct 2026: the owner confirmed all REEF projects are cleared for image
+use, so the hero, cover and elevation renders above are published (crops in
+`public/images/reef-999`, `reef-1000`). File the written reference in
+`IMAGERY_PERMISSION` (`src/lib/projects.ts`). 360° tours and films are not covered.
 
 ## 2. Immersive media catalogue
 

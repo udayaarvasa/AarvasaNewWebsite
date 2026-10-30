@@ -6,7 +6,6 @@ import { Aurora, Container as LuxContainer, Marquee, Noise, SectionTitle } from 
 import { PageHero } from "@/components/lux/page-hero";
 import { Note } from "@/components/av/primitives";
 import { StatementBanner } from "@/components/av/banner";
-import { STOCK } from "@/lib/stock-imagery";
 
 export const metadata = {
   title: "About | Aarvasa",
@@ -124,8 +123,8 @@ export default function AboutPage() {
       <PageHero
         eyebrow="About Aarvasa"
         title="Property should be read like a *drawing,* not sold like a brochure."
-        image={STOCK.glassTowers.src}
-        caption={STOCK.glassTowers.caption}
+        image="/images/reef-996/architecture/reef-996-facade-detail-3x2.jpg"
+        caption="REEF 996 · Developer render"
         size="tall"
       />
 
@@ -318,10 +317,10 @@ export default function AboutPage() {
           title="We hold no inventory and take no fee from buyers."
           body="Developers pay Aarvasa when an enquiry becomes a sale. That is the whole business model, and it is why the specification on this site is the developer's own filing rather than a sales description."
           image={{
-            backdrop: STOCK.downtownDubai.src,
-            inset: STOCK.openPlan.src,
-            alt: STOCK.openPlan.alt,
-            caption: STOCK.openPlan.caption }}
+            backdrop: "/images/reef-998/amenities/reef-998-garden-terrace-16x9.jpg",
+            inset: "/images/reef-997/amenities/reef-997-garden-terrace-4x5.jpg",
+            alt: "REEF 997 garden terrace",
+            caption: "Developer render · REEF 997" }}
         />
       </div>
 

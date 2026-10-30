@@ -27,11 +27,12 @@ export function formatInrCompact(amount: number): string {
 }
 
 /**
- * Indicative INR equivalent for an AED amount. Returns null for INR amounts so
- * callers can skip rendering a redundant second line.
+ * Indicative INR equivalent for an AED amount. Returns null for INR amounts, and
+ * for a missing price, so callers can skip rendering a second line.
  */
 export function inrEstimate(amount: number, currency: CurrencyCode): string | null {
-  if (currency !== "AED") return null;
+  // No published price: say nothing rather than print "≈ ₹0".
+  if (currency !== "AED" || !(amount > 0)) return null;
   return `≈ ${formatInrCompact(amount * AED_TO_INR)}`;
 }
 

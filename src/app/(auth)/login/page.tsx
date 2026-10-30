@@ -2,7 +2,6 @@ import { LoginForm } from "@/components/auth/login-form"
 import Image from "next/image"
 import { redirect } from "next/navigation"
 import { auth } from "@/auth"
-import { STOCK } from "@/lib/stock-imagery";
 
 export const metadata = {
   title: "Login | Aarvasa",
@@ -34,15 +33,15 @@ export default async function LoginPage() {
         <div className="relative w-full h-full max-h-[800px] rounded-3xl overflow-hidden border border-white/10 shadow-2xl">
           <div className="absolute inset-0 bg-gradient-to-t from-[#0A0A0A] via-transparent to-transparent z-10" />
           <Image
-            src={STOCK.towerDetail.src}
-            alt={STOCK.towerDetail.alt}
+            src="/images/reef-996/banners/reef-996-tower-crown-night-4x5.jpg"
+            alt="REEF 996 at night, developer render"
             fill
             className="av-kenburns object-cover"
             sizes="50vw"
             priority
           />
           <div className="absolute bottom-12 left-12 right-12 z-20">
-            <span className="av-meta mb-4 block text-[10px] text-[#F2F1ED]/60">Stock photograph</span>
+            <span className="av-meta mb-4 block text-[10px] text-[#F2F1ED]/60">Developer render</span>
             <h3 className="av-display mb-4 text-[56px] font-light leading-none text-[#F2F1ED]">Welcome <em className="lux-gold-text italic">back.</em></h3>
             <p className="text-[#F2F1ED]/80 text-lg max-w-md">
               Your saved properties, shortlists and enquiries, where you left them.

@@ -25,15 +25,13 @@ import { projectImageSrc } from "@/lib/project-types";
 import { publishedProjects } from "@/lib/projects";
 import { featuredProject, platformFigures, priceOf, railProjects } from "@/lib/lux-data";
 import { formatCurrency } from "@/lib/currency";
-import { STOCK } from "@/lib/stock-imagery";
 
-/* Stock photography of Dubai, captioned as such (src/lib/stock-imagery.ts).
-   The REEF renders that were here are withheld until permission is on record. */
+/* Every frame here is a developer render of a real project, and says so. */
 const HERO_SLIDES: HeroSlide[] = [
-  STOCK.dubaiSunset,
-  { ...STOCK.dubaiDusk, position: "50% 40%" },
-  STOCK.downtownDubai,
-  { ...STOCK.towerDetail, position: "50% 30%" },
+  { src: "/images/reef-996/hero/reef-996-balconies-stacked-16x9.jpg", alt: "REEF 996 sunken balconies", caption: "REEF 996 · Developer render", position: "50% 40%" },
+  { src: "/images/reef-997/hero/reef-997-pool-sunset-16x9.jpg", alt: "REEF 997 pool at sunset", caption: "REEF 997 · Developer render" },
+  { src: "/images/reef-998/hero/reef-998-pool-facade-16x9.jpg", alt: "REEF 998 pool and facade", caption: "REEF 998 · Developer render" },
+  { src: "/images/reef-996/banners/reef-996-tower-crown-night-16x9.jpg", alt: "REEF 996 tower crown at night", caption: "REEF 996 · Developer render", position: "50% 30%" },
 ];
 
 /* ── 1 · Hero ─────────────────────────────────────────────────────────── */
@@ -252,19 +250,19 @@ const PILLARS = [
     icon: ScanSearch,
     title: "Discover",
     body: "Search on city, budget, configuration and specification. Filters that hold, and a link you can share.",
-    image: STOCK.glassTowers.src,
+    image: "/images/reef-996/hero/reef-996-tower-aerial-3x2.jpg",
   },
   {
     icon: Compass,
     title: "Explore",
     body: "Measured plans and the developer's specification — and 3D or 360° wherever a building has been captured.",
-    image: STOCK.openPlan.src,
+    image: "/images/reef-996/gallery/showapt-living-dining-3x2.jpg",
   },
   {
     icon: Scale,
     title: "Evaluate",
     body: "Three properties side by side on price, specification and locality. Then one enquiry, by email.",
-    image: STOCK.staircase.src,
+    image: "/images/reef-996/amenities/reef-996-pool-cabanas-3x2.jpg",
   },
 ];
 
@@ -352,7 +350,7 @@ export function FiguresBand() {
   return (
     <section data-surface="stage" className="relative isolate overflow-hidden">
       <ParallaxLayer className="absolute inset-0 -z-10" speed={0.15}>
-        <Image src={STOCK.dubaiSunset.src} alt="" fill sizes="100vw" className="object-cover opacity-35" />
+        <Image src="/images/reef-996/amenities/reef-996-sunken-balcony-sunset-16x9.jpg" alt="" fill sizes="100vw" className="object-cover opacity-35" />
       </ParallaxLayer>
       <div aria-hidden="true" className="absolute inset-0 -z-10 bg-[linear-gradient(90deg,rgba(12,9,9,0.95),rgba(79,6,12,0.75),rgba(12,9,9,0.95))]" />
       <Container className="py-[clamp(64px,9vw,120px)]">
@@ -493,7 +491,7 @@ export function ClosingInvitation() {
   return (
     <section data-surface="stage" className="relative isolate overflow-hidden">
       <ParallaxLayer className="absolute inset-0 -z-10" speed={0.18}>
-        <Image src={STOCK.dubaiDusk.src} alt="" fill sizes="100vw" className="object-cover" />
+        <Image src="/images/reef-996/banners/reef-996-tower-facade-night-16x9.jpg" alt="" fill sizes="100vw" className="object-cover" />
       </ParallaxLayer>
       <div aria-hidden="true" className="absolute inset-0 -z-10 bg-[radial-gradient(80%_80%_at_50%_50%,rgba(7,5,5,0.55),rgba(7,5,5,0.95))]" />
       <Container className="flex min-h-[80vh] flex-col items-center justify-center py-28 text-center">

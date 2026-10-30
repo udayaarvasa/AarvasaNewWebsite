@@ -11,7 +11,6 @@ import { SectionIndex } from "@/components/av/graphics";
 import { CinematicBanner } from "@/components/av/banner";
 import { projectImageSrc } from "@/lib/project-types";
 import { publishedProjects } from "@/lib/projects";
-import { STOCK } from "@/lib/stock-imagery";
 
 export const metadata = {
   title: "Properties | Aarvasa",
@@ -76,8 +75,8 @@ export default async function ListingsPage({
       <PageHero
         eyebrow="Discover"
         title={city ? `Properties in *${city}*` : "Every address, *examined.*"}
-        image={STOCK.dubaiDusk.src}
-        caption={STOCK.dubaiDusk.caption}
+        image="/images/reef-997/hero/reef-997-pool-deck-16x9.jpg"
+        caption="REEF 997 · Developer render"
         size="compact"
         body={
           isFiltered ? (

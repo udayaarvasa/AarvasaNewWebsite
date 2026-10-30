@@ -8,7 +8,6 @@ import { RevealGroup, RevealItem, Reveal } from "@/components/av/motion";
 import { projectImageSrc } from "@/lib/project-types";
 import { reefCollection } from "@/lib/reef-collection";
 import { formatCurrency, inrEstimate } from "@/lib/currency";
-import { STOCK } from "@/lib/stock-imagery";
 
 /**
  * THE REEF COLLECTION.
@@ -40,8 +39,8 @@ export default function ReefCollectionPage() {
         eyebrow="REEF Luxury Developments"
         title="The REEF *Collection.*"
         body={`Five numbered towers across Dubai, built by one developer to one idea: outdoor space that stays usable in summer. ${listed.length === entries.length ? "Each is listed here" : `${listed.length} are listed here`} with the specification its developer published.`}
-        image={STOCK.dubaiSunset.src}
-        caption={STOCK.dubaiSunset.caption}
+        image="/images/reef-996/amenities/reef-996-sunken-balcony-sunset-16x9.jpg"
+        caption="REEF 996 sunken balcony · Developer render"
         size="tall"
       >
           <ol className="mt-[var(--s-10)] grid grid-cols-2 gap-px overflow-hidden rounded-[26px] border border-[var(--glass-rule)] bg-[var(--glass-rule)] sm:grid-cols-5">
@@ -146,7 +145,7 @@ export default function ReefCollectionPage() {
                       <dt className="av-label text-ink-muted">From</dt>
                       <dd className="av-num truncate text-[13px] font-semibold">
                         {price}
-                        {inr && <span className="ml-1 font-normal text-ink-muted">≈ {inr}</span>}
+                        {inr && <span className="ml-1 font-normal text-ink-muted">{inr}</span>}
                       </dd>
                     </div>
                     <div className="min-w-0">

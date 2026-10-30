@@ -73,7 +73,7 @@ export async function ProjectCards({ query = {} }: { query?: ProjectQuery } = {}
                   />
                 ) : (
                   <div className="absolute inset-0 flex items-end bg-[radial-gradient(circle_at_30%_20%,#4f060c,#110c0d_70%)] p-5">
-                    <span className="av-meta text-[10px] text-ink-muted">No image published</span>
+                    <span className="av-meta text-[10px] text-stage-muted">No image published</span>
                   </div>
                 )}
                 {!isPlanCover && cover && (
@@ -101,8 +101,8 @@ export async function ProjectCards({ query = {} }: { query?: ProjectQuery } = {}
                   {project.location}, {project.city}
                 </p>
                 <div className="mt-5 flex items-end justify-between gap-3 border-t border-rule pt-4">
-                  <p className="av-num">
-                    <span className="block text-[18px] font-semibold text-gold-pale">{price}</span>
+                  <p className="av-num shrink-0">
+                    <span className="block whitespace-nowrap text-[18px] font-semibold text-gold-ink">{price}</span>
                     {inr && <span className="text-[12.5px] text-ink-muted">{inr}</span>}
                   </p>
                   <div className="flex flex-wrap justify-end gap-2">
