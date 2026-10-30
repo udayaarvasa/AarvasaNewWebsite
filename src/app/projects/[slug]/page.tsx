@@ -177,7 +177,7 @@ export default async function ProjectPage({
       }));
 
   const railItems = [
-    { label: project.fromPrice > 0 ? "Starting from" : "Rate", value: price.primary },
+    { label: project.fromPrice > 0 ? "Starting from" : project.ratePerSqft ? "Rate" : "Price", value: price.primary },
     {
       label: isPlots ? "Plots in layout" : "Completion",
       value: isPlots ? (project.totalUnits ? String(project.totalUnits) : "—") : (project.completion ?? "—"),

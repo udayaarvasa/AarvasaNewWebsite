@@ -12,7 +12,7 @@ import { COMPARE_MAX, useCompare } from "@/components/property/compare-store";
 import { Plate, Status } from "@/components/av/primitives";
 import { RevealGroup, RevealItem } from "@/components/av/motion";
 import { ElevationMotif } from "@/components/av/graphics";
-import { currencyForCountry, formatCurrency } from "@/lib/currency";
+import { currencyForCountry, listingPrice } from "@/lib/currency";
 import { cn } from "@/lib/utils";
 import type { PropertyListing } from "@/types/property";
 
@@ -234,7 +234,7 @@ export function ListingsGrid() {
                   )}
                 </div>
                 <div className="av-num text-right text-[15px] font-semibold">
-                  {formatCurrency(p.price, currencyForCountry(p.country))}
+                  {listingPrice(p.price, currencyForCountry(p.country))}
                 </div>
               </Link>
             ))}

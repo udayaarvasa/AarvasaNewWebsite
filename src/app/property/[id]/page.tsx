@@ -11,7 +11,7 @@ import { Card } from "@/components/ui/card";
 import { InquiryForm } from "@/components/property/inquiry-form";
 import { getPropertyById } from "@/lib/services/property.service";
 import { auth } from "@/auth";
-import { currencyForCountry, formatCurrency } from "@/lib/currency";
+import { currencyForCountry, formatCurrency, listingPrice } from "@/lib/currency";
 
 /** Stated assumptions for the indicative repayment card — disclosed in the UI,
  *  never presented as data about the property. */
@@ -166,7 +166,7 @@ export default async function PropertyDetailPage({
         <div className="mx-auto flex max-w-7xl flex-wrap items-center gap-8 px-4 py-5 sm:px-6 lg:px-8">
           <div className="border-r border-rule pr-8">
             <p className="text-xs uppercase tracking-[0.14em] text-ink-muted">Price</p>
-            <p className="text-2xl font-bold text-ink">{money(property.price)}</p>
+            <p className="text-2xl font-bold text-ink">{listingPrice(property.price, currency)}</p>
           </div>
           <div className="border-r border-rule pr-8">
             <p className="text-xs uppercase tracking-[0.14em] text-ink-muted">Area</p>
@@ -279,6 +279,7 @@ export default async function PropertyDetailPage({
                 not an offer and not data about this property, so the card says
                 so. The previous version multiplied the loan by the monthly rate,
                 which is one month's interest rather than an instalment. */}
+            {property.price > 0 && (
             <Card className="border-rule bg-paper-raised p-6">
               <h3 className="mb-4 flex items-center gap-2 text-lg font-bold text-ink">
                 <Calculator className="h-5 w-5 text-[#D4AF37]" />
@@ -303,6 +304,7 @@ export default async function PropertyDetailPage({
                 actual rate, tenure and eligibility.
               </p>
             </Card>
+            )}
 
             {/* Inquiry Form */}
             <Card className="border-rule bg-paper-raised p-6">

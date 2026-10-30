@@ -60,8 +60,8 @@ developer copy error; ignored).
 
 Update 30 Oct 2026: the owner confirmed all REEF projects are cleared for image
 use, so the hero, cover and elevation renders above are published (crops in
-`public/images/reef-999`, `reef-1000`). File the written reference in
-`IMAGERY_PERMISSION` (`src/lib/projects.ts`). 360° tours and films are not covered.
+`public/images/reef-999`, `reef-1000`). The record is `docs/media-rights.md`;
+360° tours and films are not covered.
 
 ## 2. Immersive media catalogue
 

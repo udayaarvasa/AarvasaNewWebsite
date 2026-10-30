@@ -17,6 +17,13 @@ export function formatCurrency(amount: number, currency: CurrencyCode = "INR"): 
   }).format(amount);
 }
 
+/** A listing's price for display: never "₹0" or "₹NaN" when no price is stored. */
+export function listingPrice(amount: number | null | undefined, currency: CurrencyCode = "INR"): string {
+  return typeof amount === "number" && Number.isFinite(amount) && amount > 0
+    ? formatCurrency(amount, currency)
+    : "On request";
+}
+
 /** Compact Indian-style figure: 1,61,00,000 -> "₹1.61 Cr". */
 export function formatInrCompact(amount: number): string {
   const crore = 10_000_000;

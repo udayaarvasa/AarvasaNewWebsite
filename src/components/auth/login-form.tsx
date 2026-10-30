@@ -63,7 +63,7 @@ export function LoginForm() {
       className="w-full max-w-md mx-auto p-8 rounded-2xl backdrop-blur-xl bg-white/5 border border-white/10 shadow-2xl"
     >
       <div className="mb-8 text-center">
-        <h2 className="text-3xl font-serif text-[#F2F1ED] mb-2">Welcome Back</h2>
+        <h1 className="text-3xl font-serif text-[#F2F1ED] mb-2">Welcome Back</h1>
         <p className="text-[#F2F1ED]/60 text-sm">Sign in to your Aarvasa account</p>
       </div>
 

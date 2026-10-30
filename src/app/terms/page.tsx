@@ -255,7 +255,7 @@ export default function TermsPage() {
                 <p className="font-semibold text-ink">Name: Ansh Dubey</p>
                 <p>Position: Aarvasa Innovations Pvt. Ltd. Grievance Officer</p>
                 <p>Address: 3 Flr, off Windsar Sq Opp, Vishal Megamart Kolar Rd, Kolar Road, Huzur, Bhopal- 462042, Madhya Pradesh.</p>
-                <p>Email address: <a href="mailto:grievance.officer@aarvasa.com" className="text-[#D4AF37] hover:underline">grievance.officer@aarvasa.com</a></p>
+                <p>Email address: <a href="mailto:grievance.officer@aarvasa.com" className="text-gold-ink hover:underline">grievance.officer@aarvasa.com</a></p>
               </div>
               <p>
                 After receiving the complaint, the grievance officer has 24 hours to acknowledge it and 15 days to resolve it.
@@ -281,7 +281,7 @@ export default function TermsPage() {
                 <strong>12.4. Severability:</strong> Should any clause be determined to be unenforceable or invalid, it will be reduced or removed to the bare minimum required to maintain the full force and effect of this agreement.
               </p>
               <p>
-                <strong>12.5. Notices:</strong> All correspondence with Aarvasa must be sent to <a href="mailto:legal@aarvasa.com" className="text-[#D4AF37] hover:underline">legal@aarvasa.com</a> and to our registered office address via registered mail. You will receive notifications at the email address linked to your account.
+                <strong>12.5. Notices:</strong> All correspondence with Aarvasa must be sent to <a href="mailto:legal@aarvasa.com" className="text-gold-ink hover:underline">legal@aarvasa.com</a> and to our registered office address via registered mail. You will receive notifications at the email address linked to your account.
               </p>
               <p>
                 <strong>12.6. Terms and Conditions:</strong> We reserve the right to change this agreement at any time. Any significant changes will be communicated to you via email or by posting the updated terms on the Platform. You agree to the changes if you keep using the Platform after receiving this notice.

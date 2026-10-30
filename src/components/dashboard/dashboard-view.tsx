@@ -12,7 +12,7 @@ import { Card } from "@/components/ui/card"
 import { DbPropertyCard } from "@/components/property/db-property-card"
 import type { PropertyListing } from "@/types/property"
 import toast from "react-hot-toast"
-import { currencyForCountry, formatCurrency } from "@/lib/currency"
+import { currencyForCountry, formatCurrency, listingPrice } from "@/lib/currency"
 import { OWNER_TRANSITIONS, type OwnerListingAction } from "@/lib/listing-moderation"
 
 const ACTION_LABEL: Record<OwnerListingAction, string> = {
@@ -248,7 +248,7 @@ export function DashboardView({ userName, userRole }: { userName: string; userRo
                           </Link>
                           <p className="text-xs text-ink-muted">{p.location} · {p.city}</p>
                           <div className="mt-1 flex items-center gap-3 text-xs">
-                            <span className="font-semibold text-ink">{formatCurrency(p.price, currencyForCountry(p.country))}</span>
+                            <span className="font-semibold text-ink">{listingPrice(p.price, currencyForCountry(p.country))}</span>
                             {p.roi > 0 && <span className="text-emerald-600">{p.roi}% ROI</span>}
                             <span className={`rounded-full px-2 py-0.5 text-[10px] font-bold uppercase ${
                               p.status === "ACTIVE" ? "bg-emerald-100 text-emerald-700" : "bg-paper-sunken text-ink-muted"

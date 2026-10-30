@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useState } from "react";
 import { Heart, Scale } from "lucide-react";
 import type { PropertyListing } from "@/types/property";
-import { currencyForCountry, formatCurrency } from "@/lib/currency";
+import { currencyForCountry, listingPrice } from "@/lib/currency";
 import { cn } from "@/lib/utils";
 import { Plate, Status } from "@/components/av/primitives";
 import { useCompare } from "./compare-store";
@@ -115,7 +115,7 @@ export function DbPropertyCard({
           {property.city ? `, ${property.city}` : ""}
         </p>
         <p className="av-num mt-3 text-[17px] font-semibold text-gold-ink">
-          {formatCurrency(property.price, currencyForCountry(property.country))}
+          {listingPrice(property.price, currencyForCountry(property.country))}
           <span className="ml-2 font-normal text-ink-muted">
             {TYPE_LABEL[property.propertyType] ?? property.propertyType}
           </span>

@@ -71,7 +71,7 @@ export default function PrivacyPolicyPage() {
                 <li><strong>Regulators:</strong> SEBI, RBI, law enforcement.</li>
                 <li><strong>Business Transfers:</strong> In mergers/acquisitions with notice.</li>
               </ul>
-              <p className="font-semibold text-[#D4AF37]">We never sell your data for advertising purposes.</p>
+              <p className="font-semibold text-gold-ink">We never sell your data for advertising purposes.</p>
             </div>
           </section>
 
@@ -99,7 +99,7 @@ export default function PrivacyPolicyPage() {
                 <li>See our <a href="/security" className="underline">Security Policy</a> for what is in place and what is still in progress.</li>
               </ul>
               <p className="mt-4 bg-white/5 p-4 rounded-xl border border-rule">
-                <strong className="text-[#D4AF37]">User Tips:</strong> Use a strong, unique password or sign in with Google, and sign out on shared devices. Never share passwords insecurely.
+                <strong className="text-gold-ink">User Tips:</strong> Use a strong, unique password or sign in with Google, and sign out on shared devices. Never share passwords insecurely.
               </p>
             </div>
           </section>

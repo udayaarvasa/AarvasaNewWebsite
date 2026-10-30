@@ -58,3 +58,39 @@ test("price text on light surfaces uses the readable gold tone", async () => {
     assert.doesNotMatch(await readFile(join(root, f), "utf8"), /font-semibold text-gold-pale/, f);
   }
 });
+
+test("a missing listing price reads On request, never a zero or NaN figure", async () => {
+  const { listingPrice } = await import("../src/lib/currency.ts");
+  for (const missing of [0, -1, Number.NaN, null, undefined]) {
+    assert.equal(listingPrice(missing, "INR"), "On request");
+    assert.equal(listingPrice(missing, "AED"), "On request");
+  }
+  assert.equal(listingPrice(679467, "AED"), "AED 679,467");
+  assert.match(listingPrice(9500000, "INR"), /^₹95,00,000$/);
+});
+
+test("database listing surfaces use the guarded price", async () => {
+  for (const f of ["src/components/property/listings-grid.tsx", "src/components/property/db-property-card.tsx", "src/components/dashboard/dashboard-view.tsx", "src/app/property/[id]/page.tsx"]) {
+    assert.match(await readFile(join(root, f), "utf8"), /listingPrice\(/, f);
+  }
+});
+
+test("the media-rights record stays limited to images of the five REEF projects", async () => {
+  const doc = await readFile(join(root, "docs/media-rights.md"), "utf8");
+  assert.match(doc, /REEF 996, 997, 998, 999 and 1000/);
+  assert.match(doc, /Images and renders only/);
+  assert.match(doc, /360° tours/);
+  const tours = await readFile(join(root, "src/lib/panorama-sources.ts"), "utf8");
+  assert.doesNotMatch(tours, /rights: "GRANTED"/);
+});
+
+test("a project with no price or rate is labelled Price, not Rate", async () => {
+  const page = await readFile(join(root, "src/app/projects/[slug]/page.tsx"), "utf8");
+  assert.match(page, /project\.fromPrice > 0 \? "Starting from" : project\.ratePerSqft \? "Rate" : "Price"/);
+});
+
+test("sign-in and sign-up each have one page heading", async () => {
+  for (const f of ["src/components/auth/login-form.tsx", "src/components/auth/signup-form.tsx"]) {
+    assert.equal((await readFile(join(root, f), "utf8")).match(/<h1[\s>]/g)?.length, 1, f);
+  }
+});
