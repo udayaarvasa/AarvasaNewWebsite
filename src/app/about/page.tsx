@@ -40,28 +40,20 @@ const team = [
     instagram: "https://www.instagram.com/uday.sahu_10?igsh=MWVzNW85dTRydndpdg%3D%3D" },
   {
     name: "Ansh Dubey",
-    role: "Co-Founder & COO",
-    subtitle: "Operations Strategist | Product & Process Leader",
-    bio: "Ansh Dubey, COO of Aarvasa, oversees operations, workflow optimization, and product delivery. Focused on efficiency, he ensures smooth platform functionality, from listings to customer experience, translating ideas into scalable, real-world execution.",
+    role: "Co-Founder & CTO",
+    subtitle: "Tech Architect | Product & Engineering Lead",
+    bio: "Ansh Dubey, CTO of Aarvasa, leads the company's technology, from platform architecture and AI tools to smart contracts and infrastructure. He ensures a secure, scalable tech foundation, translating ideas into reliable, real-world products.",
     image: "/images/team/ansh.png",
     linkedin: "https://www.linkedin.com/in/ansh-dubey-526325273/",
     instagram: "https://www.instagram.com/_ansh_.dubey/" },
   {
     name: "Anirudh Saxena",
-    role: "Co-Founder & CTO",
-    subtitle: "Tech Architect | Innovation & Engineering Lead",
-    bio: "Anirudh Saxena, CTO of Aarvasa, drives AI tools, smart contracts, and infrastructure development. He ensures a secure, scalable tech foundation, shaping the digital systems that power Aarvasa’s platform and future growth.",
+    role: "Marketing & HR Manager",
+    subtitle: "Brand & Growth | People & Culture Lead",
+    bio: "Anirudh Saxena leads Marketing and HR at Aarvasa, shaping the brand, driving outreach and campaigns, and building the team behind the platform. He focuses on hiring, culture, and communicating Aarvasa’s vision to customers and partners.",
     image: "/images/team/anirudh.png",
     linkedin: "https://www.linkedin.com/in/anirudh-saxena-481ba2245/",
     instagram: "https://www.instagram.com/_anirudh__.07?igsh=MTJocm1va3VtZDV0bw%3D%3D" },
-  {
-    name: "Sriaditya S",
-    role: "VP of IT Operations",
-    subtitle: "Technology Strategist | System Architect | Cybersecurity Advocate",
-    bio: "Sriaditya S leads IT Operations at Aarvasa, managing the company’s digital infrastructure, cloud systems, and cybersecurity. He ensures platform stability, secure workflows, and drives Aarvasa’s tech innovations for scalable business growth.",
-    image: "/images/team/sriaditya.png",
-    linkedin: "https://www.linkedin.com/in/sriadityas/",
-    instagram: "https://www.instagram.com/sriaditya_kamikaze?igsh=amdnbDR4MG82cDFh" },
 ];
 
 const UNSPLASH = "https://images.unsplash.com";
@@ -205,7 +197,7 @@ export default function AboutPage() {
       <section id="team" className="relative isolate py-[clamp(72px,10vw,140px)]">
         <LuxContainer>
           <SectionTitle eyebrow="The team" title="The people *behind it.*" />
-          <Stagger className="mt-[var(--s-14)] grid gap-6 sm:grid-cols-2 lg:grid-cols-4" gap={0.1}>
+          <Stagger className="mt-[var(--s-14)] grid gap-6 sm:grid-cols-2 lg:grid-cols-3" gap={0.1}>
             {team.map((person) => (
               <StaggerItem key={person.name}>
                 <article className="group lux-gold-border relative h-full overflow-hidden rounded-[26px] bg-paper-raised">
