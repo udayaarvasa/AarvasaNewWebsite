@@ -35,7 +35,7 @@ export function OwnershipDemoEntry() {
       <p className={styles.authSession}><ShieldCheck size={14}/>Local demo session · resets when you leave</p>
       {error&&<p role="alert" className={styles.authError}>{error}</p>}
       <button className={styles.authSubmit} type="submit">Sign in to demo<ArrowRight size={18}/></button>
-    </form><div className={styles.demoCredentials}><span>EXPLORE THE WORKING MODEL</span><p>Workspace: <strong>demo</strong><span> / </span>Password: <strong>aarvasa</strong></p><button onClick={()=>{setName("demo");setPassword("aarvasa");setError("");}}>Use demo credentials<ArrowRight size={13}/></button></div><p className={styles.authFootnote}>Interactive prototype. No real investment or property ownership.</p></main>
+    </form><div className={styles.demoCredentials}><span>EXPLORE THE WORKING MODEL</span><p>Workspace: <strong>demo</strong><span> / </span>Password: <strong>aarvasa</strong></p><button onClick={()=>{setName("demo");setPassword("aarvasa");setError("");}}>Use demo credentials<ArrowRight size={13}/></button></div><Link href="/blockchain/demo/connected" className={styles.connectedEntry}>Open wallet-connected testnet<ArrowRight size={14}/></Link><p className={styles.authFootnote}>Interactive prototype. No real investment or property ownership.</p></main>
     <footer className={styles.signInFooter}><span>THE NEXT CHAPTER OF PROPERTY</span><div><strong>REEF 999</strong><p>Al Furjan, Dubai · Developer render</p></div></footer>
   </div>}</div>;
 }

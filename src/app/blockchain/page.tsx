@@ -50,7 +50,7 @@ export default function BlockchainPage() {
         </p>
         <p className="mt-[var(--s-5)] text-[17px] leading-[1.75] text-ink-muted">
           Explore the interactive demo to see sample document fingerprints, controlled
-          unit issuance and transfer rules. Its Testnet proof view reads our deployed
+          unit issuance and transfer rules. The wallet-connected workspace can prepare and submit authorized Base Sepolia transactions, with a separate wallet approval for each action. The Testnet proof view reads our deployed
           Base Sepolia contracts and links to public transaction receipts. The property,
           wallets and units are synthetic; these records do not represent legal title,
           a payment or an investment.
