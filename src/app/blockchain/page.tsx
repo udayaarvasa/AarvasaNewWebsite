@@ -25,7 +25,7 @@ import { Wrap } from "@/components/av/primitives";
 export const metadata = {
   title: "Blockchain | Aarvasa",
   description:
-    "Where Aarvasa intends to take verifiable property records. Nothing described here is available today.",
+    "Where Aarvasa intends to take verifiable property records. Explore an interactive prototype and public testnet evidence. No ownership or investment service is offered.",
   // Not a capability we offer; it should not be surfaced as one in search.
   robots: { index: false, follow: true } };
 
@@ -35,7 +35,7 @@ export default function BlockchainPage() {
       <PageHero
         eyebrow="Roadmap · Blockchain"
         title="On-chain title is *coming.* It is not here *yet.*"
-        body="Aarvasa does not offer blockchain-based ownership, tokenised property, fractional investment instruments, on-chain title transfer or smart-contract escrow. None of it is built, and none of it is for sale."
+        body="Aarvasa does not offer blockchain-based ownership, tokenised property, fractional investment instruments, on-chain title transfer or smart-contract escrow. An interactive prototype and read-only testnet evidence are available to explore. No real ownership or investment service is offered."
         size="tall"
       >
         <LedgerChain />
@@ -49,17 +49,18 @@ export default function BlockchainPage() {
           is the part we are actually building.
         </p>
         <p className="mt-[var(--s-5)] text-[17px] leading-[1.75] text-ink-muted">
-          If verifiable records become something we can offer rather than something we
-          can describe, this page will say so, and it will say what was independently
-          checked. Until then it stays as it is — a note about intent, with nothing to
-          sign up to and nothing to buy.
+          Explore the interactive demo to see sample document fingerprints, controlled
+          unit issuance and transfer rules. Its Testnet proof view reads our deployed
+          Base Sepolia contracts and links to public transaction receipts. The property,
+          wallets and units are synthetic; these records do not represent legal title,
+          a payment or an investment.
         </p>
         <p className="mt-[var(--s-8)]">
           <Link
-            href="/listings"
+            href="/blockchain/demo"
             className="av-label rounded-xs border border-rule-firm bg-paper-raised px-3 py-[8px] text-ink transition-colors hover:border-burgundy hover:text-burgundy"
           >
-            See what is listed today
+            Explore the blockchain demo
           </Link>
         </p>
       </Wrap>

@@ -29,6 +29,7 @@ const columns = [
       { href: "/services", label: "Services" },
       { href: "/about#team", label: "Our team" },
       { href: "/blockchain", label: "Roadmap" },
+      { href: "/blockchain/demo", label: "Blockchain demo" },
     ],
   },
   {
