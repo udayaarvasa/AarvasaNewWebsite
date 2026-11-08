@@ -170,18 +170,18 @@ describe("project page integration: no project carries test media", () => {
   });
 
   it("attaches a site-hosted reconstruction only once its public release is approved", () => {
-    // REEF 998 is the one recorded approval (see reef-3d.test.ts); the rest stay bare.
-    assert.deepEqual([...PUBLIC_MODEL_APPROVALS], ["reef-998-dlrc"]);
-    for (const slug of ["reef-996-dubai-production-city", "reef-997-dubai-islands"]) {
+    assert.equal(PUBLIC_MODEL_APPROVALS.length, 5);
+    for (const slug of PUBLIC_MODEL_APPROVALS) {
       const reef = getProject(slug) as Project;
       for (const env of ["development", "production"]) {
-        assert.equal(projectViewerConfig(reef, env), null, `${slug} ${env}`);
+        assert.ok(projectViewerConfig(reef, env), `${slug} ${env}`);
       }
-      assert.equal(reef.immersive?.hosting, undefined, `${slug} carries no site-hosted model`);
+      assert.equal(reef.immersive?.hosting, "site", `${slug} carries its reviewed reconstruction`);
+      assert.equal(reef.immersive?.provenance, "AARVASA_RECONSTRUCTION");
     }
   });
 
-  it("gives REEF 996 no immersive experience at all, because nothing real is published for it", () => {
+  it("gives REEF 996 no panorama tour without published panorama content", () => {
     const reef = getProject("reef-996-dubai-production-city") as Project;
     assert.equal(projectTourConfig(reef, new Map(), { nodeEnv: "development", cdnOrigin: CDN }).tour, null);
     assert.equal(tourMediaAssetIds(reef).length, 0);

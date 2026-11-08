@@ -38,21 +38,20 @@ test("each REEF property offers the 3D surroundings once a key is configured", (
   assert.match(AREA_APPROXIMATE_LOCATION, /approximate/i);
 });
 
-test("only REEF 998's validated model is approved for public release", () => {
-  assert.deepEqual([...PUBLIC_MODEL_APPROVALS], ["reef-998-dlrc"]);
-  const reef998 = getProject("reef-998-dlrc")!;
-  assert.equal(reef998.immersive?.contentHash, "589b15693f0a2ef6db8a416dea3a2043b13a30860cc62649f091cd9a219ace20");
-  assert.equal(reef998.immersive?.provenance, "AARVASA_RECONSTRUCTION");
-  // Stood in the 3D surroundings at an approximate position: base on the ground
-  // (half its 88.5 m height), and the coordinate stays labelled locality precision.
-  assert.deepEqual(reef998.immersive?.mapOverlay, { baseOffsetMetres: 44.25 });
-  assert.equal(reef998.coordinatesPrecision, "locality");
-  // 996's reconstruction failed its recognition gate; 997 has none.
-  assert.equal(getProject("reef-996-dubai-production-city")!.immersive, undefined);
-  assert.equal(getProject("reef-997-dubai-islands")!.immersive, undefined);
-  // 999 has no defensible model; 1000's draft v0.1 is lab-only.
-  assert.equal(getProject("reef-999-al-furjan")!.immersive, undefined);
-  assert.equal(getProject("reef-1000-dlrc")!.immersive, undefined);
+test("all five reviewed REEF models are approved, distinct and map-ready", () => {
+  assert.deepEqual([...PUBLIC_MODEL_APPROVALS], [...REEF]);
+  const keys = new Set<string>();
+  for (const slug of REEF) {
+    const p = getProject(slug)!;
+    assert.equal(p.immersive?.provenance, "AARVASA_RECONSTRUCTION");
+    assert.equal(p.immersive?.review, "approved");
+    assert.ok(p.immersive?.mapOverlay && p.immersive.mapOverlay.baseOffsetMetres > 0);
+    assert.equal(p.coordinatesPrecision, "locality");
+    keys.add(p.immersive!.storageKey);
+  }
+  assert.equal(keys.size, 5);
+  assert.equal(getProject("reef-998-dlrc")!.immersive?.contentHash, "589b15693f0a2ef6db8a416dea3a2043b13a30860cc62649f091cd9a219ace20");
+  assert.deepEqual(getProject("reef-998-dlrc")!.immersive?.mapOverlay, { baseOffsetMetres: 44.25 });
 });
 
 test("the approved model is served from the production model CDN, never the dev CDN or the repository", () => {
@@ -62,16 +61,16 @@ test("the approved model is served from the production model CDN, never the dev 
   const cfg = projectViewerConfig(getProject("reef-998-dlrc")!, "production");
   assert.ok(cfg, "998 has a viewer in production");
   assert.equal(cfg.source.kind, "model");
-  assert.ok(cfg.source.url.endsWith("/m/3eecb8df7d61b40c456ee53d/589b15693f0a2ef6/scene.glb"));
+  assert.ok(cfg.source.url.endsWith("/m/0448dc15c26a47c585c33d51/589b15693f0a2ef6/scene.glb"));
   assert.equal(cfg.xr, null, "no AR/VR for a reconstruction");
   assert.equal(cfg.provenance?.label !== undefined, true, "labelled as a reconstruction");
 });
 
-test("model-specific lighting: carried for a model that sets it, standard for REEF 998", () => {
+test("model-specific lighting is carried from the reviewed reconstruction", () => {
   const reef998 = getProject("reef-998-dlrc")!;
   const live = projectViewerConfig(reef998, "production");
   assert.ok(live);
-  assert.equal(live.lighting, undefined, "REEF 998 keeps the standard lighting");
+  assert.deepEqual(live.lighting, reef998.immersive!.lighting);
   const raking = { keyPitchDeg: 35, keyYawDeg: 70, intensity: 1.5, ambient: 0.3, shadows: true };
   const lit = projectViewerConfig({ ...reef998, immersive: { ...reef998.immersive!, lighting: raking } }, "production");
   assert.deepEqual(lit?.lighting, raking);

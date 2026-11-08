@@ -1,0 +1,876 @@
+{
+  "reef-996-dubai-production-city": [
+    {
+      "id": "reef-996-official-01",
+      "dir": "/images/reef-996/official-review",
+      "ratios": [
+        "3x2"
+      ],
+      "alt": "REEF 996: Kids Pool \u2014 developer render",
+      "caption": "Kids Pool \u00b7 REEF 996 \u00b7 Developer render",
+      "origin": "render",
+      "source": "https://cdn.reefdevelopments.ae/image/2025/10/31/Amenities_996-Kids_Pool_1761900256_5c22abd4.webp",
+      "sourcePage": "https://reefdevelopments.ae/projects/reef-996",
+      "retrieved": "2026-11-08",
+      "sourceSha256": "7cb6612f93bca94730f120add1027753c157b9ea62effa8d4962d8230fc08abb",
+      "width": 1600,
+      "height": 1200
+    },
+    {
+      "id": "reef-996-official-02",
+      "dir": "/images/reef-996/official-review",
+      "ratios": [
+        "3x2"
+      ],
+      "alt": "REEF 996: Outdoor-Cooled Garden Lounges \u2014 developer render",
+      "caption": "Outdoor-Cooled Garden Lounges \u00b7 REEF 996 \u00b7 Developer render",
+      "origin": "render",
+      "source": "https://cdn.reefdevelopments.ae/prod/reef-website/image/2026-07-22/garden_lounge_28c3ea67-5445-4b66-a0d7-82b85a2fd574.webp",
+      "sourcePage": "https://reefdevelopments.ae/projects/reef-996",
+      "retrieved": "2026-11-08",
+      "sourceSha256": "f9f918a2dfe80b44f4ab01fa7c62b99b9c1609596fe9b069657e28f6562e0aa0",
+      "width": 1600,
+      "height": 1024
+    },
+    {
+      "id": "reef-996-official-03",
+      "dir": "/images/reef-996/official-review",
+      "ratios": [
+        "3x2"
+      ],
+      "alt": "REEF 996: Infinity Swimming Pool \u2014 developer render",
+      "caption": "Infinity Swimming Pool \u00b7 REEF 996 \u00b7 Developer render",
+      "origin": "render",
+      "source": "https://cdn.reefdevelopments.ae/image/2025/10/31/Amenities_996-Infinity_Pool_1761900255_a633bf70.webp",
+      "sourcePage": "https://reefdevelopments.ae/projects/reef-996",
+      "retrieved": "2026-11-08",
+      "sourceSha256": "fb3bd3c769fbd90a35e3166c6a8d1dec8e02716d9daff74aadfb59e32debfbe3",
+      "width": 1600,
+      "height": 1200
+    },
+    {
+      "id": "reef-996-official-04",
+      "dir": "/images/reef-996/official-review",
+      "ratios": [
+        "3x2"
+      ],
+      "alt": "REEF 996: Bbq Area \u2014 developer render",
+      "caption": "Bbq Area \u00b7 REEF 996 \u00b7 Developer render",
+      "origin": "render",
+      "source": "https://cdn.reefdevelopments.ae/image/2025/10/31/Amenities_996-BBQ_Area_1761899621_ba5dd583.webp",
+      "sourcePage": "https://reefdevelopments.ae/projects/reef-996",
+      "retrieved": "2026-11-08",
+      "sourceSha256": "fba48d3c070c5cb5a5ef16b357fe28d25a843d031754b72ff763a3354ae3eb0f",
+      "width": 1600,
+      "height": 1200
+    },
+    {
+      "id": "reef-996-official-05",
+      "dir": "/images/reef-996/official-review",
+      "ratios": [
+        "3x2"
+      ],
+      "alt": "REEF 996: Pilates Studio \u2014 developer render",
+      "caption": "Pilates Studio \u00b7 REEF 996 \u00b7 Developer render",
+      "origin": "render",
+      "source": "https://cdn.reefdevelopments.ae/image/2025/10/31/Amenities_996-Pilates_Studio_1761900257_4903544a.webp",
+      "sourcePage": "https://reefdevelopments.ae/projects/reef-996",
+      "retrieved": "2026-11-08",
+      "sourceSha256": "c161bb41861d07d80329ff80037524ca62957766c5e28b4cad8cd00f4620f9ed",
+      "width": 1600,
+      "height": 1200
+    },
+    {
+      "id": "reef-996-official-06",
+      "dir": "/images/reef-996/official-review",
+      "ratios": [
+        "3x2"
+      ],
+      "alt": "REEF 996: Basketball Court \u2014 developer render",
+      "caption": "Basketball Court \u00b7 REEF 996 \u00b7 Developer render",
+      "origin": "render",
+      "source": "https://cdn.reefdevelopments.ae/image/2025/10/31/Amenities_996-Basketball_Area_1761899620_6fec427c.webp",
+      "sourcePage": "https://reefdevelopments.ae/projects/reef-996",
+      "retrieved": "2026-11-08",
+      "sourceSha256": "ae7dbceb7baede5b442a2027702821ca122352417a5ada97975ef5ee9d740997",
+      "width": 1600,
+      "height": 1200
+    },
+    {
+      "id": "reef-996-official-07",
+      "dir": "/images/reef-996/official-review",
+      "ratios": [
+        "3x2"
+      ],
+      "alt": "REEF 996: Residence Studio \u2014 developer render",
+      "caption": "Residence Studio \u00b7 REEF 996 \u00b7 Developer render",
+      "origin": "render",
+      "source": "https://cdn.reefdevelopments.ae/image/2025/10/31/Untitled-2_996-Studio-01_1761901102_eabd27cb.webp",
+      "sourcePage": "https://reefdevelopments.ae/projects/reef-996",
+      "retrieved": "2026-11-08",
+      "sourceSha256": "3c5e8c935bd231f7bd3aa24496222e3e7f34c90ef0c8263c47f91d2e5d4ca664",
+      "width": 1600,
+      "height": 1200
+    },
+    {
+      "id": "reef-996-official-08",
+      "dir": "/images/reef-996/official-review",
+      "ratios": [
+        "3x2"
+      ],
+      "alt": "REEF 996: Residence 1 Bedroom \u2014 developer render",
+      "caption": "Residence 1 Bedroom \u00b7 REEF 996 \u00b7 Developer render",
+      "origin": "render",
+      "source": "https://cdn.reefdevelopments.ae/image/2025/10/31/Studio_996-1BHK-01_1761907960_33985fd9.webp",
+      "sourcePage": "https://reefdevelopments.ae/projects/reef-996",
+      "retrieved": "2026-11-08",
+      "sourceSha256": "5a4c101ea66675aaf099330d79066e40785a59e87ba9b1cf2e2c17c4fddf430a",
+      "width": 1600,
+      "height": 1200
+    },
+    {
+      "id": "reef-996-official-09",
+      "dir": "/images/reef-996/official-review",
+      "ratios": [
+        "3x2"
+      ],
+      "alt": "REEF 996: Residence 2 Bedroom \u2014 developer render",
+      "caption": "Residence 2 Bedroom \u00b7 REEF 996 \u00b7 Developer render",
+      "origin": "render",
+      "source": "https://cdn.reefdevelopments.ae/image/2025/10/31/2BHK_996-2BHK-01_1761900846_7d5c3221.webp",
+      "sourcePage": "https://reefdevelopments.ae/projects/reef-996",
+      "retrieved": "2026-11-08",
+      "sourceSha256": "9164dad8816cfd4a03baeb2717e46f9b43b16c8f17c6caded15c1c9ed46c9b1a",
+      "width": 1600,
+      "height": 1199
+    },
+    {
+      "id": "reef-996-official-10",
+      "dir": "/images/reef-996/official-review",
+      "ratios": [
+        "3x2"
+      ],
+      "alt": "REEF 996: Residence 3 Bedroom \u2014 developer render",
+      "caption": "Residence 3 Bedroom \u00b7 REEF 996 \u00b7 Developer render",
+      "origin": "render",
+      "source": "https://cdn.reefdevelopments.ae/image/2025/10/31/2BHK_996-3BHK-01_1761900976_eed907e7.webp",
+      "sourcePage": "https://reefdevelopments.ae/projects/reef-996",
+      "retrieved": "2026-11-08",
+      "sourceSha256": "647fdcdc947c523e429611ff5913783677db0a628a50c6a7a3c02993b15f3474",
+      "width": 1600,
+      "height": 1199
+    },
+    {
+      "id": "reef-996-official-11",
+      "dir": "/images/reef-996/official-review",
+      "ratios": [
+        "3x2"
+      ],
+      "alt": "REEF 996: Exterior Architecture \u2014 developer render",
+      "caption": "Exterior Architecture \u00b7 REEF 996 \u00b7 Developer render",
+      "origin": "render",
+      "source": "https://reefdevelopments.ae/images/latest-projects/reef-996.webp",
+      "sourcePage": "https://reefdevelopments.ae/projects/reef-996",
+      "retrieved": "2026-11-08",
+      "sourceSha256": "18ca3af72f5116e1f59892f60e7af97316614507546e7428c36eb359add7eed5",
+      "width": 1600,
+      "height": 900
+    }
+  ],
+  "reef-997-dubai-islands": [
+    {
+      "id": "reef-997-official-01",
+      "dir": "/images/reef-997/official-review",
+      "ratios": [
+        "3x2"
+      ],
+      "alt": "REEF 997: Bbq Area \u2014 developer render",
+      "caption": "Bbq Area \u00b7 REEF 997 \u00b7 Developer render",
+      "origin": "render",
+      "source": "https://cdn.reefdevelopments.ae/image/2025/11/04/997_BBQ_Area_1762262763_8286c7d2.webp",
+      "sourcePage": "https://reefdevelopments.ae/projects/reef-997",
+      "retrieved": "2026-11-08",
+      "sourceSha256": "00e4f682afe719cbc02520eacc79872d940fbeb3c7c9adc80e495514812546ea",
+      "width": 1600,
+      "height": 1200
+    },
+    {
+      "id": "reef-997-official-02",
+      "dir": "/images/reef-997/official-review",
+      "ratios": [
+        "3x2"
+      ],
+      "alt": "REEF 997: Yoga Area \u2014 developer render",
+      "caption": "Yoga Area \u00b7 REEF 997 \u00b7 Developer render",
+      "origin": "render",
+      "source": "https://cdn.reefdevelopments.ae/image/2025/09/22/997_Yoga_Area_1758538192_87040a15.webp",
+      "sourcePage": "https://reefdevelopments.ae/projects/reef-997",
+      "retrieved": "2026-11-08",
+      "sourceSha256": "01b9b47b81abb9e37ad6b860e6732f06f6925c635a17ebc3dd95ac98be7218c9",
+      "width": 1600,
+      "height": 1200
+    },
+    {
+      "id": "reef-997-official-03",
+      "dir": "/images/reef-997/official-review",
+      "ratios": [
+        "3x2"
+      ],
+      "alt": "REEF 997: Gym \u2014 developer render",
+      "caption": "Gym \u00b7 REEF 997 \u00b7 Developer render",
+      "origin": "render",
+      "source": "https://cdn.reefdevelopments.ae/image/2025/09/22/997_Gym_1758538167_e0c7c00f.webp",
+      "sourcePage": "https://reefdevelopments.ae/projects/reef-997",
+      "retrieved": "2026-11-08",
+      "sourceSha256": "8d9daf675698351aff8f6d724c592cc117e271f855c1e2cd7ca3ce060d6e636d",
+      "width": 1600,
+      "height": 1200
+    },
+    {
+      "id": "reef-997-official-04",
+      "dir": "/images/reef-997/official-review",
+      "ratios": [
+        "3x2"
+      ],
+      "alt": "REEF 997: Outdoor-Cooled Kids Area \u2014 developer render",
+      "caption": "Outdoor-Cooled Kids Area \u00b7 REEF 997 \u00b7 Developer render",
+      "origin": "render",
+      "source": "https://cdn.reefdevelopments.ae/image/2025/09/22/997_Kids_Play_Area_1758538168_186e50a7.webp",
+      "sourcePage": "https://reefdevelopments.ae/projects/reef-997",
+      "retrieved": "2026-11-08",
+      "sourceSha256": "6c0e0cdbee1ef0a4d0c015f939b4d61c62a7445b426fb43863c25ba7e4913f90",
+      "width": 1600,
+      "height": 1200
+    },
+    {
+      "id": "reef-997-official-05",
+      "dir": "/images/reef-997/official-review",
+      "ratios": [
+        "3x2"
+      ],
+      "alt": "REEF 997: Hammock Forest Area \u2014 developer render",
+      "caption": "Hammock Forest Area \u00b7 REEF 997 \u00b7 Developer render",
+      "origin": "render",
+      "source": "https://cdn.reefdevelopments.ae/image/2025/09/22/997_Hammock_Forest_1758538168_128fe858.webp",
+      "sourcePage": "https://reefdevelopments.ae/projects/reef-997",
+      "retrieved": "2026-11-08",
+      "sourceSha256": "7facb5c71b3a5164b329f57486773ed2858b903b943020b929a1f80e7e54ae64",
+      "width": 1600,
+      "height": 1200
+    },
+    {
+      "id": "reef-997-official-06",
+      "dir": "/images/reef-997/official-review",
+      "ratios": [
+        "3x2"
+      ],
+      "alt": "REEF 997: Kids Pool \u2014 developer render",
+      "caption": "Kids Pool \u00b7 REEF 997 \u00b7 Developer render",
+      "origin": "render",
+      "source": "https://cdn.reefdevelopments.ae/image/2025/09/22/997_Kids_Pool_1758538168_4c8683d0.webp",
+      "sourcePage": "https://reefdevelopments.ae/projects/reef-997",
+      "retrieved": "2026-11-08",
+      "sourceSha256": "37e2e42b492fa086a485f23332ad8b9d85d47e1f4564de211fdb8962aeff6ab6",
+      "width": 1600,
+      "height": 1200
+    },
+    {
+      "id": "reef-997-official-07",
+      "dir": "/images/reef-997/official-review",
+      "ratios": [
+        "3x2"
+      ],
+      "alt": "REEF 997: Residence 1 Bedroom \u2014 developer render",
+      "caption": "Residence 1 Bedroom \u00b7 REEF 997 \u00b7 Developer render",
+      "origin": "render",
+      "source": "https://cdn.reefdevelopments.ae/image/2025/09/22/997_1BR_4_1758540162_b4d3637e.webp",
+      "sourcePage": "https://reefdevelopments.ae/projects/reef-997",
+      "retrieved": "2026-11-08",
+      "sourceSha256": "815416024dc5c2a1cf19acd9f182f57ed9d8913e51314439ced7f168ded787c3",
+      "width": 1600,
+      "height": 1200
+    },
+    {
+      "id": "reef-997-official-08",
+      "dir": "/images/reef-997/official-review",
+      "ratios": [
+        "3x2"
+      ],
+      "alt": "REEF 997: Residence 2 Bedroom \u2014 developer render",
+      "caption": "Residence 2 Bedroom \u00b7 REEF 997 \u00b7 Developer render",
+      "origin": "render",
+      "source": "https://cdn.reefdevelopments.ae/image/2025/09/22/997_2BR_1_1758540226_b990fb67.webp",
+      "sourcePage": "https://reefdevelopments.ae/projects/reef-997",
+      "retrieved": "2026-11-08",
+      "sourceSha256": "db53073d3c8ed9791d513ab2f9af561e1d4a71b4ed729a141ad3ab61914d22b5",
+      "width": 1600,
+      "height": 1200
+    },
+    {
+      "id": "reef-997-official-09",
+      "dir": "/images/reef-997/official-review",
+      "ratios": [
+        "3x2"
+      ],
+      "alt": "REEF 997: Duplex 3 Bedroom \u2014 developer render",
+      "caption": "Duplex 3 Bedroom \u00b7 REEF 997 \u00b7 Developer render",
+      "origin": "render",
+      "source": "https://cdn.reefdevelopments.ae/image/2025/09/22/997_3BR_4_1758540288_f26cbe13.webp",
+      "sourcePage": "https://reefdevelopments.ae/projects/reef-997",
+      "retrieved": "2026-11-08",
+      "sourceSha256": "6d770a5b2b1f2df7d0b07eff3d484dd2849fdcd9a79c8484ffe1d71fd5cf072e",
+      "width": 1600,
+      "height": 1200
+    },
+    {
+      "id": "reef-997-official-10",
+      "dir": "/images/reef-997/official-review",
+      "ratios": [
+        "3x2"
+      ],
+      "alt": "REEF 997: Penthouse 4 Bedroom \u2014 developer render",
+      "caption": "Penthouse 4 Bedroom \u00b7 REEF 997 \u00b7 Developer render",
+      "origin": "render",
+      "source": "https://cdn.reefdevelopments.ae/image/2025/09/22/997_4BED_5_1758540671_16e6e3ec.webp",
+      "sourcePage": "https://reefdevelopments.ae/projects/reef-997",
+      "retrieved": "2026-11-08",
+      "sourceSha256": "efd0aa7f268b39147aa8be5562a5d0a67af32ebe2efc2dfb1fd2ea179c16aef6",
+      "width": 1600,
+      "height": 1200
+    },
+    {
+      "id": "reef-997-official-11",
+      "dir": "/images/reef-997/official-review",
+      "ratios": [
+        "3x2"
+      ],
+      "alt": "REEF 997: Exterior Architecture \u2014 developer render",
+      "caption": "Exterior Architecture \u00b7 REEF 997 \u00b7 Developer render",
+      "origin": "render",
+      "source": "https://reefdevelopments.ae/images/latest-projects/reef-997.jpg",
+      "sourcePage": "https://reefdevelopments.ae/projects/reef-997",
+      "retrieved": "2026-11-08",
+      "sourceSha256": "33fdc9f90a214ccfca9d20e75c3df9eea2ec4c55382e9712775110295e720937",
+      "width": 1600,
+      "height": 900
+    }
+  ],
+  "reef-998-dlrc": [
+    {
+      "id": "reef-998-official-01",
+      "dir": "/images/reef-998/official-review",
+      "ratios": [
+        "3x2"
+      ],
+      "alt": "REEF 998: Sunken Seated Area \u2014 developer render",
+      "caption": "Sunken Seated Area \u00b7 REEF 998 \u00b7 Developer render",
+      "origin": "render",
+      "source": "https://cdn.reefdevelopments.ae/image/2025/08/27/998_Sunken_Sitting_1756313688_e0ed3128.jpg",
+      "sourcePage": "https://reefdevelopments.ae/projects/reef-998",
+      "retrieved": "2026-11-08",
+      "sourceSha256": "8fd093c4295c4d2b00c0997b586ab0b8ff1d13e5dae056c5ad46c07cf78b495c",
+      "width": 1600,
+      "height": 1200
+    },
+    {
+      "id": "reef-998-official-02",
+      "dir": "/images/reef-998/official-review",
+      "ratios": [
+        "3x2"
+      ],
+      "alt": "REEF 998: Infinity Swimming Pool \u2014 developer render",
+      "caption": "Infinity Swimming Pool \u00b7 REEF 998 \u00b7 Developer render",
+      "origin": "render",
+      "source": "https://cdn.reefdevelopments.ae/image/2025/08/27/998_Pool_1756313688_e7685d8e.jpg",
+      "sourcePage": "https://reefdevelopments.ae/projects/reef-998",
+      "retrieved": "2026-11-08",
+      "sourceSha256": "b6e53ba2a4b1c431ee7634b939101f0d37ad804f00c8ef6ef27124251b9e6c6e",
+      "width": 1600,
+      "height": 1200
+    },
+    {
+      "id": "reef-998-official-03",
+      "dir": "/images/reef-998/official-review",
+      "ratios": [
+        "3x2"
+      ],
+      "alt": "REEF 998: Kids Play Area \u2014 developer render",
+      "caption": "Kids Play Area \u00b7 REEF 998 \u00b7 Developer render",
+      "origin": "render",
+      "source": "https://cdn.reefdevelopments.ae/image/2025/08/27/998_Kids_Play_Area_1756313688_1f2dbfad.jpg",
+      "sourcePage": "https://reefdevelopments.ae/projects/reef-998",
+      "retrieved": "2026-11-08",
+      "sourceSha256": "5914a156f61b00658726d550d854e7d5d37a0407c6e0c34b6bc0e607938142f6",
+      "width": 1600,
+      "height": 1200
+    },
+    {
+      "id": "reef-998-official-04",
+      "dir": "/images/reef-998/official-review",
+      "ratios": [
+        "3x2"
+      ],
+      "alt": "REEF 998: Outdoor Gym \u2014 developer render",
+      "caption": "Outdoor Gym \u00b7 REEF 998 \u00b7 Developer render",
+      "origin": "render",
+      "source": "https://cdn.reefdevelopments.ae/image/2025/08/27/998_Outdoor_Gym_1756313688_9c2dbd03.jpg",
+      "sourcePage": "https://reefdevelopments.ae/projects/reef-998",
+      "retrieved": "2026-11-08",
+      "sourceSha256": "93b2d842dfeba01b79052a672339d0b84c76289dd7248c4745d135dfdd9fc675",
+      "width": 1600,
+      "height": 1200
+    },
+    {
+      "id": "reef-998-official-05",
+      "dir": "/images/reef-998/official-review",
+      "ratios": [
+        "3x2"
+      ],
+      "alt": "REEF 998: Aqua Bikes \u2014 developer render",
+      "caption": "Aqua Bikes \u00b7 REEF 998 \u00b7 Developer render",
+      "origin": "render",
+      "source": "https://cdn.reefdevelopments.ae/image/2025/08/27/998_Aqua_Bikes_1756313688_d8bbde05.jpg",
+      "sourcePage": "https://reefdevelopments.ae/projects/reef-998",
+      "retrieved": "2026-11-08",
+      "sourceSha256": "315e5f98579651d610c515ec9b4ab44685643016350c83721e6d00482eaf9a7e",
+      "width": 1600,
+      "height": 1200
+    },
+    {
+      "id": "reef-998-official-06",
+      "dir": "/images/reef-998/official-review",
+      "ratios": [
+        "3x2"
+      ],
+      "alt": "REEF 998: Residence Studio \u2014 developer render",
+      "caption": "Residence Studio \u00b7 REEF 998 \u00b7 Developer render",
+      "origin": "render",
+      "source": "https://cdn.reefdevelopments.ae/image/2025/08/27/988_Studio_1_1756313720_493470e0.jpg",
+      "sourcePage": "https://reefdevelopments.ae/projects/reef-998",
+      "retrieved": "2026-11-08",
+      "sourceSha256": "441930e8071683f6a9e2d67275083aff5b5287a252440856e4589a66c9c1058a",
+      "width": 1600,
+      "height": 1200
+    },
+    {
+      "id": "reef-998-official-07",
+      "dir": "/images/reef-998/official-review",
+      "ratios": [
+        "3x2"
+      ],
+      "alt": "REEF 998: Residence 1 Bedroom \u2014 developer render",
+      "caption": "Residence 1 Bedroom \u00b7 REEF 998 \u00b7 Developer render",
+      "origin": "render",
+      "source": "https://cdn.reefdevelopments.ae/image/2025/08/27/988_1BR_3_1756313752_a2789c1d.jpg",
+      "sourcePage": "https://reefdevelopments.ae/projects/reef-998",
+      "retrieved": "2026-11-08",
+      "sourceSha256": "c0e5ca3d2d673982ebab23b7156e0d01c159fe5a34d52438ec2b90b98ca1971b",
+      "width": 1600,
+      "height": 1200
+    },
+    {
+      "id": "reef-998-official-08",
+      "dir": "/images/reef-998/official-review",
+      "ratios": [
+        "3x2"
+      ],
+      "alt": "REEF 998: Residence 2 Bedroom \u2014 developer render",
+      "caption": "Residence 2 Bedroom \u00b7 REEF 998 \u00b7 Developer render",
+      "origin": "render",
+      "source": "https://cdn.reefdevelopments.ae/image/2025/08/27/988_2BR_3_1756313781_6f388d8c.jpg",
+      "sourcePage": "https://reefdevelopments.ae/projects/reef-998",
+      "retrieved": "2026-11-08",
+      "sourceSha256": "2c21e7723da56caa73199291d457b2c45eff7c2dffb2d5edb5bb622dc22516ff",
+      "width": 1600,
+      "height": 1200
+    },
+    {
+      "id": "reef-998-official-09",
+      "dir": "/images/reef-998/official-review",
+      "ratios": [
+        "3x2"
+      ],
+      "alt": "REEF 998: Residence 3 Bedroom \u2014 developer render",
+      "caption": "Residence 3 Bedroom \u00b7 REEF 998 \u00b7 Developer render",
+      "origin": "render",
+      "source": "https://cdn.reefdevelopments.ae/image/2025/08/27/988_3BR_2_1756313809_7834247b.jpg",
+      "sourcePage": "https://reefdevelopments.ae/projects/reef-998",
+      "retrieved": "2026-11-08",
+      "sourceSha256": "23fa0d951a5e5c8603db574e5a13fe54c65b32918979b8d06242271d6d9db596",
+      "width": 1600,
+      "height": 1200
+    },
+    {
+      "id": "reef-998-official-10",
+      "dir": "/images/reef-998/official-review",
+      "ratios": [
+        "3x2"
+      ],
+      "alt": "REEF 998: Exterior Architecture \u2014 developer render",
+      "caption": "Exterior Architecture \u00b7 REEF 998 \u00b7 Developer render",
+      "origin": "render",
+      "source": "https://reefdevelopments.ae/images/latest-projects/reef-998.jpg",
+      "sourcePage": "https://reefdevelopments.ae/projects/reef-998",
+      "retrieved": "2026-11-08",
+      "sourceSha256": "eac40e9bb796c413434cc74cb111c5fbf694150a3ecce80441c44cc32e33dd55",
+      "width": 1600,
+      "height": 901
+    }
+  ],
+  "reef-999-al-furjan": [
+    {
+      "id": "reef-999-official-01",
+      "dir": "/images/reef-999/official-review",
+      "ratios": [
+        "3x2"
+      ],
+      "alt": "REEF 999: Kids Pool \u2014 developer render",
+      "caption": "Kids Pool \u00b7 REEF 999 \u00b7 Developer render",
+      "origin": "render",
+      "source": "https://cdn.reefdevelopments.ae/image/2025/08/27/988_Amenities_Kids_Pool_1756309817_f5cb91e3.jpg",
+      "sourcePage": "https://reefdevelopments.ae/projects/reef-999",
+      "retrieved": "2026-11-08",
+      "sourceSha256": "6d11c5c238fe9fc412115c7ffef533995e29d4e1f301a36162da7ec891389657",
+      "width": 1600,
+      "height": 1200
+    },
+    {
+      "id": "reef-999-official-02",
+      "dir": "/images/reef-999/official-review",
+      "ratios": [
+        "3x2"
+      ],
+      "alt": "REEF 999: Bbq Area \u2014 developer render",
+      "caption": "Bbq Area \u00b7 REEF 999 \u00b7 Developer render",
+      "origin": "render",
+      "source": "https://cdn.reefdevelopments.ae/image/2025/08/27/988_Amenities_BBQ_Garden_1756309817_89c22979.jpg",
+      "sourcePage": "https://reefdevelopments.ae/projects/reef-999",
+      "retrieved": "2026-11-08",
+      "sourceSha256": "108e0b834a8bce16d0caa5306476d795dcad07d8c3eaf403700baa37145e5cd7",
+      "width": 1600,
+      "height": 1200
+    },
+    {
+      "id": "reef-999-official-03",
+      "dir": "/images/reef-999/official-review",
+      "ratios": [
+        "3x2"
+      ],
+      "alt": "REEF 999: Shaded Seating Area \u2014 developer render",
+      "caption": "Shaded Seating Area \u00b7 REEF 999 \u00b7 Developer render",
+      "origin": "render",
+      "source": "https://cdn.reefdevelopments.ae/image/2025/08/27/988_Amenities_Shaded_Sitting_1756309817_85ed9ada.jpg",
+      "sourcePage": "https://reefdevelopments.ae/projects/reef-999",
+      "retrieved": "2026-11-08",
+      "sourceSha256": "a95928fdb3c314504593d297b05d128b5a4a2d4ff8b193b68659d0126d600896",
+      "width": 1600,
+      "height": 1200
+    },
+    {
+      "id": "reef-999-official-04",
+      "dir": "/images/reef-999/official-review",
+      "ratios": [
+        "3x2"
+      ],
+      "alt": "REEF 999: Tennis & Padel Court \u2014 developer render",
+      "caption": "Tennis & Padel Court \u00b7 REEF 999 \u00b7 Developer render",
+      "origin": "render",
+      "source": "https://cdn.reefdevelopments.ae/image/2025/08/27/988_Amenities_Tennis_Court_1756309817_c2ac5e8a.jpg",
+      "sourcePage": "https://reefdevelopments.ae/projects/reef-999",
+      "retrieved": "2026-11-08",
+      "sourceSha256": "7102ae6e0635741546aa8688cd7351d57cfd9f98265c50b71dde0e418282be2b",
+      "width": 1600,
+      "height": 1200
+    },
+    {
+      "id": "reef-999-official-05",
+      "dir": "/images/reef-999/official-review",
+      "ratios": [
+        "3x2"
+      ],
+      "alt": "REEF 999: Yoga Area \u2014 developer render",
+      "caption": "Yoga Area \u00b7 REEF 999 \u00b7 Developer render",
+      "origin": "render",
+      "source": "https://cdn.reefdevelopments.ae/image/2025/08/27/988_Amenities_Yoga_Area_1756309817_0eff2537.jpg",
+      "sourcePage": "https://reefdevelopments.ae/projects/reef-999",
+      "retrieved": "2026-11-08",
+      "sourceSha256": "d4654e031548ad1ec5ff931afa401951413903274e1fb4c1fc52b9f2088becb1",
+      "width": 1600,
+      "height": 1200
+    },
+    {
+      "id": "reef-999-official-06",
+      "dir": "/images/reef-999/official-review",
+      "ratios": [
+        "3x2"
+      ],
+      "alt": "REEF 999: Kids Play Area \u2014 developer render",
+      "caption": "Kids Play Area \u00b7 REEF 999 \u00b7 Developer render",
+      "origin": "render",
+      "source": "https://cdn.reefdevelopments.ae/image/2025/08/27/988_Amenities_Kids_Area_1756309817_b1d54ca1.jpg",
+      "sourcePage": "https://reefdevelopments.ae/projects/reef-999",
+      "retrieved": "2026-11-08",
+      "sourceSha256": "61d247689a891ac7b9315d5f90d5e415def59afb2b9e003fac37c83c0bd42f28",
+      "width": 1600,
+      "height": 1200
+    },
+    {
+      "id": "reef-999-official-07",
+      "dir": "/images/reef-999/official-review",
+      "ratios": [
+        "3x2"
+      ],
+      "alt": "REEF 999: Residence 1 Bedroom \u2014 developer render",
+      "caption": "Residence 1 Bedroom \u00b7 REEF 999 \u00b7 Developer render",
+      "origin": "render",
+      "source": "https://cdn.reefdevelopments.ae/image/2025/08/27/999_1BR_1_1756309884_350d8326.jpg",
+      "sourcePage": "https://reefdevelopments.ae/projects/reef-999",
+      "retrieved": "2026-11-08",
+      "sourceSha256": "7710fa397f0b4d70b5c6facf26067551e8ea0638bc82436f3c0f15c7519cc842",
+      "width": 1600,
+      "height": 1200
+    },
+    {
+      "id": "reef-999-official-08",
+      "dir": "/images/reef-999/official-review",
+      "ratios": [
+        "3x2"
+      ],
+      "alt": "REEF 999: Residence 2 Bedroom \u2014 developer render",
+      "caption": "Residence 2 Bedroom \u00b7 REEF 999 \u00b7 Developer render",
+      "origin": "render",
+      "source": "https://cdn.reefdevelopments.ae/image/2025/08/27/999_2BR_5_1756309912_9d9026f1.jpg",
+      "sourcePage": "https://reefdevelopments.ae/projects/reef-999",
+      "retrieved": "2026-11-08",
+      "sourceSha256": "e5d22fd94ac0ab87165f32d2d17e89b34d3f03295c9d56b74d5dc7695a1a406f",
+      "width": 1600,
+      "height": 1200
+    },
+    {
+      "id": "reef-999-official-09",
+      "dir": "/images/reef-999/official-review",
+      "ratios": [
+        "3x2"
+      ],
+      "alt": "REEF 999: Residence 3 Bedroom \u2014 developer render",
+      "caption": "Residence 3 Bedroom \u00b7 REEF 999 \u00b7 Developer render",
+      "origin": "render",
+      "source": "https://cdn.reefdevelopments.ae/image/2025/08/27/999_3BR_1_1756309941_51984545.jpg",
+      "sourcePage": "https://reefdevelopments.ae/projects/reef-999",
+      "retrieved": "2026-11-08",
+      "sourceSha256": "1485fe7116cdf37a52ca928750b4dc145abe0f666104e9a1462f77cd150cda1d",
+      "width": 1600,
+      "height": 1200
+    },
+    {
+      "id": "reef-999-official-10",
+      "dir": "/images/reef-999/official-review",
+      "ratios": [
+        "3x2"
+      ],
+      "alt": "REEF 999: Sky Villa 4 Bedroom \u2014 developer render",
+      "caption": "Sky Villa 4 Bedroom \u00b7 REEF 999 \u00b7 Developer render",
+      "origin": "render",
+      "source": "https://cdn.reefdevelopments.ae/image/2025/08/27/999_Villa_4BR2_1756309972_460d5087.jpg",
+      "sourcePage": "https://reefdevelopments.ae/projects/reef-999",
+      "retrieved": "2026-11-08",
+      "sourceSha256": "a2029d81d572e76548387e2c452d32f0c7b2eaf5a38514a618dfe1063ba772a2",
+      "width": 1600,
+      "height": 900
+    },
+    {
+      "id": "reef-999-official-11",
+      "dir": "/images/reef-999/official-review",
+      "ratios": [
+        "3x2"
+      ],
+      "alt": "REEF 999: Exterior Architecture \u2014 developer render",
+      "caption": "Exterior Architecture \u00b7 REEF 999 \u00b7 Developer render",
+      "origin": "render",
+      "source": "https://reefdevelopments.ae/images/latest-projects/reef-999.jpg",
+      "sourcePage": "https://reefdevelopments.ae/projects/reef-999",
+      "retrieved": "2026-11-08",
+      "sourceSha256": "13e67da925c760965b23ce7e91bd69544b1eb89d4e8e5a50eb28f26ebd30902c",
+      "width": 1600,
+      "height": 900
+    }
+  ],
+  "reef-1000-dlrc": [
+    {
+      "id": "reef-1000-official-01",
+      "dir": "/images/reef-1000/official-review",
+      "ratios": [
+        "3x2"
+      ],
+      "alt": "REEF 1000: Vegetable Garden \u2014 developer render",
+      "caption": "Vegetable Garden \u00b7 REEF 1000 \u00b7 Developer render",
+      "origin": "render",
+      "source": "https://cdn.reefdevelopments.ae/image/2025/08/27/1000_Amineties_Veg_Garden_1756300071_89a1be9b.jpg",
+      "sourcePage": "https://reefdevelopments.ae/projects/reef-1000",
+      "retrieved": "2026-11-08",
+      "sourceSha256": "859e9e2f3a2fc9e550c0394fd5890356b1b5004a230c49cff31bc972d1f2e921",
+      "width": 1600,
+      "height": 1200
+    },
+    {
+      "id": "reef-1000-official-02",
+      "dir": "/images/reef-1000/official-review",
+      "ratios": [
+        "3x2"
+      ],
+      "alt": "REEF 1000: Running Track \u2014 developer render",
+      "caption": "Running Track \u00b7 REEF 1000 \u00b7 Developer render",
+      "origin": "render",
+      "source": "https://cdn.reefdevelopments.ae/image/2025/08/27/1000_Amineties_Youga_1756300071_2eabcfa0.jpg",
+      "sourcePage": "https://reefdevelopments.ae/projects/reef-1000",
+      "retrieved": "2026-11-08",
+      "sourceSha256": "9a3d6cc8661d0fd1a4ec42ddb9a9b5ff2caad6004cd21dc2f065816b8631c273",
+      "width": 1600,
+      "height": 1200
+    },
+    {
+      "id": "reef-1000-official-03",
+      "dir": "/images/reef-1000/official-review",
+      "ratios": [
+        "3x2"
+      ],
+      "alt": "REEF 1000: Cricket Pitch \u2014 developer render",
+      "caption": "Cricket Pitch \u00b7 REEF 1000 \u00b7 Developer render",
+      "origin": "render",
+      "source": "https://cdn.reefdevelopments.ae/image/2025/08/27/1000_Amineties_Cricket_Pitch_1756300071_dbc1c524.jpg",
+      "sourcePage": "https://reefdevelopments.ae/projects/reef-1000",
+      "retrieved": "2026-11-08",
+      "sourceSha256": "5ecedf191fd46fdf2a210e2cbab6db4605a91c352a9414e858029e677445f8d0",
+      "width": 1600,
+      "height": 1200
+    },
+    {
+      "id": "reef-1000-official-04",
+      "dir": "/images/reef-1000/official-review",
+      "ratios": [
+        "3x2"
+      ],
+      "alt": "REEF 1000: Outdoor Gym \u2014 developer render",
+      "caption": "Outdoor Gym \u00b7 REEF 1000 \u00b7 Developer render",
+      "origin": "render",
+      "source": "https://cdn.reefdevelopments.ae/image/2025/08/27/1000_Amineties_Outdoor_Gym_1756300071_8af7918c.jpg",
+      "sourcePage": "https://reefdevelopments.ae/projects/reef-1000",
+      "retrieved": "2026-11-08",
+      "sourceSha256": "3c2ed74e7473deca8f236abd1dfcb7f34765985be65b6d20fbbe703ef3b17f84",
+      "width": 1600,
+      "height": 1200
+    },
+    {
+      "id": "reef-1000-official-05",
+      "dir": "/images/reef-1000/official-review",
+      "ratios": [
+        "3x2"
+      ],
+      "alt": "REEF 1000: Baja Shelf \u2014 developer render",
+      "caption": "Baja Shelf \u00b7 REEF 1000 \u00b7 Developer render",
+      "origin": "render",
+      "source": "https://cdn.reefdevelopments.ae/image/2025/08/27/1000_Amineties_Baja_Shelf_1756307027_3d0b79f3.jpg",
+      "sourcePage": "https://reefdevelopments.ae/projects/reef-1000",
+      "retrieved": "2026-11-08",
+      "sourceSha256": "b344aec73db6dd6bc4923c1f01660e594b46d669da65b502374d33d967d370df",
+      "width": 1600,
+      "height": 1200
+    },
+    {
+      "id": "reef-1000-official-06",
+      "dir": "/images/reef-1000/official-review",
+      "ratios": [
+        "3x2"
+      ],
+      "alt": "REEF 1000: Bbq Area \u2014 developer render",
+      "caption": "Bbq Area \u00b7 REEF 1000 \u00b7 Developer render",
+      "origin": "render",
+      "source": "https://cdn.reefdevelopments.ae/image/2025/08/27/1000_Amineties_BBQ_Area_2_1756307027_52b9f5c0.jpg",
+      "sourcePage": "https://reefdevelopments.ae/projects/reef-1000",
+      "retrieved": "2026-11-08",
+      "sourceSha256": "9378bccc2b403c6f2e9c4d51badd4679a9357dc668b08758d972afe3c3199238",
+      "width": 1600,
+      "height": 1200
+    },
+    {
+      "id": "reef-1000-official-07",
+      "dir": "/images/reef-1000/official-review",
+      "ratios": [
+        "3x2"
+      ],
+      "alt": "REEF 1000: Residence Studio \u2014 developer render",
+      "caption": "Residence Studio \u00b7 REEF 1000 \u00b7 Developer render",
+      "origin": "render",
+      "source": "https://cdn.reefdevelopments.ae/image/2025/08/27/1000_Studio_1_1756300648_ac6a1e63.jpg",
+      "sourcePage": "https://reefdevelopments.ae/projects/reef-1000",
+      "retrieved": "2026-11-08",
+      "sourceSha256": "db5d2aadd2331fad202619cb098b838192a264b07ee7a7793e95dd7c93982e0b",
+      "width": 1600,
+      "height": 1200
+    },
+    {
+      "id": "reef-1000-official-08",
+      "dir": "/images/reef-1000/official-review",
+      "ratios": [
+        "3x2"
+      ],
+      "alt": "REEF 1000: Residence 1 Bedroom \u2014 developer render",
+      "caption": "Residence 1 Bedroom \u00b7 REEF 1000 \u00b7 Developer render",
+      "origin": "render",
+      "source": "https://cdn.reefdevelopments.ae/image/2025/08/27/1000_1BR_1_1756300605_a33fd9e6.jpg",
+      "sourcePage": "https://reefdevelopments.ae/projects/reef-1000",
+      "retrieved": "2026-11-08",
+      "sourceSha256": "ae9683b234ba37f488d2fd974677f90ce117332a3f0b65837cc95f03f1ed83b4",
+      "width": 1600,
+      "height": 1200
+    },
+    {
+      "id": "reef-1000-official-09",
+      "dir": "/images/reef-1000/official-review",
+      "ratios": [
+        "3x2"
+      ],
+      "alt": "REEF 1000: Residence 2 Bedroom \u2014 developer render",
+      "caption": "Residence 2 Bedroom \u00b7 REEF 1000 \u00b7 Developer render",
+      "origin": "render",
+      "source": "https://cdn.reefdevelopments.ae/image/2025/08/27/1000_2BR_2_1756300605_15ea9a54.jpg",
+      "sourcePage": "https://reefdevelopments.ae/projects/reef-1000",
+      "retrieved": "2026-11-08",
+      "sourceSha256": "f2a73062ff939d55d08cb3f66d3e3c880a92a76d3ce089a166eda17ebf8c635d",
+      "width": 1600,
+      "height": 1200
+    },
+    {
+      "id": "reef-1000-official-10",
+      "dir": "/images/reef-1000/official-review",
+      "ratios": [
+        "3x2"
+      ],
+      "alt": "REEF 1000: Duplex 2 Bedroom \u2014 developer render",
+      "caption": "Duplex 2 Bedroom \u00b7 REEF 1000 \u00b7 Developer render",
+      "origin": "render",
+      "source": "https://cdn.reefdevelopments.ae/image/2025/08/27/1000_Townhouse_2BR_1_1756300669_2056df4b.jpg",
+      "sourcePage": "https://reefdevelopments.ae/projects/reef-1000",
+      "retrieved": "2026-11-08",
+      "sourceSha256": "e6ff127740648cca9a2a4ffb7bc562ec30985b2a00bfb395a677098b87fe45f8",
+      "width": 1600,
+      "height": 1200
+    },
+    {
+      "id": "reef-1000-official-11",
+      "dir": "/images/reef-1000/official-review",
+      "ratios": [
+        "3x2"
+      ],
+      "alt": "REEF 1000: Exterior Architecture \u2014 developer render",
+      "caption": "Exterior Architecture \u00b7 REEF 1000 \u00b7 Developer render",
+      "origin": "render",
+      "source": "https://reefdevelopments.ae/images/latest-projects/reef-1000.jpg",
+      "sourcePage": "https://reefdevelopments.ae/projects/reef-1000",
+      "retrieved": "2026-11-08",
+      "sourceSha256": "a45c5d9c7fd95317a7c1f03a20efa3637c0f71a5fa75876bdf1503057ffec5aa",
+      "width": 1600,
+      "height": 900
+    }
+  ]
+}

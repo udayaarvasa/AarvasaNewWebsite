@@ -1,3 +1,5 @@
+import { REEF_RELEASE_MODELS } from "./reef-release-models";
+import { withReefReleaseImagery } from "./reef-release-imagery";
 import { REEF_1000_IMAGERY, REEF_999_IMAGERY } from "./reef-portfolio-imagery";
 import {
   projectImageSrc,
@@ -265,29 +267,7 @@ const SPLAT_BY_SLUG: Readonly<Record<string, ProjectSplatMedia>> = {
  * 1,132,676 bytes) stays on the CDN at m/3eecb8df7d61b40c456ee53d/0756752510fe54e4
  * with baseOffsetMetres 50. Restore those three values to roll back.
  */
-const REEF_998_RECONSTRUCTION: ProjectImmersiveMedia = {
-  mediaId: "3eecb8df7d61b40c456ee53d",
-  kind: "MODEL",
-  format: "GLB",
-  storageKey: "m/3eecb8df7d61b40c456ee53d/589b15693f0a2ef6",
-  entryFile: "scene.glb",
-  contentHash: "589b15693f0a2ef6db8a416dea3a2043b13a30860cc62649f091cd9a219ace20",
-  sizeBytes: 1_135_668,
-  poster: null,
-  processingVersion: "1.0.0/passthrough-v1",
-  altText: "REEF 998, reconstructed by Aarvasa from the developer's renders and floor plans: the tower's massing, balconies and podium. Not an official developer model.",
-  review: "approved",
-  hosting: "site",
-  provenance: "AARVASA_RECONSTRUCTION",
-  /* Stood in Google's 3D surroundings on the locality-precision coordinate, as
-     approved by Aarvasa (Ansh Dubey, 19 Oct 2026) with the non-dismissible
-     "approximate geographic placement" note beside it. The point is the
-     community, not the plot: replace it with the developer's plot position,
-     precision "plot", when that arrives.
-     88.5 m tall (v3) → half, 44.25 m, lifts the base to the ground (checked
-     visually against Google's terrain on 19 Oct 2026). */
-  mapOverlay: { baseOffsetMetres: 44.25 },
-};
+const REEF_998_RECONSTRUCTION: ProjectImmersiveMedia = REEF_RELEASE_MODELS["reef-998-dlrc"];
 
 /**
  * REEF 996: Aarvasa's reconstruction from the developer's renders —
@@ -295,79 +275,31 @@ const REEF_998_RECONSTRUCTION: ProjectImmersiveMedia = {
  * podium; 82 x 22 m plan; 87.6 m to the crown). v2 corrects what the v1
  * recognition gate failed on (balcony edge proportion with glass rails, dark
  * slots between bays, smooth S-curve bays), measured on the developer's facade
- * render. v1 (1a38e0e6…) was never published. CANDIDATE: not in
- * PUBLIC_MODEL_APPROVALS, so it is attached to nothing until approved.
+ * render. v1 (1a38e0e6…) was never published. Approved for public release after the owner's local map review, 8 November 2026.
  */
-const REEF_996_RECONSTRUCTION: ProjectImmersiveMedia = {
-  mediaId: "244d16103a0cdb3f4754208a",
-  kind: "MODEL",
-  format: "GLB",
-  storageKey: "m/244d16103a0cdb3f4754208a/9ea83ecf6f4a8504",
-  entryFile: "scene.glb",
-  contentHash: "9ea83ecf6f4a8504ac6240666581199c48c0f0866c51c59ffc76cf40c4042a7c",
-  sizeBytes: 3_818_552,
-  poster: null,
-  processingVersion: "1.0.0/passthrough-v1",
-  altText: "REEF 996, reconstructed by Aarvasa from the developer's renders: white S-curve balconies in bays over a three-level podium. Not an official developer model.",
-  review: "approved",
-  hosting: "site",
-  provenance: "AARVASA_RECONSTRUCTION",
-  view: { yawDeg: 26, pitchDeg: 16, distanceFactor: 2.15 },
-  mobileView: { yawDeg: 18, pitchDeg: 10, distanceFactor: 2.0 },
-  /* REEF 996 only: its balconies are S-curves in plan, which the standard high,
-     shadowless light flattens square-on. A low raking light with shadows reads
-     them as the developer's facade render does — same geometry, same file. */
-  lighting: { keyPitchDeg: 35, keyYawDeg: 70, intensity: 1.5, ambient: 0.3, shadows: true },
-  /* No map overlay until a plot-precision position exists for REEF 996. */
-};
+const REEF_996_RECONSTRUCTION: ProjectImmersiveMedia = REEF_RELEASE_MODELS["reef-996-dubai-production-city"];
 
 /**
  * REEF 997: Aarvasa's reconstruction from the developer's three full-height
  * exterior renders, top-down aerial and brochure ("G + 2P + 8") —
  * tools/reef-997-massing.py 1.1.0 (stepped south face and wing joints from the
  * aerial and hero; 1.0.0 = 05061b40…). Plan scaled from the aerial (+/-15%), storey
- * heights assumed. CANDIDATE: not in PUBLIC_MODEL_APPROVALS.
+ * heights assumed. Approved for public release after the owner's local map review, 8 November 2026.
  */
-const REEF_997_RECONSTRUCTION: ProjectImmersiveMedia = {
-  mediaId: "051db7257f927a4af894a2fa",
-  kind: "MODEL",
-  format: "GLB",
-  storageKey: "m/051db7257f927a4af894a2fa/3ec2651523f35f1b",
-  entryFile: "scene.glb",
-  contentHash: "3ec2651523f35f1b45e1f80fa52e1dae5b7b1fa4bb0d037c5e8030fef70fc482",
-  sizeBytes: 2_560_520,
-  poster: null,
-  processingVersion: "1.0.0/passthrough-v1",
-  altText: "REEF 997, reconstructed by Aarvasa from the developer's renders: two rounded residential wings over a slatted podium with a pool deck. Not an official developer model.",
-  review: "approved",
-  hosting: "site",
-  provenance: "AARVASA_RECONSTRUCTION",
-  view: { yawDeg: -50, pitchDeg: 12, distanceFactor: 2.2 },
-};
+const REEF_997_RECONSTRUCTION: ProjectImmersiveMedia = REEF_RELEASE_MODELS["reef-997-dubai-islands"];
 
-/**
- * Public visibility approvals for the reconstructions.
- *
- * A reconstruction is attached to its project page only once its public release
- * is approved and recorded here (slug, date, approver), and its file is on the
- * production model CDN — the GLBs are never in the public repository.
- *
- *   reef-998-dlrc — 19 Oct 2026, Aarvasa (Ansh Dubey); v3 (sha256
- *     589b15693f0a2ef6…) approved as its replacement on 20 Oct 2026 after the
- *     final visual validation (v1 0756752510fe54e4… kept for rollback). Shown in the viewer and
- *     stood in the 3D surroundings at an approximate (locality-precision)
- *     position, labelled as such — see REEF_998_RECONSTRUCTION.
- *
- * REEF 996 (v2) and REEF 997 are NOT listed: both are review candidates
- * (validation report: docs/reef-3d-validation.md). Approving one means adding
- * its slug here and uploading its exact file to the production model CDN.
- */
-export const PUBLIC_MODEL_APPROVALS: readonly string[] = ["reef-998-dlrc"];
+/** Public release approved by the project owner on 8 November 2026 after
+ * local map/model review. Exact hashes and assumptions are recorded in
+ * docs/reef-release-2026-11-08.md. All models retain reconstruction labels and
+ * approximate geographic placement; none is an official developer model. */
+export const PUBLIC_MODEL_APPROVALS: readonly string[] = ["reef-996-dubai-production-city", "reef-997-dubai-islands", "reef-998-dlrc", "reef-999-al-furjan", "reef-1000-dlrc"];
 
 const SITE_RECONSTRUCTIONS: Readonly<Record<string, ProjectImmersiveMedia>> = {
   "reef-996-dubai-production-city": REEF_996_RECONSTRUCTION,
   "reef-997-dubai-islands": REEF_997_RECONSTRUCTION,
   "reef-998-dlrc": REEF_998_RECONSTRUCTION,
+  "reef-999-al-furjan": REEF_RELEASE_MODELS["reef-999-al-furjan"],
+  "reef-1000-dlrc": REEF_RELEASE_MODELS["reef-1000-dlrc"],
 };
 
 // reef-projects.ts is generated, so immersive media is attached here instead.
@@ -565,7 +497,7 @@ export const projects: Project[] = [
         coordinatesSource: REEF_COORDINATES[p.slug].source,
       }
     : {}),
-}));
+})).map(withReefReleaseImagery);
 
 /** Live on the site. Set per project rather than inferred from imagery. */
 export const isPublished = (p: Project): boolean => p.published;

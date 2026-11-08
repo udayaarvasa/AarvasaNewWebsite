@@ -279,7 +279,7 @@ describe("project page: XR entry points", () => {
   });
 
   it("offers no XR for a project with no model at all", () => {
-    assert.equal(projectViewerConfig(reef, "development"), null);
+    assert.equal(projectViewerConfig({ ...reef, immersive: undefined }, "development"), null);
   });
 
   it("does not add a mode to the page's experiences: XR belongs to the 3D model", () => {

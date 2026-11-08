@@ -1,3 +1,4 @@
+import { ReefReferenceSummary } from "@/components/property/reef-reference-summary";
 import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
@@ -655,6 +656,7 @@ export default async function ProjectPage({
               <MeasureRule />
             </div>
 
+            <ReefReferenceSummary slug={project.slug} />
             {/* Gallery — photography in a lightbox with keyboard controls */}
             {galleryItems.length > 0 && (
               <Reveal>
