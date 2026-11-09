@@ -1,0 +1,12 @@
+[
+  {
+    "relation": ["delegate_permission/common.handle_all_urls"],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "com.aarvasa.app",
+      "sha256_cert_fingerprints": [
+        "68:F8:DD:FE:A0:96:F1:85:64:17:B8:7F:7C:70:F6:F0:06:CD:98:CA:09:4B:B7:12:7A:13:47:2C:67:F5:F9:8B"
+      ]
+    }
+  }
+]
