@@ -7,12 +7,12 @@ const prime = (id: string, alt: string, caption: string): ProjectCuratedImage =>
   id, dir: "/images/aaradhyam/prime", ratios: ["16x9", "3x2", "4x5", "1x1"],
   alt, caption, origin: "render",
 });
-const entrance = prime("prime-entrance-brochure", "Architectural render of Aaradhyam Prime's gated entrance, with the project name on the stone wall.", "Aaradhyam Prime entrance — developer render, sourced from the project brochure.");
-const streetscape = prime("prime-streetscape-brochure", "Architectural render of Aaradhyam Prime's contemporary residences along a landscaped internal street.", "Proposed residential streetscape — developer render; built homes are shown for design reference, not as completed or included in a plot purchase.");
-const residences = prime("prime-residences-brochure", "Architectural render showing the proposed Aaradhyam Prime residential facades and planted frontage.", "Proposed residences — developer render. Enquire separately about plot and built-home availability.");
+const entrance = prime("prime-entrance-brochure", "Architectural render of Aaradhyam Prime's gated entrance, with the project name on the stone wall.", "Entrance · Developer render");
+const streetscape = prime("prime-streetscape-brochure", "Architectural render of Aaradhyam Prime's contemporary residences along a landscaped internal street.", "Landscaped streetscape · Developer render");
+const residences = prime("prime-residences-brochure", "Architectural render showing the proposed Aaradhyam Prime residential facades and planted frontage.", "Residences · Developer render");
 
-const facade = prime("prime-facade-brochure", "Brochure render of a proposed Aaradhyam Prime residence with planted balconies and a private entrance.", "Proposed residence elevation — developer render; confirm built-home availability separately.");
-const clubhouse = prime("prime-clubhouse-brochure", "Brochure render of the proposed Aaradhyam Prime clubhouse with a glazed facade and landscaped frontage.", "Proposed clubhouse — developer render from the amenities brochure; subject to the developer's final specifications.");
+const facade = prime("prime-facade-brochure", "Brochure render of a proposed Aaradhyam Prime residence with planted balconies and a private entrance.", "Residence elevation · Developer render");
+const clubhouse = prime("prime-clubhouse-brochure", "Brochure render of the proposed Aaradhyam Prime clubhouse with a glazed facade and landscaped frontage.", "Clubhouse · Developer render");
 
 export const AARADHYAM_PRIME_IMAGERY: ProjectImagery = {
   hero: entrance, gallery: [entrance, streetscape, residences, facade, clubhouse],

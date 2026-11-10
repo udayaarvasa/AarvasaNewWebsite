@@ -14,10 +14,8 @@ import { cn } from "@/lib/utils";
  * — a photograph, a render, or the developer's own layout drawing — so a
  * drawing is never mistaken for a photograph of a finished building.
  *
- * `kind` is load-bearing, not decoration. For an off-plan project the gallery
- * is mostly renders of a building that does not exist yet, so a render carries
- * a visible mark in the strip and in the lightbox. Only "photo" is left
- * unmarked, because only a photograph needs no qualification.
+ * Thumbnail images stay clear of paragraph captions. Descriptive captions
+ * remain below the full-screen image for visitors who open a frame.
  */
 
 export type GalleryItem = {
@@ -217,11 +215,7 @@ function GalleryFrame({
           {KIND_MARK[item.kind ?? "photo"]}
         </span>
       )}
-      {item.caption && (
-        <span className="av-meta absolute bottom-3 left-3 z-[3] rounded-xs bg-[rgba(12,11,10,0.72)] px-2 py-1 text-stage-ink backdrop-blur-sm">
-          {item.caption}
-        </span>
-      )}
+
     </button>
   );
 }

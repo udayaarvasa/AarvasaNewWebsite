@@ -1,0 +1,44 @@
+{
+  "reef-996-dubai-production-city": {
+    "href": "/brochures/reef-996-dubai-production-city.pdf",
+    "pages": 4,
+    "bytes": 445846,
+    "sourceHref": "https://manage.tanamiproperties.com/Project/Brochure/2929/Reef_996.pdf"
+  },
+  "reef-997-dubai-islands": {
+    "href": "/brochures/reef-997-dubai-islands.pdf",
+    "pages": 4,
+    "bytes": 367443,
+    "sourceHref": "https://reelly-backend.s3.amazonaws.com/project_files/f10451363f7149a99a23f6fb01a01fc5.pdf"
+  },
+  "reef-998-dlrc": {
+    "href": "/brochures/reef-998-dlrc.pdf",
+    "pages": 4,
+    "bytes": 395648,
+    "sourceHref": "https://new-projects-media.propertyfinder.com/project/455b0cf2-96de-4069-9ead-ecf2ca0e25ee/brochure/application/9qJStlhKJvDiWs9jiC38dw0AtQisBzeu1FlJ5QEN5L0%3D/original.pdf"
+  },
+  "reef-999-al-furjan": {
+    "href": "/brochures/reef-999-al-furjan.pdf",
+    "pages": 4,
+    "bytes": 463236,
+    "sourceHref": "https://cdn.insiderealty.ae/brochures/reef-999-al-furjan.pdf"
+  },
+  "reef-1000-dlrc": {
+    "href": "/brochures/reef-1000-dlrc.pdf",
+    "pages": 4,
+    "bytes": 478968,
+    "sourceHref": "https://falcon-analytics-prod-eu-central-1.s3.eu-central-1.amazonaws.com/developers/reef-developments/projects/reef-1000/brochure/_X8Y_WlLgo9t.pdf"
+  },
+  "aaradhyam-pearl-badwai-bhopal": {
+    "href": "/brochures/aaradhyam-pearl-badwai-bhopal.pdf",
+    "pages": 4,
+    "bytes": 396011,
+    "sourceHref": "https://housing-is-01.s3.amazonaws.com/6a32315a/054139d88e0a5314b3a62561be64db42/original.pdf"
+  },
+  "aaradhyam-prime-jatkhedi-bhopal": {
+    "href": "/brochures/aaradhyam-prime-jatkhedi-bhopal.pdf",
+    "pages": 4,
+    "bytes": 605219,
+    "sourceHref": "https://housing-is-01.s3.ap-southeast-1.amazonaws.com/6a32315a/cfa4afeb308766fa06b3b26ebf98f002/original.pdf"
+  }
+}

@@ -1,3 +1,5 @@
+import { ProjectBrochurePanel } from "@/components/property/project-brochure";
+import { projectBrochure } from "@/lib/project-brochures";
 import { ReefReferenceSummary } from "@/components/property/reef-reference-summary";
 import Image from "next/image";
 import Link from "next/link";
@@ -106,6 +108,7 @@ export default async function ProjectPage({
   if (!project) notFound();
 
   const price = headlinePrice(project);
+  const brochure = projectBrochure(project.slug);
   /* A curated library wins over the flat `images` list: it carries a 16:9 crop
      made for this slot and states how the frame was produced. */
   const heroImage = project.imagery?.hero ?? null;
@@ -114,7 +117,7 @@ export default async function ProjectPage({
   /* Named on the hero itself, so the first thing a reader sees is qualified
      before they scroll. An off-plan tower photographs as a render or not at all. */
   const heroOriginNote =
-    heroImage?.origin === "render" ? "Developer render — proposed design" : heroImage?.origin === "area" ? "Bhopal city context — not the project site" : null;
+    heroImage?.origin === "render" ? "Developer render" : heroImage?.origin === "area" ? "Bhopal city context — not the project site" : null;
   const isPlots = project.kind === "plots";
   /* All three come from the database where the project has published media, so
      a model a creator published through the studio appears here rather than only
@@ -210,6 +213,7 @@ export default async function ProjectPage({
     project.usps.length > 0 ? "highlights" : null,
     project.nearby.length > 0 ? "location" : null,
     project.planImages.length > 0 ? "plan" : null,
+    brochure ? "brochure" : null,
     galleryItems.length > 0 ? "gallery" : null,
   ].filter((k): k is string => k !== null);
   const indexOf = (key: string) => (
@@ -286,6 +290,7 @@ export default async function ProjectPage({
             </FadeUp>
             <FadeUp immediate delay={0.85} className="mt-6 flex flex-wrap gap-3">
               <GoldButton href={enquireHref}>Enquire about {project.name}</GoldButton>
+              {brochure && <GhostButton href="#brochure">View brochure</GhostButton>}
               <GhostButton href="/listings">All properties</GhostButton>
             </FadeUp>
           </LuxContainer>
@@ -658,6 +663,13 @@ export default async function ProjectPage({
             </div>
 
             <ReefReferenceSummary slug={project.slug} />
+            {brochure && (
+              <section id="brochure" className="mt-[var(--s-14)] scroll-mt-[calc(var(--nav-h)+32px)]">
+                {indexOf("brochure")}
+                <SectionHead label="Brochure" title="The complete picture" />
+                <ProjectBrochurePanel brochure={brochure} name={project.name} />
+              </section>
+            )}
             {/* Gallery — photography in a lightbox with keyboard controls */}
             {galleryItems.length > 0 && (
               <Reveal>
