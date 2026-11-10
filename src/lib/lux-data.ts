@@ -27,7 +27,7 @@ export function railProjects(): RailProject[] {
       priceNote: note,
       status: p.kind === "plots" ? "Plots selling" : (p.completion ? `Handover ${p.completion}` : "Residences"),
       image: src,
-      imageNote: card?.origin === "render" ? "Render" : null,
+      imageNote: card?.origin === "render" ? "Developer render" : card?.origin === "area" ? "Bhopal · City context" : null,
     };
   });
 }

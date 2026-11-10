@@ -24,7 +24,7 @@ export type GalleryItem = {
   src: string;
   alt: string;
   caption?: string;
-  kind?: "photo" | "render" | "drawing";
+  kind?: "photo" | "render" | "drawing" | "area";
 };
 
 /** Short mark shown on anything that is not a photograph. Renders carry
@@ -32,6 +32,7 @@ export type GalleryItem = {
  *  over the picture. */
 const KIND_MARK: Partial<Record<NonNullable<GalleryItem["kind"]>, string>> = {
   drawing: "Drawing",
+  area: "Bhopal · City context",
 };
 
 export function Gallery({ items, projectName }: { items: GalleryItem[]; projectName: string }) {

@@ -35,3 +35,12 @@ and put its reference in this table and in `IMAGERY_PERMISSION`.
 
 Earlier copies of withdrawn or restored media remain in Git history; this
 repository is public.
+
+## Aaradhyam imagery — 10 November 2026
+
+The owner requested online sourcing and addition of Pearl and Prime images.
+Prime's project brochure renders are labelled as renders. No separate written
+developer permission was supplied in this session. Pearl's photographs show
+Bhopal city context under CC BY-SA 4.0, with public credits, source links,
+license links and crop notices. They do not depict the project site. See
+`docs/aaradhyam-imagery.md` for the source register and review decisions.

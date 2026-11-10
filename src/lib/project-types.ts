@@ -226,7 +226,7 @@ export type Project = {
 };
 
 /** How an image was produced. Stated per image, never inferred from its subject. */
-export type ProjectImageOrigin = "photo" | "render";
+export type ProjectImageOrigin = "photo" | "render" | "area";
 
 export type ProjectImageRatio = "16x9" | "4x5" | "3x2" | "1x1";
 
@@ -242,6 +242,8 @@ export type ProjectCuratedImage = {
 
 /** Images grouped by the job they do on the site, so each surface gets a different frame. */
 export type ProjectImagery = {
+  /** Public source and license links for images requiring attribution. */
+  readonly attribution?: readonly { text: string; href: string }[];
   readonly hero: ProjectCuratedImage;
   readonly gallery: readonly ProjectCuratedImage[];
   readonly cards: readonly ProjectCuratedImage[];

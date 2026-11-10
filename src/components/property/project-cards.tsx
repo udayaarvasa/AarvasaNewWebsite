@@ -41,7 +41,7 @@ export async function ProjectCards({ query = {} }: { query?: ProjectQuery } = {}
           : (project.images[0] ?? project.planImages[0] ?? null);
         // True only when the cover is actually a drawing — a project with no
         // artwork at all shows the panel and no label.
-        const isPlanCover = !project.images[0] && !!project.planImages[0];
+        const isPlanCover = !coverImage && !project.images[0] && !!project.planImages[0];
         const hasModel = withModel.has(project.slug);
         const price =
           project.fromPrice > 0
@@ -78,6 +78,9 @@ export async function ProjectCards({ query = {} }: { query?: ProjectQuery } = {}
                 )}
                 {!isPlanCover && cover && (
                   <div className="absolute inset-0 bg-[linear-gradient(180deg,transparent_55%,rgba(7,5,5,0.7))]" />
+                )}
+                {coverImage?.origin === "area" && (
+                  <span className="av-meta absolute left-4 top-4 rounded-full bg-black/65 px-3 py-1.5 text-[10px] text-stage-ink backdrop-blur-md">Bhopal · City context</span>
                 )}
                 {isPlanCover && (
                   <span className="av-meta absolute left-4 top-4 rounded-full bg-black/55 px-3 py-1.5 text-[10px] text-stage-ink backdrop-blur-md">

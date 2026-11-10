@@ -114,7 +114,7 @@ export default async function ProjectPage({
   /* Named on the hero itself, so the first thing a reader sees is qualified
      before they scroll. An off-plan tower photographs as a render or not at all. */
   const heroOriginNote =
-    heroImage?.origin === "render" ? "Developer render — building not yet complete" : null;
+    heroImage?.origin === "render" ? "Developer render — proposed design" : heroImage?.origin === "area" ? "Bhopal city context — not the project site" : null;
   const isPlots = project.kind === "plots";
   /* All three come from the database where the project has published media, so
      a model a creator published through the studio appears here rather than only
@@ -632,7 +632,7 @@ export default async function ProjectPage({
                   <SectionHead
                     label="Plan"
                     title="Layout plan"
-                    note="Developer's approved layout drawing. Indicative — confirm plot boundaries on site."
+                    note="Developer brochure layout. Indicative — confirm the latest plot schedule and boundaries with Aarvasa."
                   />
                   <div className="-mt-[var(--s-6)] grid gap-[var(--s-4)] sm:grid-cols-2">
                     {project.planImages.map((src, i) => (
@@ -645,6 +645,7 @@ export default async function ProjectPage({
                           sizes="(min-width: 640px) 50vw, 100vw"
                           className="h-auto w-full object-contain"
                         />
+                        {project.planLabels[i] && <p className="px-2 pb-2 pt-3 text-[12px] leading-relaxed text-neutral-600">{project.planLabels[i]}</p>}
                       </div>
                     ))}
                   </div>
@@ -664,11 +665,18 @@ export default async function ProjectPage({
                   {indexOf("gallery")}
                   <SectionHead
                     label="Gallery"
-                    title="On site"
-                    note="Select any frame to open it full screen. Arrow keys move between frames."
+                    title={heroImage?.origin === "area" ? "Around Bhopal" : "Project gallery"}
+                    note={heroImage?.origin === "area" ? "City landmarks for location context. These photographs do not show the Pearl development. Select a frame to view the image and credits." : "Select any frame to open it full screen. Architectural renders show the proposed design."}
                   />
                   <div className="-mt-[var(--s-6)]">
                     <Gallery items={galleryItems} projectName={project.name} />
+                    {project.imagery?.attribution && (
+                      <p className="mt-4 flex flex-wrap gap-x-4 gap-y-2 text-[11px] leading-relaxed text-ink-muted">
+                        {project.imagery.attribution.map((credit) => (
+                          <a key={credit.href} href={credit.href} target="_blank" rel="noopener noreferrer" className="underline underline-offset-4">{credit.text}</a>
+                        ))}
+                      </p>
+                    )}
                   </div>
                 </section>
               </Reveal>

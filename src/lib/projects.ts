@@ -1,3 +1,4 @@
+import { AARADHYAM_PEARL_IMAGERY, AARADHYAM_PRIME_IMAGERY } from "./aaradhyam-imagery";
 import { REEF_RELEASE_MODELS } from "./reef-release-models";
 import { withReefReleaseImagery } from "./reef-release-imagery";
 import { REEF_1000_IMAGERY, REEF_999_IMAGERY } from "./reef-portfolio-imagery";
@@ -32,7 +33,8 @@ import {
  *  - The Pearl brochure's photographs are stock imagery of North American
  *    housing, not the Badwai site. They are deliberately not used. `images`
  *    holds photography of the actual development only; `planImages` holds
- *    layout drawings. A project with neither stays unpublished.
+ *    layout drawings. Pearl's curated images show labelled Bhopal city context;
+ *    Prime uses project-specific developer renders.
  */
 
 // Shared across both Aaradhyam layouts. Road surfacing differs per project, so
@@ -88,6 +90,7 @@ const aaradhyamPearl: Project = {
   ],
   views: [],
   images: [],
+  imagery: AARADHYAM_PEARL_IMAGERY,
   planImages: ["/aaradhyam/pearl-layout-plan.jpg"],
   planLabels: [],
   paymentPlans: [],
@@ -132,8 +135,9 @@ const aaradhyamPrime: Project = {
   unitTypes: [],
   views: [],
   images: [],
-  planImages: [],
-  planLabels: [],
+  imagery: AARADHYAM_PRIME_IMAGERY,
+  planImages: ["/aaradhyam/prime-brochure-layout.jpg"],
+  planLabels: ["Developer brochure layout — confirm the current plot schedule with Aarvasa"],
   paymentPlans: [],
   nearby: [
     { place: "Ashima Mall", minutes: null },
