@@ -87,3 +87,18 @@ test("no query keeps everything", () => {
   assert.equal(matchesProjectQuery(reef, {}), true);
   assert.equal(matchesProjectQuery(plots, {}), true);
 });
+
+test("configuration filters do not label every apartment as a studio or villa", () => {
+  assert.equal(matchesProjectQuery(reef, { propertyType: "STUDIO" }), false);
+  assert.equal(matchesProjectQuery(reef, { propertyType: "VILLA" }), false);
+  assert.equal(matchesProjectQuery(reef, { propertyType: "PENTHOUSE" }), false);
+  const mixed = { ...reef, unitTypes: [
+    ...reef.unitTypes,
+    { type: "STUDIO", label: "Studio", bedrooms: 0, fromPrice: 700000 },
+    { type: "4BR", label: "4 Bedroom Sky Villa", bedrooms: 4, fromPrice: 0 },
+  ] } as Project;
+  assert.equal(matchesProjectQuery(mixed, { propertyType: "STUDIO" }), true);
+  assert.equal(matchesProjectQuery(mixed, { propertyType: "VILLA" }), true);
+  assert.equal(matchesProjectQuery(mixed, { propertyType: "VILLA", maxPrice: "20000000" }), false);
+  assert.equal(matchesProjectQuery(mixed, { bedrooms: "1", maxPrice: "20000000" }), false);
+});

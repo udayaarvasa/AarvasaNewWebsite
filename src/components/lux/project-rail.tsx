@@ -29,7 +29,9 @@ export function ProjectRail({ projects }: { projects: RailProject[] }) {
   const [progress, setProgress] = useState(0);
   const [atStart, setAtStart] = useState(true);
   const [atEnd, setAtEnd] = useState(false);
-  const drag = useRef<{ x: number; left: number; moved: boolean } | null>(null);
+  const drag = useRef<{ x: number; y: number; left: number; moved: boolean } | null>(null);
+
+  const suppressClick = useRef(false);
 
   const update = useCallback(() => {
     const el = ref.current;
@@ -79,23 +81,26 @@ export function ProjectRail({ projects }: { projects: RailProject[] }) {
         aria-label="Listed projects"
         onScroll={update}
         onPointerDown={(e) => {
-          if (e.pointerType !== "mouse" || !ref.current) return;
-          drag.current = { x: e.clientX, left: ref.current.scrollLeft, moved: false };
+          suppressClick.current = false;
+          if (e.pointerType !== "mouse" || e.button !== 0 || !ref.current) return;
+          drag.current = { x: e.clientX, y: e.clientY, left: ref.current.scrollLeft, moved: false };
         }}
         onPointerMove={(e) => {
           const d = drag.current;
           if (!d || !ref.current) return;
           const dx = e.clientX - d.x;
-          if (Math.abs(dx) > 4) d.moved = true;
-          ref.current.scrollLeft = d.left - dx;
+          if (Math.abs(dx) > 8 && Math.abs(dx) > Math.abs(e.clientY - d.y)) d.moved = true;
+          if (d.moved) { e.preventDefault(); ref.current.scrollLeft = d.left - dx; }
         }}
         onPointerUp={() => {
-          // Let a click that dragged not open a card.
-          setTimeout(() => (drag.current = null), 0);
+          suppressClick.current = drag.current?.moved ?? false;
+          drag.current = null;
         }}
-        onPointerLeave={() => (drag.current = null)}
+        onPointerLeave={() => { suppressClick.current = drag.current?.moved ?? false; drag.current = null; }}
+        onPointerCancel={() => { drag.current = null; suppressClick.current = false; }}
         onClickCapture={(e) => {
-          if (drag.current?.moved) e.preventDefault();
+          if (suppressClick.current && e.detail > 0 && !e.metaKey && !e.ctrlKey) e.preventDefault();
+          suppressClick.current = false;
         }}
         className="flex snap-x snap-mandatory gap-8 overflow-x-auto scroll-smooth pb-4 outline-none [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
         style={{ paddingInline: "max(var(--gutter), calc((100vw - 1320px) / 2 + var(--gutter)))", scrollPaddingInline: "max(var(--gutter), calc((100vw - 1320px) / 2 + var(--gutter)))" }}
@@ -119,12 +124,14 @@ function RailCard({ project: p, index }: { project: RailProject; index: number }
     <Tilt className="w-[80vw] max-w-[420px] rounded-[28px] sm:w-[400px]">
       <Link
         href={`/projects/${p.slug}`}
+        draggable={false}
         className="group lux-gold-border block overflow-hidden rounded-[28px] bg-paper-raised"
       >
         <div className="relative aspect-[4/5] overflow-hidden">
           {p.image ? (
             <Image
               src={p.image}
+              draggable={false}
               alt={`${p.name}, ${p.place}${p.imageNote ? ` — ${p.imageNote}` : ""}`}
               fill
               sizes="440px"

@@ -7,7 +7,7 @@ import { publishedProjects } from "@/lib/projects";
 import { formatCurrency, formatCompact, inrEstimate } from "@/lib/currency";
 import { projectImageSrc } from "@/lib/project-types";
 import { projectsWithModel } from "@/lib/services/project-models";
-import { matchesProjectQuery, type ProjectQuery } from "@/lib/project-filter";
+import { matchesProjectQuery, projectPriceForQuery, type ProjectQuery } from "@/lib/project-filter";
 
 /**
  * Developer projects, rendered from curated data rather than the properties
@@ -43,13 +43,15 @@ export async function ProjectCards({ query = {} }: { query?: ProjectQuery } = {}
         // artwork at all shows the panel and no label.
         const isPlanCover = !coverImage && !project.images[0] && !!project.planImages[0];
         const hasModel = withModel.has(project.slug);
+        const entryPrice = projectPriceForQuery(project, query);
+        const specific = Boolean(query.bedrooms || /^(STUDIO|VILLA|PENTHOUSE)$/i.test(query.propertyType ?? ""));
         const price =
-          project.fromPrice > 0
-            ? formatCompact(project.fromPrice, project.currency)
-            : project.ratePerSqft
+          entryPrice && entryPrice > 0
+            ? formatCompact(entryPrice, project.currency)
+            : !specific && project.ratePerSqft
               ? `${formatCurrency(project.ratePerSqft, project.currency)}/sq.ft`
               : "On request";
-        const inr = inrEstimate(project.fromPrice, project.currency);
+        const inr = inrEstimate(entryPrice ?? 0, project.currency);
 
         return (
           <MotionReveal key={project.slug} delay={Math.min(i, 3) * 0.09}>
