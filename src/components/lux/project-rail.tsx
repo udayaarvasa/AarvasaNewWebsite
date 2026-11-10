@@ -125,7 +125,7 @@ function RailCard({ project: p, index }: { project: RailProject; index: number }
           {p.image ? (
             <Image
               src={p.image}
-              alt={`${p.name}, ${p.place}`}
+              alt={`${p.name}, ${p.place}${p.imageNote ? ` — ${p.imageNote}` : ""}`}
               fill
               sizes="440px"
               className="object-cover transition-transform duration-[1600ms] ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:scale-110"
@@ -137,6 +137,9 @@ function RailCard({ project: p, index }: { project: RailProject; index: number }
           <span className="av-meta absolute left-5 top-5 rounded-full border border-white/20 bg-black/35 px-3 py-1.5 text-[10px] text-stage-ink backdrop-blur-md">
             {String(index + 1).padStart(2, "0")} · {p.status}
           </span>
+          {p.imageNote && (
+            <span className="av-meta absolute left-5 top-16 rounded-full border border-white/20 bg-black/60 px-3 py-1.5 text-[10px] text-stage-ink backdrop-blur-md">{p.imageNote}</span>
+          )}
           <div className="absolute inset-x-6 bottom-6">
             <h3 className="av-display text-[42px] font-normal leading-none text-stage-ink">{p.name}</h3>
             <p className="mt-2 flex items-center gap-1.5 text-[13px] text-stage-muted">
