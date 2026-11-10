@@ -63,7 +63,7 @@ export type ProjectImmersiveMedia = {
    * baseOffsetMetres is half the model's real height (its origin is the
    * centroid), measured from the GLB's bounds — never chosen by eye.
    */
-  mapOverlay?: { baseOffsetMetres: number };
+  mapOverlay?: { baseOffsetMetres: number; headingDegrees?: number };
   /**
    * How the model was produced, for the label shown beside it. Carried from the
    * MediaAsset row; absent on the hand-authored pilot, which `review` already
@@ -205,9 +205,10 @@ export type Project = {
    * means it lands in the right community and is good enough to show someone
    * the surroundings; it is NOT good enough to place a building model on a plot,
    * which would put a tower on whatever happens to be at that point. "plot"
-   * means the position was established for the building itself.
+   * means the position was established for the building itself. "developer-pin"
+   * records the developer's published marker, without claiming a survey.
    */
-  coordinatesPrecision?: "plot" | "locality";
+  coordinatesPrecision?: "plot" | "locality" | "developer-pin";
   /** Where the coordinate came from, for anyone re-checking it later. */
   coordinatesSource?: string;
   /** Optional interactive 3D media. Absent for most projects. */

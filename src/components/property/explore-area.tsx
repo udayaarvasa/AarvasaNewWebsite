@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useId, useRef, useState } from "react";
+import { useCallback, useEffect, useId, useMemo, useRef, useState } from "react";
 import { ArrowDown, ArrowUp, Globe2, Loader2, LocateFixed, MapPin, Pause, Play, RotateCcw, RotateCw, TriangleAlert, ZoomIn, ZoomOut } from "lucide-react";
 import {
   AREA_2D_NO_COVERAGE,
@@ -117,6 +117,7 @@ export function ExploreArea({
   apiKey,
   approximate = false,
   modelOverlay = null,
+  locationNote,
 }: {
   name: string;
   location: string;
@@ -124,6 +125,7 @@ export function ExploreArea({
   apiKey: string | null;
   /** The coordinate is locality precision: say so under the map. */
   approximate?: boolean;
+  locationNote?: string;
   /**
    * A reconstructed model to stand at `coordinates`, or null.
    *
@@ -131,7 +133,7 @@ export function ExploreArea({
    * resolver returned, and an INTERNAL asset resolves to nothing there. The
    * authorisation lives in the resolver that produced this, not in a check here.
    */
-  modelOverlay?: { readonly url: string; readonly baseOffsetMetres: number } | null;
+  modelOverlay?: { readonly url: string; readonly baseOffsetMetres: number; readonly headingDegrees?: number } | null;
 }) {
   const [phase, setPhase] = useState<Phase>({ k: "closed" });
   const hostRef = useRef<HTMLDivElement>(null);
@@ -197,7 +199,7 @@ export function ExploreArea({
   }, [orbiting, stopCamera]);
   useEffect(() => () => cancelAnimationFrame(animRef.current), []);
 
-  const resolved: ExploreAreaMode = exploreAreaMode({ coordinates, apiKey });
+  const resolved: ExploreAreaMode = useMemo(() => exploreAreaMode({ coordinates, apiKey }), [coordinates?.lat, coordinates?.lng, apiKey]);
   const resolvedCenter = resolved.kind === "unavailable" ? null : resolved.center;
 
   const open = useCallback(async () => {
@@ -367,6 +369,7 @@ export function ExploreArea({
       return;
     }
     let cancelled = false;
+    let attachedModel: HTMLElement | null = null;
     void (async () => {
       try {
         const lib = await importMapsLibrary<{
@@ -380,11 +383,12 @@ export function ExploreArea({
           /* Anchored to the property's own coordinate, lifted so the model's
              base — not its centroid — meets the ground. */
           position: { ...(resolvedCenter as VerifiedCoordinates), altitude: modelOverlay.baseOffsetMetres },
-          orientation: { ...MODEL_OVERLAY_PLACEMENT.orientation },
+          orientation: { ...MODEL_OVERLAY_PLACEMENT.orientation, heading: modelOverlay.headingDegrees ?? MODEL_OVERLAY_PLACEMENT.orientation.heading },
           scale: MODEL_OVERLAY_PLACEMENT.scale,
           altitudeMode: lib.AltitudeMode[MODEL_OVERLAY_PLACEMENT.altitudeMode],
         });
         model.addEventListener("gmp-error", () => setModelFailed(true));
+        attachedModel = model;
         map.appendChild(model);
         modelRef.current = model;
       } catch {
@@ -393,6 +397,8 @@ export function ExploreArea({
     })();
     return () => {
       cancelled = true;
+      attachedModel?.remove();
+      if (modelRef.current === attachedModel) modelRef.current = null;
     };
   }, [phase, modelOverlay, showModel, resolvedCenter]);
 
@@ -536,7 +542,7 @@ export function ExploreArea({
       {approximate && (
         <p className="mt-2 flex items-center gap-1.5 text-[12.5px] text-stage-muted">
           <MapPin className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
-          {AREA_APPROXIMATE_LOCATION}
+          {locationNote ?? AREA_APPROXIMATE_LOCATION}
         </p>
       )}
       <p id={statusId} aria-live="polite" className="av-meta mt-2 text-ink-disabled">

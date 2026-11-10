@@ -149,7 +149,7 @@ export default async function ProjectPage({
   const media = project.immersive;
   const mapModel =
     media && media.review === "approved" && media.hosting === "site" && media.mapOverlay
-      ? { url: `${PUBLIC_MODEL_ORIGIN}/${media.storageKey}/${media.entryFile}`, baseOffsetMetres: media.mapOverlay.baseOffsetMetres }
+      ? { url: `${PUBLIC_MODEL_ORIGIN}/${media.storageKey}/${media.entryFile}`, baseOffsetMetres: media.mapOverlay.baseOffsetMetres, headingDegrees: media.mapOverlay.headingDegrees }
       : null;
 
   /* Capability marks come from what actually passed server-side gating. A
@@ -349,12 +349,13 @@ export default async function ProjectPage({
                       coordinates={area.center}
                       apiKey={process.env.NEXT_PUBLIC_GOOGLE_MAPS_BROWSER_KEY ?? null}
                       approximate={project.coordinatesPrecision !== "plot"}
+                      locationNote={project.coordinatesPrecision === "developer-pin" ? "Developer-published location pin; model alignment and footprint are approximate." : undefined}
                       modelOverlay={mapModel}
                     />
                     <NearbyPlaces
                       center={area.center}
                       apiKey={process.env.NEXT_PUBLIC_GOOGLE_MAPS_BROWSER_KEY ?? ""}
-                      approximate={project.coordinatesPrecision !== "plot"}
+                      approximate={project.coordinatesPrecision === "locality"}
                     />
                   </>
                 }
@@ -423,6 +424,7 @@ export default async function ProjectPage({
                       coordinates={area.center}
                       apiKey={process.env.NEXT_PUBLIC_GOOGLE_MAPS_BROWSER_KEY ?? null}
                       approximate={project.coordinatesPrecision !== "plot"}
+                      locationNote={project.coordinatesPrecision === "developer-pin" ? "Developer-published location pin; model alignment and footprint are approximate." : undefined}
                       modelOverlay={mapModel}
                     />
                     {/* Shares the map's gate exactly: same key, same verified
@@ -431,7 +433,7 @@ export default async function ProjectPage({
                     <NearbyPlaces
                       center={area.center}
                       apiKey={process.env.NEXT_PUBLIC_GOOGLE_MAPS_BROWSER_KEY ?? ""}
-                      approximate={project.coordinatesPrecision !== "plot"}
+                      approximate={project.coordinatesPrecision === "locality"}
                     />
                   </MotionReveal>
                 </div>

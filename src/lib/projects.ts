@@ -379,69 +379,42 @@ const needsImageryPermission = (p: Project): boolean => p.developer === REEF_DEV
  * commercial decision: it is recorded here rather than by editing the
  * generated file, which would be overwritten on the next regeneration.
  */
-/**
- * Coordinates for the REEF towers, reconciled rather than taken on trust.
- *
- * These arrived as third-party candidates, so each was reverse-geocoded against
- * OpenStreetMap and checked against the locality the project record already
- * states. All three land in the right community:
- *
- *   996  25.03785, 55.20126  ->  "مدينة دبي للإنتاج" (Dubai Production City),
- *                                Me'aisem 1. Record says Dubai Production City
- *                                (IMPZ). IMPZ is this zone's former name. Match.
- *   997  25.28990, 55.30238  ->  "جزر دبي" (Dubai Islands), Palm Deira. Record
- *                                says Dubai Islands, which is what Deira
- *                                Islands was renamed to. Match.
- *   998  25.10029, 55.37471  ->  "وادي الصفا 5" (Wadi Al Safa 5). Record says
- *                                Dubai Land Residence Complex, which sits inside
- *                                Wadi Al Safa 5. Consistent, one level coarser:
- *                                the geocoder named the community, not DLRC.
- *
- * So each is `locality` precision, not `plot`. That is enough to show a buyer
- * the neighbourhood — which is all Explore Area claims to do — and deliberately
- * not enough to place a building model on the ground, because a tower dropped on
- * a locality-accurate point lands on whatever is actually there. Overlaying the
- * reconstructed model on the map stays off until a surveyed position exists.
- *
- * Replace these with the developer's own filed position when it is available,
- * and set the precision to "plot" at the same time.
+/** Developer project-page map pins, checked 10 November 2026. These locate
+ * the project but do not establish surveyed boundaries or model dimensions.
+ * Model rotation is recorded separately only where a plan establishes north.
  */
 const REEF_COORDINATES: Readonly<
-  Record<string, { lat: number; lng: number; precision: "locality"; source: string }>
+  Record<string, { lat: number; lng: number; precision: "developer-pin"; source: string }>
 > = {
   "reef-996-dubai-production-city": {
-    lat: 25.03785,
-    lng: 55.20126,
-    precision: "locality",
-    source: "Third-party candidate, reconciled to Dubai Production City (IMPZ) by OpenStreetMap reverse geocode, 4 October 2026",
+    lat: 25.0375278,
+    lng: 55.20175,
+    precision: "developer-pin",
+    source: "Developer project-page map pin: https://reefdevelopments.ae/projects/reef-996, checked 10 November 2026",
   },
   "reef-997-dubai-islands": {
-    lat: 25.2899,
-    lng: 55.30238,
-    precision: "locality",
-    source: "Third-party candidate, reconciled to Dubai Islands (Palm Deira) by OpenStreetMap reverse geocode, 4 October 2026",
+    lat: 25.290036491479,
+    lng: 55.302410776762,
+    precision: "developer-pin",
+    source: "Developer project-page map pin: https://reefdevelopments.ae/projects/reef-997, checked 10 November 2026",
   },
   "reef-998-dlrc": {
-    lat: 25.10029,
-    lng: 55.37471,
-    precision: "locality",
-    source: "Third-party candidate, reconciled to Wadi Al Safa 5, which contains DLRC, by OpenStreetMap reverse geocode, 4 October 2026",
+    lat: 25.1000478,
+    lng: 55.3746666,
+    precision: "developer-pin",
+    source: "Developer project-page map pin: https://reefdevelopments.ae/projects/reef-998, checked 10 November 2026",
   },
-  /* 999 and 1000: the developer's own Google Maps place links on their project
-     pages, resolved 20 Oct 2026. A named place pin, not a surveyed plot, so
-     still locality precision. (The developer's pins for 996-998 fall within
-     ~60 m of the coordinates above, which corroborates them.) */
   "reef-999-al-furjan": {
     lat: 25.0180659,
     lng: 55.1333461,
-    precision: "locality",
-    source: "Developer's Google Maps place 'REEF 999' linked from reefdevelopments.ae/projects/reef-999, resolved 20 October 2026",
+    precision: "developer-pin",
+    source: "Developer project-page map pin: https://reefdevelopments.ae/projects/reef-999, checked 10 November 2026",
   },
   "reef-1000-dlrc": {
     lat: 25.0862283,
     lng: 55.3800196,
-    precision: "locality",
-    source: "Developer's Google Maps place 'REEF 1000' linked from reefdevelopments.ae/projects/reef-1000, resolved 20 October 2026",
+    precision: "developer-pin",
+    source: "Developer project-page map pin: https://reefdevelopments.ae/projects/reef-1000, checked 10 November 2026",
   },
 };
 

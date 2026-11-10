@@ -61,7 +61,10 @@ export const REEF_RELEASE_MODELS: Readonly<Record<string, ProjectImmersiveMedia>
       "distanceFactor": 2.4
     },
     "mapOverlay": {
-      "baseOffsetMetres": 22.65
+      "baseOffsetMetres": 22.65,
+      // Floor-plan p.3 north arrow points ~33 degrees clockwise from drawing-up.
+      // Model axes follow the matching aerial/amenity plan: drawing-up bears 327 degrees.
+      "headingDegrees": 327
     },
     "lighting": {
       "keyPitchDeg": 35,
