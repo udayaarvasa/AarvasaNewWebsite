@@ -13,47 +13,29 @@ export const metadata = {
   description:
     "Aarvasa publishes what the developer files, shows a property in three dimensions where it has been captured, and lets you compare what you found." };
 
-/**
- * Team names, roles, bios and social links are reproduced verbatim.
- *
- * Two blocks from the previous page are deliberately not carried over:
- *
- *  - the "technologies" grid (Predictive Analytics "forecasting yield and
- *    appreciation", Blockchain Verification, Smart Escrow Systems, ROI
- *    Intelligence Engine). Those products do not exist, and the page
- *    presented them as current capability.
- *  - the Unsplash stock photography behind the office list. This system does
- *    not use stock imagery to stand in for a real place.
- *
- * The 2025/2026 milestones are kept but stated as a roadmap rather than as
- * delivered work, since several of them describe the same unbuilt products.
- */
-
-const team = [
+const leaders = [
   {
     name: "Uday Prakash Sahu",
     role: "Founder & CEO",
-    subtitle: "Expert in Networking & Sales | External Affairs Lead",
-    bio: "Uday Sahu leads Aarvasa as CEO, driving growth, partnerships, and market expansion. With expertise in business networking and real estate sales, he strengthens stakeholder relations and positions Aarvasa as a key player in property investment.",
+    office: "CEO",
+    messageTitle: "Make the important details easier to find.",
+    message: "When you’re buying a home, you should be able to find the facts before you pick up the phone. We built Aarvasa to put the developer’s plans, specifications and payment schedules within reach. The partnerships I build are in service of that goal: give people enough information to ask better questions and choose a property with confidence.",
     image: "/images/team/uday.png",
+    imagePosition: "50% 28%",
     linkedin: "https://www.linkedin.com/in/udayprakashsahu/",
-    instagram: "https://www.instagram.com/uday.sahu_10?igsh=MWVzNW85dTRydndpdg%3D%3D" },
+    instagram: "https://www.instagram.com/uday.sahu_10?igsh=MWVzNW85dTRydndpdg%3D%3D",
+  },
   {
     name: "Ansh Dubey",
-    role: "Co-Founder & CTO",
-    subtitle: "Tech Architect | Product & Engineering Lead",
-    bio: "Ansh Dubey, CTO of Aarvasa, leads the company's technology, from platform architecture and AI tools to smart contracts and infrastructure. He ensures a secure, scalable tech foundation, translating ideas into reliable, real-world products.",
+    role: "Co-founder & CPO",
+    office: "CPO",
+    messageTitle: "Help people see how a home fits their life.",
+    message: "I want every product decision at Aarvasa to help someone answer a real question about a home. What does the layout feel like? How does it compare with another property? What should I ask the developer? We build tools like interactive 3D views, side-by-side comparisons and the advisor to make those questions easier to answer.",
     image: "/images/team/ansh.png",
+    imagePosition: "50% 16%",
     linkedin: "https://www.linkedin.com/in/ansh-dubey-526325273/",
-    instagram: "https://www.instagram.com/_ansh_.dubey/" },
-  {
-    name: "Anirudh Saxena",
-    role: "Marketing & HR Manager",
-    subtitle: "Brand & Growth | People & Culture Lead",
-    bio: "Anirudh Saxena leads Marketing and HR at Aarvasa, shaping the brand, driving outreach and campaigns, and building the team behind the platform. He focuses on hiring, culture, and communicating Aarvasa’s vision to customers and partners.",
-    image: "/images/team/anirudh.png",
-    linkedin: "https://www.linkedin.com/in/anirudh-saxena-481ba2245/",
-    instagram: "https://www.instagram.com/_anirudh__.07?igsh=MTJocm1va3VtZDV0bw%3D%3D" },
+    instagram: "https://www.instagram.com/_ansh_.dubey/",
+  },
 ];
 
 const UNSPLASH = "https://images.unsplash.com";
@@ -193,55 +175,63 @@ export default function AboutPage() {
         </LuxContainer>
       </section>
 
-      {/* ── Team ───────────────────────────────────────────────────────── */}
-      <section id="team" className="relative isolate py-[clamp(72px,10vw,140px)]">
+      <section id="team" aria-labelledby="leadership-heading" className="scroll-mt-28 bg-paper-sunken py-[clamp(64px,8vw,120px)]">
         <LuxContainer>
-          <SectionTitle eyebrow="The team" title="The people *behind it.*" />
-          <Stagger className="mt-[var(--s-14)] grid gap-6 sm:grid-cols-2 lg:grid-cols-3" gap={0.1}>
-            {team.map((person) => (
-              <StaggerItem key={person.name}>
-                <article className="group lux-gold-border relative h-full overflow-hidden rounded-[26px] bg-paper-raised">
-                  <div className="relative aspect-[4/5] overflow-hidden">
-                    <Image
-                      src={person.image}
-                      alt={person.name}
-                      fill
-                      sizes="(min-width: 1024px) 25vw, (min-width: 640px) 50vw, 100vw"
-                      className="object-cover object-top grayscale-[35%] transition-all duration-[1400ms] ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:scale-105 group-hover:grayscale-0"
-                    />
-                    <div className="absolute inset-0 bg-[linear-gradient(180deg,transparent_45%,rgba(14,7,9,0.95))]" />
-                    <div className="absolute inset-x-5 bottom-5">
-                      <h3 className="av-display text-[28px] font-normal leading-none text-ink">{person.name}</h3>
-                      <p className="av-meta mt-2 text-[10px] text-gold">{person.role}</p>
+          <h2 id="leadership-heading" className="av-display text-[clamp(42px,6vw,76px)] leading-none text-ink">
+            Leadership team
+          </h2>
+          <div className="mt-10 grid gap-6 md:mt-14">
+            {leaders.map((person, index) => (
+              <article key={person.name} className={`grid items-center gap-7 rounded-[28px] border border-rule bg-paper-raised p-6 sm:p-10 md:gap-12 ${index % 2 === 0 ? "md:grid-cols-[minmax(0,0.8fr)_minmax(0,1.2fr)]" : "md:grid-cols-[minmax(0,1.2fr)_minmax(0,0.8fr)]"}`}>
+                <div className={index % 2 === 1 ? "md:order-last" : ""}>
+                  <div className="mx-auto w-full max-w-[320px] rounded-full border-2 border-gold/70 bg-paper-sunken p-2 shadow-[0_18px_40px_rgba(54,22,25,0.12)]">
+                    <div className="relative aspect-square overflow-hidden rounded-full">
+                      <Image
+                        src={person.image}
+                        alt={person.name}
+                        fill
+                        sizes="(max-width: 380px) 70vw, 320px"
+                        className="object-cover"
+                        style={{ objectPosition: person.imagePosition }}
+                      />
                     </div>
                   </div>
-                  <div className="p-5">
-                    <p className="text-[12.5px] leading-relaxed text-ink-muted">{person.subtitle}</p>
-                    <p className="mt-3 line-clamp-4 text-[13px] leading-relaxed text-ink-muted/90">{person.bio}</p>
-                    <div className="mt-4 flex gap-2">
+                </div>
+                <div className="min-w-0 rounded-[22px] bg-[#37151e] p-6 text-[#f8f0e4] sm:p-9">
+                  <p className="av-meta text-[11px] text-[#dfbd83]">A message from our {person.office}</p>
+                  <p className="av-display mt-3 text-[clamp(30px,3.7vw,50px)] leading-[1.04] text-[#f8f0e4]">
+                    {person.messageTitle}
+                  </p>
+                  <p className="mt-5 text-[15px] leading-relaxed text-[#f4e8dc] sm:text-base">{person.message}</p>
+                  <div className="mt-7 flex flex-wrap items-center justify-between gap-4 border-t border-[#dfbd83]/30 pt-5">
+                    <div>
+                      <h3 className="av-display text-[26px] leading-tight text-[#f8f0e4]">{person.name}</h3>
+                      <p className="mt-1 text-sm text-[#dfbd83]">{person.role}</p>
+                    </div>
+                    <div className="flex gap-2">
                       {[
                         { href: person.linkedin, label: "LinkedIn", path: LINKEDIN },
                         { href: person.instagram, label: "Instagram", path: INSTAGRAM },
-                      ].map((l) => (
+                      ].map((link) => (
                         <a
-                          key={l.label}
-                          href={l.href}
+                          key={link.label}
+                          href={link.href}
                           target="_blank"
                           rel="noopener noreferrer"
-                          aria-label={`${person.name} on ${l.label}`}
-                          className="flex h-9 w-9 items-center justify-center rounded-full border border-rule text-ink-muted transition-all duration-300 hover:border-gold hover:bg-gold hover:text-[var(--action-ink)]"
+                          aria-label={`${person.name} on ${link.label}`}
+                          className="flex h-10 w-10 items-center justify-center rounded-full border border-[#dfbd83]/45 text-[#f8f0e4] transition-colors hover:bg-[#dfbd83] hover:text-[#37151e] focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#dfbd83]"
                         >
                           <svg viewBox="0 0 24 24" fill="currentColor" className="h-4 w-4" aria-hidden="true">
-                            <path d={l.path} />
+                            <path d={link.path} />
                           </svg>
                         </a>
                       ))}
                     </div>
                   </div>
-                </article>
-              </StaggerItem>
+                </div>
+              </article>
             ))}
-          </Stagger>
+          </div>
         </LuxContainer>
       </section>
 
