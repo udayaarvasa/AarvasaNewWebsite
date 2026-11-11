@@ -232,6 +232,19 @@ export default function AboutPage() {
               </article>
             ))}
           </div>
+
+          <div className="mt-10">
+            <h3 className="av-display text-[clamp(24px,3vw,34px)] leading-tight text-ink">Team contributions</h3>
+            <article className="mt-4 flex max-w-xl items-center gap-4 rounded-[20px] border border-rule bg-paper-raised p-4 sm:gap-5 sm:p-5">
+              <div className="relative size-16 shrink-0 overflow-hidden rounded-full border-2 border-gold/70 sm:size-20">
+                <Image src="/images/team/anirudh.png" alt="" fill sizes="(min-width: 640px) 80px, 64px" className="object-cover object-[50%_24%]" />
+              </div>
+              <div className="min-w-0">
+                <h4 className="av-display text-[22px] leading-tight text-ink">Anirudh Saxena</h4>
+                <p className="mt-1 text-sm leading-relaxed text-ink-muted">Helped shape Aarvasa’s brand, grow its outreach and build its team.</p>
+              </div>
+            </article>
+          </div>
         </LuxContainer>
       </section>
 
