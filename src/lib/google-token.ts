@@ -1,4 +1,5 @@
 import { createRemoteJWKSet, jwtVerify } from "jose"
+import { googleControlsEmail } from "./google-email-ownership"
 
 /**
  * Verification of Google ID tokens for native sign-in.
@@ -62,7 +63,7 @@ export async function verifyGoogleIdToken(
 
     const email = typeof payload.email === "string" ? payload.email : null
     // An unverified address would let someone claim an account they do not own.
-    if (!email || payload.email_verified !== true) return null
+    if (!email || !googleControlsEmail(email, payload.email_verified, payload.hd)) return null
     if (typeof payload.sub !== "string") return null
 
     return {

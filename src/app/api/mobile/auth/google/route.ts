@@ -38,6 +38,15 @@ export async function POST(req: Request) {
 
     let user = await prisma.user.findUnique({ where: { email: identity.email } })
 
+    // A legacy password could have been set by someone who did not own the
+    // address. Keep its credentials and sessions separate from Google sign-in.
+    if (user?.password && !user.emailVerified) {
+      return NextResponse.json(
+        { success: false, error: "This address already uses password sign-in. Use your password or contact support for help." },
+        { status: 409 }
+      )
+    }
+
     if (!user) {
       user = await prisma.user.create({
         data: {

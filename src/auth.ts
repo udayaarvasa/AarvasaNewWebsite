@@ -5,6 +5,7 @@ import CredentialsProvider from "next-auth/providers/credentials"
 import Google from "next-auth/providers/google"
 import { isCompromisedPassword } from "@/lib/compromised-passwords"
 import bcrypt from "bcryptjs"
+import { googleControlsEmail } from "@/lib/google-email-ownership"
 // Removed Prisma type imports for local build compatibility
 
 /**
@@ -158,6 +159,17 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     })] : []),
   ],
   callbacks: {
+    async signIn({ account, profile }) {
+      if (account?.provider !== "google") return true;
+      const email = typeof profile?.email === "string" ? profile.email.toLowerCase() : "";
+      if (!email || !googleControlsEmail(email, profile?.email_verified, profile?.hd)) return false;
+
+      const unverifiedPasswordAccount = await prisma.user.findFirst({
+        where: { email: { equals: email, mode: "insensitive" }, password: { not: null }, emailVerified: null },
+        select: { id: true },
+      });
+      return !unverifiedPasswordAccount;
+    },
     async jwt({ token, user, trigger, session }) {
       if (user) {
         token.role = (user as any).role;
