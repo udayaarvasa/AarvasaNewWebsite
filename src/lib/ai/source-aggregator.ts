@@ -24,15 +24,16 @@ function normalizeAarvasaProperty(p: MatchedProperty): NormalizedProperty {
     price: p.price,
     priceFormatted: p.priceFormatted,
     type: p.type,
-    rentalYield: p.roi * 0.35,
-    roi: p.roi,
-    risk: p.risk,
-    appreciationPotential: p.roi * 0.6,
+    /* Represented projects carry roi 0 ("not published"). Yield and
+       appreciation used to be derived from it (roi × 0.35, roi × 0.6), which
+       put "Rental Yield: ~0.0%" in front of the model. Unknown stays unknown. */
+    ...(p.roi > 0 ? { roi: p.roi } : {}),
+    ...(p.risk ? { risk: p.risk } : {}),
     sqft: p.sqft,
     beds: p.beds,
     baths: p.baths,
     amenities: [],
-    tags: [...p.tags, "Aarvasa Verified"],
+    tags: p.tags,
     summary: p.summary,
     growth: p.growth,
     score: p.score,
@@ -70,7 +71,8 @@ function deduplicateProperties(properties: NormalizedProperty[]): NormalizedProp
 /**
  * Rank properties by composite score: relevance + source trust + data completeness.
  */
-function rankProperties(properties: NormalizedProperty[]): NormalizedProperty[] {
+function rankProperties(properties: NormalizedProperty[], namedSlugs: string[] = []): NormalizedProperty[] {
+  const namedIds = new Set(namedSlugs.map((slug) => `aarvasa:${slug}`));
   return properties
     .map((p) => {
       let boost = 0;
@@ -88,7 +90,7 @@ function rankProperties(properties: NormalizedProperty[]): NormalizedProperty[] 
 
       return { ...p, relevanceScore: Math.min(99, p.relevanceScore + boost) };
     })
-    .sort((a, b) => b.relevanceScore - a.relevanceScore);
+    .sort((a, b) => Number(namedIds.has(b.id)) - Number(namedIds.has(a.id)) || b.relevanceScore - a.relevanceScore);
 }
 
 /**
@@ -121,7 +123,7 @@ export async function aggregateSources(
   });
 
   // 2. External sources (parallel, with fallback)
-  let externalProperties: NormalizedProperty[] = [];
+  const externalProperties: NormalizedProperty[] = [];
   const externalStart = Date.now();
   try {
     const externalResults = await fetchExternalData(params);
@@ -158,7 +160,7 @@ export async function aggregateSources(
   // 4. Combine, deduplicate, rank
   const allProperties = [...aarvasaNormalized, ...externalProperties];
   const deduped = deduplicateProperties(allProperties);
-  const ranked = rankProperties(deduped).slice(0, maxResults);
+  const ranked = rankProperties(deduped, params.projectSlugs).slice(0, maxResults);
 
   // 5. Market intelligence
   const cities = params.locations.length > 0
@@ -180,54 +182,44 @@ export async function aggregateSources(
 }
 
 /**
- * Format aggregated properties + market intelligence for the AI prompt.
+ * Format the matched records for the prompt.
+ *
+ * Only facts that exist are written. ROI, yield, risk, growth and score lines
+ * used to be printed for every project as "0%", "~0.0%" or "Unrated", which
+ * invited the model to talk about them; the market-intelligence block was
+ * headed "Market Signals", which the old answer format also demanded.
  */
 export function formatAggregatedForPrompt(result: AggregatedResult): string {
   const parts: string[] = [];
 
-  // Properties
   if (result.properties.length > 0) {
-    parts.push("## Property Database — Matched Results");
+    parts.push("## Project records (as filed by each developer)");
     parts.push(
       result.properties
-        .map(
-          (p, i) =>
-            `[Property ${i + 1}] ${p.title} [Source: ${p.source.toUpperCase()}${p.sourceVerified ? " ✓" : ""}]
-  • Location: ${p.locality}, ${p.city}
-  • Price: ${p.priceFormatted}
-  • Type: ${p.type}
-  • Projected ROI: ${p.roi ?? "N/A"}%
-  • Rental Yield: ~${p.rentalYield?.toFixed(1) ?? "N/A"}%
-  • Risk Profile: ${p.risk ?? "Unrated"}
-  • Growth Signal: ${p.growth ?? "N/A"}
-  • Aarvasa Score: ${p.score ?? "N/A"}/100
-  • Relevance Score: ${p.relevanceScore}/99
-  • Size: ${p.sqft?.toLocaleString() ?? "N/A"} sqft${p.beds ? ` | ${p.beds} bed` : ""}${p.baths ? ` | ${p.baths} bath` : ""}
-  • Tags: ${p.tags.join(", ")}
-  • Summary: ${p.summary}
-  • Match Reasons: ${p.matchReasons.join("; ")}`,
-        )
+        .map((p, i) => {
+          const source =
+            p.source === "aarvasa"
+              ? "Aarvasa project record — developer filing"
+              : `External listing (${p.source}) — not represented by Aarvasa; do not quote any return, yield or risk figure from it`;
+          return `[Project ${i + 1}] ${p.title}\nSource: ${source}\n${p.summary}`;
+        })
         .join("\n\n"),
     );
   } else {
-    parts.push("No properties currently match the investor's criteria.");
+    parts.push("No listed project matches this question.");
   }
 
-  // Market Intelligence
+  /* Third-party locality data, only when a real provider supplied it (off by
+     default). Context about the area, never a forecast. */
   if (result.marketIntelligence.length > 0) {
-    parts.push("\n## Real-Time Market Intelligence");
+    parts.push("\n## Locality context from external providers (background only; never present as a forecast)");
     for (const intel of result.marketIntelligence) {
-      parts.push(`\n### ${intel.city} Market Signals`);
+      parts.push(`\n### ${intel.city}`);
       for (const insight of intel.insights) {
-        parts.push(
-          `- [${insight.category.toUpperCase()}] ${insight.title}: ${insight.description} (Impact: ${insight.impact}, Confidence: ${Math.round(insight.confidence * 100)}%)`,
-        );
+        parts.push(`- ${insight.title}: ${insight.description}`);
       }
     }
   }
-
-  // Source summary
-  parts.push(`\n## Data Sources: ${result.sourceSummary.map((s) => `${s.source}(${s.propertyCount})`).join(", ")} | Total candidates evaluated: ${result.totalCandidates}`);
 
   return parts.join("\n");
 }

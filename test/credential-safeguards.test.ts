@@ -109,6 +109,6 @@ test("login and signup read the session server-side, so they are dynamic and nev
   const { readFile } = await import("node:fs/promises");
   for (const page of ["login", "signup"]) {
     const src = await readFile(new URL(`../src/app/(auth)/${page}/page.tsx`, import.meta.url), "utf8");
-    assert.match(src, /if \(await auth\(\)\) redirect\("\/dashboard"\)/, page);
+    assert.match(src, /if \(\(await auth\(\)\)\?\.user\?\.id\) redirect\(redirectTo\)/, page);
   }
 });

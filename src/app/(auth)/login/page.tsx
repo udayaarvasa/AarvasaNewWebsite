@@ -2,6 +2,7 @@ import { LoginForm } from "@/components/auth/login-form"
 import Image from "next/image"
 import { redirect } from "next/navigation"
 import { auth } from "@/auth"
+import { getAuthRedirect } from "@/lib/auth-redirect"
 
 export const metadata = {
   title: "Login | Aarvasa",
@@ -9,10 +10,13 @@ export const metadata = {
   description: "Sign in to your Aarvasa premium PropTech account",
 }
 
-export default async function LoginPage() {
-  // Signed-in visitors go to their dashboard. Reading the session here also
-  // makes the page dynamic (private, no-store), so no shared cache keeps it.
-  if (await auth()) redirect("/dashboard")
+export default async function LoginPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ callbackUrl?: string | string[] }>;
+}) {
+  const redirectTo = getAuthRedirect((await searchParams).callbackUrl)
+  if ((await auth())?.user?.id) redirect(redirectTo)
 
   return (
     <div data-surface="stage" className="min-h-screen flex bg-[#12070a] relative overflow-hidden">
@@ -25,7 +29,7 @@ export default async function LoginPage() {
       {/* Left side - Auth Form */}
       <div className="w-full lg:w-1/2 flex flex-col justify-center items-center p-8 pt-28 z-10 relative">
 
-        <LoginForm />
+        <LoginForm redirectTo={redirectTo} />
       </div>
 
       {/* Right side - Visuals */}

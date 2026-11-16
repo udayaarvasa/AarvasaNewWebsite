@@ -27,7 +27,7 @@ export default async function CreatePropertyPage() {
           List a New Property
         </h1>
         <p className="mt-2 text-sm text-ink-muted">
-          Create your property listing and reach premium investors.
+          Add your property details and photos, then submit the listing for Aarvasa’s review.
         </p>
         <div className="mt-8">
           <CreatePropertyForm />

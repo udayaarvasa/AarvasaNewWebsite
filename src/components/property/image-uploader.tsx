@@ -107,6 +107,7 @@ export function ImageUploader({ images, onChange, maxFiles = 6 }: ImageUploaderP
             <div key={url} className="group relative aspect-square overflow-hidden rounded-xl border border-rule">
               <Image src={url} alt={`Upload ${i + 1}`} fill className="object-cover" sizes="120px" />
               <button
+                type="button"
                 onClick={(e) => { e.stopPropagation(); removeImage(i) }}
                 className="absolute right-1 top-1 flex h-6 w-6 items-center justify-center rounded-full bg-red-500 text-white opacity-0 transition group-hover:opacity-100"
                 aria-label="Remove image"

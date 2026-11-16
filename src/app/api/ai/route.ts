@@ -6,6 +6,7 @@ import { getProviderStatus } from "@/lib/ai";
 import { aggregateSources } from "@/lib/ai/source-aggregator";
 import { parseQuery } from "@/lib/ai/query-parser";
 import { isRateLimited, AI_ENDPOINT_LIMIT } from "@/lib/ai/rate-limiter";
+import { publishedProjects } from "@/lib/projects";
 import { apiCache } from "@/lib/ai/cache";
 
 /**
@@ -70,7 +71,7 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Query is required" }, { status: 400 });
   }
 
-  const params = parseQuery(query);
+  const params = parseQuery(query, publishedProjects());
 
   // Allow overrides from body
   if (body.budget) params.budget = Number(body.budget);

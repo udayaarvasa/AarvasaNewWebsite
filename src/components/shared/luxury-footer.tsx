@@ -17,6 +17,7 @@ const columns = [
     heading: "Discover",
     links: [
       { href: "/listings", label: "All properties" },
+      { href: "/properties/create", label: "List your property" },
       { href: "/reef", label: "REEF Collection" },
       { href: "/compare", label: "Compare" },
       { href: "/ai-chat", label: "Advisor" },

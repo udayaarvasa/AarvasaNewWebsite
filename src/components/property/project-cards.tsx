@@ -109,6 +109,7 @@ export async function ProjectCards({ query = {} }: { query?: ProjectQuery } = {}
                   <p className="av-num shrink-0">
                     <span className="block whitespace-nowrap text-[18px] font-semibold text-gold-ink">{price}</span>
                     {inr && <span className="text-[12.5px] text-ink-muted">{inr}</span>}
+                    {project.inventoryDate && <span className="block text-xs text-ink-muted">{project.inventoryDate} inventory</span>}
                   </p>
                   <div className="flex flex-wrap justify-end gap-2">
                     {project.approvals.length > 0 && <Status tone="ready">{project.approvals[0]}</Status>}

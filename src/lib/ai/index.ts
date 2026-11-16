@@ -2,7 +2,7 @@
 // Processes queries through: parse → aggregate → prompt → stream.
 
 import type { ChatMessage, QueryParameters, AiResult, AggregatedResult } from "./types";
-import { parseQuery } from "./query-parser";
+import { matchProjectSlugs, parseQuery } from "./query-parser";
 import { aggregateSources, formatAggregatedForPrompt } from "./source-aggregator";
 import { buildSystemPrompt, buildGreetingPrompt, buildGeminiPayload } from "./prompt-builder";
 import { aiResponseCache, buildCacheKey } from "./cache";
@@ -39,9 +39,10 @@ async function callGemini(
   apiKey: string,
   body: unknown,
   signal: AbortSignal,
+  models = geminiModels(),
 ): Promise<{ response: Response | null; lastStatus: number | null }> {
   let lastStatus: number | null = null;
-  for (const model of geminiModels()) {
+  for (const model of models) {
     for (let attempt = 0; attempt < 2; attempt++) {
       if (signal.aborted) return { response: null, lastStatus };
       try {
@@ -71,6 +72,40 @@ async function callGemini(
   return { response: null, lastStatus };
 }
 
+/** Select a reviewed navigation hint using the Advisor's server-side provider. */
+export async function selectSiteGuideHint(
+  choices: string[],
+  question: string,
+  signal: AbortSignal,
+): Promise<string | null> {
+  const apiKey = process.env.GEMINI_API_KEY;
+  if (!apiKey || isRateLimited("gemini:global", GEMINI_LIMIT)) return null;
+
+  const prompt = [
+    "Classify the visitor's Aarvasa navigation question using the choices below.",
+    "Return exactly one choice ID. Return none when no choice answers the question.",
+    ...choices,
+  ].join("\n");
+  const payload = {
+    ...buildGeminiPayload(prompt, [{ role: "user", content: question }]),
+    generationConfig: { maxOutputTokens: 512, temperature: 0 },
+  };
+
+  try {
+    const models = geminiModels();
+    const lite = models.find((model) => model.includes("flash-lite"));
+    const preferred = lite ? [lite, ...models.filter((model) => model !== lite)] : models;
+    const timeout = AbortSignal.any([signal, AbortSignal.timeout(15_000)]);
+    const { response } = await callGemini(apiKey, payload, timeout, preferred);
+    if (!response?.body) return null;
+
+    const stream = transformGeminiStream(response.body);
+    return (await new Response(stream).text()).trim();
+  } catch {
+    return null;
+  }
+}
+
 /** An answer built from the project records alone, for when no model is reachable. */
 export function recordsAnswer(query: string): string {
   const projects = publishedProjects();
@@ -82,7 +117,10 @@ export function recordsAnswer(query: string): string {
       .split(/[^a-z0-9]+/)
       .some((word) => word.length > 2 && q.includes(word)),
   );
-  const list = (matches.length > 0 ? matches : projects).slice(0, 5);
+  const named = new Set(matchProjectSlugs(query, projects));
+  const list = (matches.length > 0 ? matches : projects)
+    .sort((a, b) => Number(named.has(b.slug)) - Number(named.has(a.slug)))
+    .slice(0, 5);
   const lines = list.map((p) => {
     const price =
       p.fromPrice > 0
@@ -115,7 +153,7 @@ export async function processAdvisorQuery(
   messages: ChatMessage[],
 ): Promise<AiResult> {
   const latestUserMessage = messages.filter((m) => m.role === "user").at(-1)?.content || "";
-  const params = parseQuery(latestUserMessage);
+  const params = parseQuery(latestUserMessage, publishedProjects());
 
   // Greetings don't need data retrieval
   if (params.intent === "greeting") {

@@ -18,7 +18,7 @@ const loginSchema = z.object({
 
 type LoginFormValues = z.infer<typeof loginSchema>
 
-export function LoginForm() {
+export function LoginForm({ redirectTo }: { redirectTo: string }) {
   const router = useRouter()
   const [isLoading, setIsLoading] = useState(false)
 
@@ -38,6 +38,7 @@ export function LoginForm() {
         email: data.email,
         password: data.password,
         redirect: false,
+        redirectTo,
       })
 
       if (result?.error) {
@@ -46,9 +47,9 @@ export function LoginForm() {
       }
 
       toast.success("Successfully logged in!")
-      router.push("/dashboard")
+      router.push(redirectTo)
       router.refresh()
-    } catch (error) {
+    } catch {
       toast.error("An error occurred during login")
     } finally {
       setIsLoading(false)
@@ -134,8 +135,8 @@ export function LoginForm() {
 
       <div className="mt-8 pt-6 border-t border-white/10 text-center">
         <p className="text-[#F2F1ED]/60 text-sm">
-          Don't have an account?{" "}
-          <Link href="/signup" className="text-[#D4AF37] font-medium hover:text-[#D4AF37]/80 transition-colors">
+          Don&apos;t have an account?{" "}
+          <Link href={{ pathname: "/signup", query: { callbackUrl: redirectTo } }} className="text-[#D4AF37] font-medium hover:text-[#D4AF37]/80 transition-colors">
             Create account
           </Link>
         </p>
@@ -153,7 +154,7 @@ export function LoginForm() {
         <div className="mt-6 grid grid-cols-2 gap-3">
           <button 
             type="button"
-            onClick={() => signIn("google")}
+            onClick={() => signIn("google", { redirectTo })}
             disabled={isLoading}
             className="flex justify-center items-center gap-2.5 py-2.5 border border-white/10 rounded-xl hover:bg-white/5 transition-colors cursor-pointer disabled:opacity-50"
           >

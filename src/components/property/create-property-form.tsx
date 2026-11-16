@@ -90,7 +90,7 @@ export function CreatePropertyForm() {
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-8">
       {/* Basic Info */}
-      <section className="rounded-2xl border border-rule bg-paper-raised p-6">
+      <section id="listing-details" className="scroll-mt-[calc(var(--nav-h)+16px)] rounded-2xl border border-rule bg-paper-raised p-6">
         <h3 className="mb-5 text-lg font-bold text-ink">Basic Information</h3>
         <div className="grid gap-5 md:grid-cols-2">
           <div className="md:col-span-2">
@@ -141,7 +141,7 @@ export function CreatePropertyForm() {
       </section>
 
       {/* Location */}
-      <section className="rounded-2xl border border-rule bg-paper-raised p-6">
+      <section id="listing-location" className="scroll-mt-[calc(var(--nav-h)+16px)] rounded-2xl border border-rule bg-paper-raised p-6">
         <h3 className="mb-5 text-lg font-bold text-ink">Location</h3>
         <div className="grid gap-5 md:grid-cols-2">
           <div className="md:col-span-2">
@@ -163,7 +163,7 @@ export function CreatePropertyForm() {
       </section>
 
       {/* Images */}
-      <section className="rounded-2xl border border-rule bg-paper-raised p-6">
+      <section id="listing-photos" className="scroll-mt-[calc(var(--nav-h)+16px)] rounded-2xl border border-rule bg-paper-raised p-6">
         <h3 className="mb-5 text-lg font-bold text-ink">Property Images</h3>
         <ImageUploader images={images} onChange={setImages} maxFiles={6} />
       </section>
@@ -191,12 +191,13 @@ export function CreatePropertyForm() {
 
       {/* Submit */}
       <button
+        id="listing-submit"
         type="submit"
         disabled={loading}
-        className="flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-[#D4AF37] to-[#C5A028] py-4 text-sm font-bold text-ink shadow-lg shadow-[#D4AF37]/20 transition-all hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed"
+        className="flex w-full scroll-mt-[calc(var(--nav-h)+16px)] items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-[#D4AF37] to-[#C5A028] py-4 text-sm font-bold text-ink shadow-lg shadow-[#D4AF37]/20 transition-all hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed"
       >
         {loading ? <Loader2 className="h-5 w-5 animate-spin" /> : <Plus className="h-5 w-5" />}
-        {loading ? "Creating Property..." : "Create Property Listing"}
+        {loading ? "Submitting…" : "Submit for review"}
       </button>
     </form>
   )

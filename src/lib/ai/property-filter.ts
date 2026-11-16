@@ -15,6 +15,7 @@
 import { publishedProjects } from "@/lib/projects";
 import type { Project } from "@/lib/project-types";
 import { formatCurrency } from "@/lib/currency";
+import { projectFacts } from "./project-facts";
 import type { QueryParameters, MatchedProperty } from "./types";
 
 /** Map a project onto the advisor's candidate shape. */
@@ -27,20 +28,6 @@ function toCandidate(project: Project): MatchedProperty {
     : project.ratePerSqft
       ? `${formatCurrency(project.ratePerSqft, project.currency)} per sq.ft`
       : "price on request";
-
-  const summaryParts = [
-    `${project.name} by ${project.developer}, ${project.location}, ${project.city}.`,
-  ];
-  if (project.completion) summaryParts.push(`Completion ${project.completion}.`);
-  if (isPlots && project.totalUnits) summaryParts.push(`${project.totalUnits} plots in the layout.`);
-  if (project.unitTypes.length > 0) {
-    summaryParts.push(
-      `Configurations: ${project.unitTypes
-        .map((u) => `${u.label} (${u.minSqft.toLocaleString()} sq.ft, ${u.fromPrice > 0 ? `from ${formatCurrency(u.fromPrice, project.currency)}` : "price on request"})`)
-        .join("; ")}.`,
-    );
-  }
-  if (project.rateNote) summaryParts.push(project.rateNote);
 
   return {
     id: project.slug,
@@ -56,7 +43,7 @@ function toCandidate(project: Project): MatchedProperty {
     baths: 0,
     sqft: project.minSqft,
     score: 0, // unknown — no proprietary rating exists for these yet
-    summary: summaryParts.join(" "),
+    summary: projectFacts(project),
     tags: [...project.approvals, ...project.usps].slice(0, 5),
     matchScore: 0,
     matchReasons: [],
@@ -71,9 +58,10 @@ export function filterProperties(
   params: QueryParameters,
   maxResults: number = 4,
 ): MatchedProperty[] {
+  const named = new Set(params.projectSlugs);
   return publishedProjects()
     .map((project) => scoreProject(project, toCandidate(project), params))
-    .sort((a, b) => b.matchScore - a.matchScore)
+    .sort((a, b) => Number(named.has(b.id)) - Number(named.has(a.id)) || b.matchScore - a.matchScore)
     .slice(0, maxResults);
 }
 

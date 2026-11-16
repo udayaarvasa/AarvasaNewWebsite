@@ -25,6 +25,7 @@ const CITY_ALIASES: Record<string, string> = {
   "dubai islands": "Dubai",
   dlrc: "Dubai",
   "dubai marina": "Dubai",
+  "jumeirah garden city": "Jumeirah Garden City",
   "palm jumeirah": "Dubai",
   bangalore: "Bengaluru",
   bengaluru: "Bengaluru",
@@ -143,14 +144,23 @@ const RENTAL_YIELD_PATTERNS =
 // Parser
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
+type NamedProject = { slug: string; name: string };
+
+export function matchProjectSlugs(query: string, projects: readonly NamedProject[]): string[] {
+  const words = (value: string) => ` ${value.toLowerCase().replace(/[^a-z0-9]+/g, " ").trim()} `;
+  const normalized = words(query);
+  return projects.filter((project) => normalized.includes(words(project.name))).map((project) => project.slug);
+}
+
 /**
  * Parse a user query into structured parameters for multi-source retrieval.
  */
-export function parseQuery(query: string): QueryParameters {
+export function parseQuery(query: string, projects: readonly NamedProject[] = []): QueryParameters {
   const lower = query.toLowerCase().trim();
+  const projectSlugs = matchProjectSlugs(lower, projects);
 
   // ── Greeting detection ──
-  if (GREETING_PATTERNS.test(lower) && lower.split(/\s+/).length <= 6) {
+  if (projectSlugs.length === 0 && GREETING_PATTERNS.test(lower) && lower.split(/\s+/).length <= 6) {
     return {
       locations: [],
       propertyTypes: [],
@@ -203,6 +213,7 @@ export function parseQuery(query: string): QueryParameters {
     budget,
     budgetLabel,
     locations,
+    ...(projectSlugs.length > 0 ? { projectSlugs } : {}),
     propertyTypes,
     riskPreference,
     minRoi,

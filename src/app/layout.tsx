@@ -5,6 +5,7 @@ import { Navbar } from "@/components/layout/navbar";
 import { NavOverlayProvider } from "@/components/layout/nav-overlay";
 import { LuxuryFooter } from "@/components/shared/luxury-footer";
 import { SessionProvider } from "@/components/auth/session-provider";
+import { SiteGuide } from "@/components/shared/site-guide";
 import { FloatingActions } from "@/components/shared/floating-actions";
 import { Toaster } from "react-hot-toast";
 import { ScrollProgress } from "@/components/lux/motion";
@@ -66,6 +67,7 @@ export default function RootLayout({
             <main className="flex-1">{children}</main>
             <LuxuryFooter />
             <FloatingActions />
+            <SiteGuide />
             <Toaster position="top-center" />
           </NavOverlayProvider>
         </SessionProvider>

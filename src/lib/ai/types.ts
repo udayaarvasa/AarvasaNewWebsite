@@ -64,6 +64,7 @@ export interface QueryParameters {
   budget?: number;
   budgetLabel?: string;
   locations: string[];
+  projectSlugs?: string[];
   propertyTypes: string[];
   riskPreference?: string;
   minRoi?: number;

@@ -62,6 +62,15 @@ export const PROJECT_SEO: Readonly<Record<string, ProjectSeo>> = {
       "It offers studios, one- and two-bedroom apartments and two-bedroom duplexes from 437 to 1,905 sq.ft, with a running track, cricket pitch and outdoor gym among its amenities. Completion is scheduled for Q4 2026. The developer has not published prices, so Aarvasa quotes them on enquiry.",
     ],
   },
+  "holm-central-jumeirah-garden-city": {
+    title: "HOLM Central Apartments, Jumeirah Garden City",
+    description:
+      "HOLM Central in Jumeirah Garden City, Dubai. Furnished studios and one- and two-bedroom apartments by HOLM Developments, with Q2 2029 handover and a 35/65 payment plan.",
+    intro: [
+      "HOLM Central is a twin-tower development with 475 residences in Jumeirah Garden City, Dubai. It offers furnished studios, one-bedroom apartments and two-bedroom apartments with a maid’s room. Handover is scheduled for Q2 2029.",
+      "HOLM’s marketing materials quote 378–594 sq.ft for studios, 626–778 sq.ft for one-bedroom apartments and 1,046–2,036 sq.ft for two-bedroom apartments. The inventory table below shows net areas for units in the 15 October release.",
+    ],
+  },
   "aaradhyam-pearl-badwai-bhopal": {
     title: "Aaradhyam Pearl Residential Plots, Badwai, Bhopal",
     description:

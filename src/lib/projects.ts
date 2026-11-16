@@ -10,6 +10,7 @@ import {
   type ProjectPanoramaTour,
   type ProjectSplatMedia,
 } from "./project-types";
+import { holmCentral } from "./holm-central";
 import { reefProjects } from "./reef-projects";
 import { reef1000, reef999 } from "./reef-portfolio-additions";
 import { REEF_997_IMAGERY } from "./reef-997-imagery";
@@ -454,6 +455,7 @@ export const projects: Project[] = [
   ...reefProjects,
   reef999,
   reef1000,
+  holmCentral,
   aaradhyamPearl,
   aaradhyamPrime,
 ].map((p) => ({

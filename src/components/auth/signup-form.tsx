@@ -4,7 +4,7 @@ import { signIn } from "next-auth/react"
 import Link from "next/link"
 import { useState } from "react"
 
-export function SignupForm() {
+export function SignupForm({ redirectTo }: { redirectTo: string }) {
   const [pending, setPending] = useState(false)
   const [error, setError] = useState(false)
 
@@ -12,7 +12,7 @@ export function SignupForm() {
     setPending(true)
     setError(false)
     try {
-      await signIn("google", { redirectTo: "/dashboard" })
+      await signIn("google", { redirectTo })
     } catch {
       setError(true)
       setPending(false)
@@ -28,7 +28,7 @@ export function SignupForm() {
         {pending ? "Opening Google…" : "Continue with Google"}
       </button>
       {error && <p role="alert" className="mt-3 text-sm text-red-300">Google sign-in could not start. Please try again.</p>}
-      <p className="mt-5 text-sm text-[#F2F1ED]/80">Already have an account? <Link href="/login" className="text-[#D4AF37] underline">Sign in</Link></p>
+      <p className="mt-5 text-sm text-[#F2F1ED]/80">Already have an account? <Link href={{ pathname: "/login", query: { callbackUrl: redirectTo } }} className="text-[#D4AF37] underline">Sign in</Link></p>
     </div>
   )
 }

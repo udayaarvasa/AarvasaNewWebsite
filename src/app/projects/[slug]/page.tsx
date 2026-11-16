@@ -1,6 +1,6 @@
+import { DEVELOPER_INVENTORY_DATE } from "@/lib/ai/project-facts";
 import { ProjectBrochurePanel } from "@/components/property/project-brochure";
 import { projectBrochure } from "@/lib/project-brochures";
-import { ReefReferenceSummary } from "@/components/property/reef-reference-summary";
 import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
@@ -109,6 +109,7 @@ export default async function ProjectPage({
 
   const price = headlinePrice(project);
   const brochure = projectBrochure(project.slug);
+  const sourceLinks = project.sourceLinks ?? [];
   /* A curated library wins over the flat `images` list: it carries a 16:9 crop
      made for this slot and states how the frame was produced. */
   const heroImage = project.imagery?.hero ?? null;
@@ -213,7 +214,7 @@ export default async function ProjectPage({
     project.usps.length > 0 ? "highlights" : null,
     project.nearby.length > 0 ? "location" : null,
     project.planImages.length > 0 ? "plan" : null,
-    brochure ? "brochure" : null,
+    brochure || sourceLinks.length > 0 ? "brochure" : null,
     galleryItems.length > 0 ? "gallery" : null,
   ].filter((k): k is string => k !== null);
   const indexOf = (key: string) => (
@@ -291,6 +292,7 @@ export default async function ProjectPage({
             <FadeUp immediate delay={0.85} className="mt-6 flex flex-wrap gap-3">
               <GoldButton href={enquireHref}>Enquire about {project.name}</GoldButton>
               {brochure && <GhostButton href="#brochure">View brochure</GhostButton>}
+              {!brochure && sourceLinks.length > 0 && <GhostButton href="#brochure">Brochure and floor plans</GhostButton>}
               <GhostButton href="/listings">All properties</GhostButton>
             </FadeUp>
           </LuxContainer>
@@ -349,7 +351,7 @@ export default async function ProjectPage({
                       coordinates={area.center}
                       apiKey={process.env.NEXT_PUBLIC_GOOGLE_MAPS_BROWSER_KEY ?? null}
                       approximate={project.coordinatesPrecision !== "plot"}
-                      locationNote={project.coordinatesPrecision === "developer-pin" ? "Developer-published location pin; model alignment and footprint are approximate." : undefined}
+                      locationNote={project.coordinatesPrecision === "developer-pin" ? "Developer-published location pin. Model alignment and footprint are approximate." : undefined}
                       modelOverlay={mapModel}
                     />
                     <NearbyPlaces
@@ -424,7 +426,7 @@ export default async function ProjectPage({
                       coordinates={area.center}
                       apiKey={process.env.NEXT_PUBLIC_GOOGLE_MAPS_BROWSER_KEY ?? null}
                       approximate={project.coordinatesPrecision !== "plot"}
-                      locationNote={project.coordinatesPrecision === "developer-pin" ? "Developer-published location pin; model alignment and footprint are approximate." : undefined}
+                      locationNote={project.coordinatesPrecision === "developer-pin" ? "Project location pin supplied by the developer." : undefined}
                       modelOverlay={mapModel}
                     />
                     {/* Shares the map's gate exactly: same key, same verified
@@ -491,10 +493,10 @@ export default async function ProjectPage({
                   {indexOf("pricing")}
                   <SectionHead
                     label="Availability"
-                    title={isPlots ? "Plot sizes" : "Current availability"}
+                    title={isPlots ? "Plot sizes" : project.inventoryDate ? "Inventory snapshot" : "Current availability"}
                     note={
                       project.availableUnits !== null
-                        ? `${project.availableUnits} units released from the developer's inventory of 28 June 2026.`
+                        ? `${project.availableUnits} units released from the developer's inventory of ${project.inventoryDate ?? DEVELOPER_INVENTORY_DATE}.`
                         : undefined
                     }
                   />
@@ -505,8 +507,8 @@ export default async function ProjectPage({
                           <th className="av-label px-5 py-3 text-ink-muted">
                             {isPlots ? "Plot size" : "Configuration"}
                           </th>
-                          {!isPlots && <th className="av-label px-5 py-3 text-ink-muted">Available</th>}
-                          <th className="av-label px-5 py-3 text-ink-muted">Area (sq.ft)</th>
+                          {!isPlots && <th className="av-label px-5 py-3 text-ink-muted">{project.inventoryDate ? "Units listed" : "Available"}</th>}
+                          <th className="av-label px-5 py-3 text-ink-muted">{project.unitAreaBasis === "net" ? "Net area" : "Area"} (sq.ft)</th>
                           <th className="av-label px-5 py-3 text-ink-muted">
                             {isPlots ? "Price" : "Price from"}
                           </th>
@@ -544,7 +546,7 @@ export default async function ProjectPage({
                       ? `Plot prices are calculated at the developer's quoted rate of ${formatCurrency(project.ratePerSqft ?? 0, project.currency)} per sq.ft. Confirm final figures and registry costs with Aarvasa before purchase.`
                       : project.planLabels.length > 0
                         ? `Prices are the lowest of ${project.planLabels.length} published payment plans (${project.planLabels.join(", ")}), quoted in AED. Rupee figures are indicative only, converted at AED 1 = ₹${AED_TO_INR}.`
-                        : `Sizes are the developer's published ranges. ${project.rateNote ?? "The developer has not published prices for this project; Aarvasa confirms current prices on enquiry."}`}
+                        : project.rateNote ?? "Sizes are the developer's published ranges. The developer has not published prices for this project; Aarvasa confirms current prices on enquiry."}
                   </p>
                 </section>
               </MotionReveal>
@@ -664,12 +666,24 @@ export default async function ProjectPage({
               <MeasureRule />
             </div>
 
-            <ReefReferenceSummary slug={project.slug} />
-            {brochure && (
+            {(brochure || sourceLinks.length > 0) && (
               <section id="brochure" className="mt-[var(--s-14)] scroll-mt-[calc(var(--nav-h)+32px)]">
                 {indexOf("brochure")}
-                <SectionHead label="Brochure" title="The complete picture" />
-                <ProjectBrochurePanel brochure={brochure} name={project.name} />
+                {brochure ? (
+                  <>
+                    <SectionHead label="Brochure" title="The complete picture" />
+                    <ProjectBrochurePanel brochure={brochure} name={project.name} />
+                  </>
+                ) : (
+                  <SectionHead label="Project resources" title="Brochure, plans and location" />
+                )}
+                {sourceLinks.length > 0 && (
+                  <ul className="-mt-[var(--s-4)] grid gap-3 border border-rule bg-paper-raised p-[var(--s-5)] text-sm">
+                    {sourceLinks.map(({ label, href }) => (
+                      <li key={href}><a href={href} className="font-medium underline underline-offset-4 hover:text-gold-ink">{label}</a></li>
+                    ))}
+                  </ul>
+                )}
               </section>
             )}
             {/* Gallery — photography in a lightbox with keyboard controls */}

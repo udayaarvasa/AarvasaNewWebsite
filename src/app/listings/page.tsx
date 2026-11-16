@@ -90,7 +90,15 @@ export default async function ListingsPage({
               </Link>
             </span>
           ) : (
-            "Filter on the specification that decides it, open the formats a project has actually produced, and put a shortlist of three side by side before you travel."
+            <span className="flex flex-wrap items-center gap-3">
+              Browse properties, compare up to three listings, or submit your own property for review.
+              <Link
+                href="/properties/create"
+                className="rounded-full border border-gold/50 px-4 py-1.5 text-[13px] text-gold transition-colors hover:bg-gold hover:text-[var(--action-ink)]"
+              >
+                List your property
+              </Link>
+            </span>
           )
         }
       />
@@ -136,11 +144,13 @@ export default async function ListingsPage({
         />
         {/* The shortlist context wraps only the grid and its tray; the static
             header and project plates above stay outside the client boundary. */}
-        <CompareProvider>
-          <Suspense fallback={<PropertyGridSkeleton count={6} />}>
-            <ListingsGrid />
-          </Suspense>
-        </CompareProvider>
+        <div id="listing-filters" className="scroll-mt-[calc(var(--nav-h)+16px)]">
+          <CompareProvider>
+            <Suspense fallback={<PropertyGridSkeleton count={6} />}>
+              <ListingsGrid />
+            </Suspense>
+          </CompareProvider>
+        </div>
       </Wrap>
     </div>
   );

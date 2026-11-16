@@ -171,6 +171,9 @@ export type Project = {
   totalUnits: number | null;
   buildingConfig: string | null;
   availableUnits: number | null;
+  /** Source date for a dated release of counts and unit prices. */
+  inventoryDate?: string;
+  unitAreaBasis?: "net";
   fromPrice: number;
   toPrice: number;
   minSqft: number;
@@ -191,6 +194,8 @@ export type Project = {
   /** Layout/site plan — rendered separately from photography so the two are never conflated. */
   planImages: string[];
   planLabels: string[];
+  /** Public project resources hosted by their original publisher. */
+  sourceLinks?: readonly { label: string; href: string }[];
   paymentPlans: ProjectPaymentPlan[];
   nearby: { place: string; minutes: number | null }[];
   usps: string[];
