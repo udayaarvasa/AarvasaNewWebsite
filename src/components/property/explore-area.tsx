@@ -21,6 +21,7 @@ import {
   type VerifiedCoordinates,
   AREA_APPROXIMATE_LOCATION,
 } from "@/lib/maps/google-3d";
+import type { ProjectImmersiveMedia } from "@/lib/project-types";
 import { importMapsLibrary, keyRefusedByGoogle, keyWasRejected, loadMaps } from "@/lib/maps/loader";
 
 /**
@@ -133,7 +134,7 @@ export function ExploreArea({
    * resolver returned, and an INTERNAL asset resolves to nothing there. The
    * authorisation lives in the resolver that produced this, not in a check here.
    */
-  modelOverlay?: { readonly url: string; readonly baseOffsetMetres: number; readonly headingDegrees?: number } | null;
+  modelOverlay?: (NonNullable<ProjectImmersiveMedia["mapOverlay"]> & { readonly url: string }) | null;
 }) {
   const [phase, setPhase] = useState<Phase>({ k: "closed" });
   const hostRef = useRef<HTMLDivElement>(null);
@@ -238,8 +239,9 @@ export function ExploreArea({
         const camera = modelOverlay
           ? { range: narrow ? 360 : 460, tilt: 67, heading: base.heading, altitude: modelOverlay.baseOffsetMetres }
           : base;
+        const mapCenter = modelOverlay?.coordinates ?? resolved.center;
         const map = document.createElement("gmp-map-3d") as HTMLElement & Record<string, unknown>;
-        map.setAttribute("center", `${resolved.center.lat},${resolved.center.lng},${camera.altitude}`);
+        map.setAttribute("center", `${mapCenter.lat},${mapCenter.lng},${camera.altitude}`);
         map.setAttribute("range", String(camera.range));
         map.setAttribute("tilt", String(camera.tilt));
         map.setAttribute("heading", String(camera.heading));
@@ -336,7 +338,7 @@ export function ExploreArea({
            error and without moving anything. */
         recenterRef.current = () => {
           (map as unknown as { stopCameraAnimation?: () => void }).stopCameraAnimation?.();
-          map.center = { ...resolved.center, altitude: camera.altitude };
+          map.center = { ...mapCenter, altitude: camera.altitude };
           map.heading = camera.heading;
           map.tilt = camera.tilt;
           map.range = camera.range;
@@ -363,6 +365,8 @@ export function ExploreArea({
   useEffect(() => {
     const map = mapRef.current;
     if (phase.k !== "ready" || phase.mode !== "3d" || !map || !modelOverlay) return;
+    const position = modelOverlay.coordinates ?? resolvedCenter;
+    if (!position) return;
     if (!showModel) {
       modelRef.current?.remove();
       modelRef.current = null;
@@ -380,9 +384,8 @@ export function ExploreArea({
         const model = new lib.Model3DElement({
           // Google's loader needs an absolute URL; a site-hosted model is relative.
           src: new URL(modelOverlay.url, window.location.origin).href,
-          /* Anchored to the property's own coordinate, lifted so the model's
-             base — not its centroid — meets the ground. */
-          position: { ...(resolvedCenter as VerifiedCoordinates), altitude: modelOverlay.baseOffsetMetres },
+          /* Lift the model so its base meets the ground at the overlay anchor. */
+          position: { ...position, altitude: modelOverlay.baseOffsetMetres },
           orientation: { ...MODEL_OVERLAY_PLACEMENT.orientation, heading: modelOverlay.headingDegrees ?? MODEL_OVERLAY_PLACEMENT.orientation.heading },
           scale: MODEL_OVERLAY_PLACEMENT.scale,
           altitudeMode: lib.AltitudeMode[MODEL_OVERLAY_PLACEMENT.altitudeMode],

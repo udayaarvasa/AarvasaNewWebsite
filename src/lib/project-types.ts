@@ -63,13 +63,19 @@ export type ProjectImmersiveMedia = {
    * baseOffsetMetres is half the model's real height (its origin is the
    * centroid), measured from the GLB's bounds — never chosen by eye.
    */
-  mapOverlay?: { baseOffsetMetres: number; headingDegrees?: number };
+  mapOverlay?: {
+    baseOffsetMetres: number;
+    headingDegrees?: number;
+    /** An overlay anchor distinct from the project's map pin. */
+    coordinates?: { lat: number; lng: number };
+  };
   /**
    * How the model was produced, for the label shown beside it. Carried from the
    * MediaAsset row; absent on the hand-authored pilot, which `review` already
    * marks as a placeholder.
    */
   provenance?: MediaProvenance;
+  provenanceNote?: string;
   /**
    * Where the camera opens on this model. Absent uses the generic object
    * framing, which suits something seen whole; a tower needs to open closer or

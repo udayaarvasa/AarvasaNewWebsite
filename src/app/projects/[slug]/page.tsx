@@ -150,7 +150,7 @@ export default async function ProjectPage({
   const media = project.immersive;
   const mapModel =
     media && media.review === "approved" && media.hosting === "site" && media.mapOverlay
-      ? { url: `${PUBLIC_MODEL_ORIGIN}/${media.storageKey}/${media.entryFile}`, baseOffsetMetres: media.mapOverlay.baseOffsetMetres, headingDegrees: media.mapOverlay.headingDegrees }
+      ? { url: `${PUBLIC_MODEL_ORIGIN}/${media.storageKey}/${media.entryFile}`, ...media.mapOverlay }
       : null;
 
   /* Capability marks come from what actually passed server-side gating. A
@@ -291,6 +291,7 @@ export default async function ProjectPage({
             </FadeUp>
             <FadeUp immediate delay={0.85} className="mt-6 flex flex-wrap gap-3">
               <GoldButton href={enquireHref}>Enquire about {project.name}</GoldButton>
+              {viewer && mapModel?.coordinates && hasArea && <GhostButton href="#project-explore">Explore in 3D</GhostButton>}
               {brochure && <GhostButton href="#brochure">View brochure</GhostButton>}
               {!brochure && sourceLinks.length > 0 && <GhostButton href="#brochure">Brochure and floor plans</GhostButton>}
               <GhostButton href="/listings">All properties</GhostButton>
@@ -331,6 +332,7 @@ export default async function ProjectPage({
       {hasImmersive || hasFilms || hasArea ? (
       <StageBand className="mt-[var(--s-14)] py-[var(--band)]">
         <Wrap>
+          <div id="project-explore" className="scroll-mt-[calc(var(--nav-h)+64px)]" />
           <SectionHead label="Explore" title="See it for yourself" note="Nothing downloads until you open it." />
 
           {/* Only what is live is offered. An entry waiting on an asset, a key

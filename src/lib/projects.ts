@@ -11,6 +11,7 @@ import {
   type ProjectSplatMedia,
 } from "./project-types";
 import { holmCentral } from "./holm-central";
+import { HOLM_CENTRAL_MODEL } from "./holm-central-model";
 import { reefProjects } from "./reef-projects";
 import { reef1000, reef999 } from "./reef-portfolio-additions";
 import { REEF_997_IMAGERY } from "./reef-997-imagery";
@@ -293,13 +294,21 @@ const REEF_996_RECONSTRUCTION: ProjectImmersiveMedia = REEF_RELEASE_MODELS["reef
  */
 const REEF_997_RECONSTRUCTION: ProjectImmersiveMedia = REEF_RELEASE_MODELS["reef-997-dubai-islands"];
 
-/** Public release approved by the project owner on 8 November 2026 after
- * local map/model review. Exact hashes and assumptions are recorded in
- * docs/reef-release-2026-11-08.md. All models retain reconstruction labels and
- * approximate geographic placement; none is an official developer model. */
-export const PUBLIC_MODEL_APPROVALS: readonly string[] = ["reef-996-dubai-production-city", "reef-997-dubai-islands", "reef-998-dlrc", "reef-999-al-furjan", "reef-1000-dlrc"];
+/** Reviewed and approved for public release by the project owner.
+ * REEF approvals are recorded in docs/reef-release-2026-11-08.md.
+ * HOLM Central was approved on 16 November 2026 after map placement review.
+ * All models carry reconstruction and approximate-placement labels. */
+export const PUBLIC_MODEL_APPROVALS: readonly string[] = [
+  "reef-996-dubai-production-city",
+  "reef-997-dubai-islands",
+  "reef-998-dlrc",
+  "reef-999-al-furjan",
+  "reef-1000-dlrc",
+  holmCentral.slug,
+];
 
 const SITE_RECONSTRUCTIONS: Readonly<Record<string, ProjectImmersiveMedia>> = {
+  [holmCentral.slug]: HOLM_CENTRAL_MODEL,
   "reef-996-dubai-production-city": REEF_996_RECONSTRUCTION,
   "reef-997-dubai-islands": REEF_997_RECONSTRUCTION,
   "reef-998-dlrc": REEF_998_RECONSTRUCTION,

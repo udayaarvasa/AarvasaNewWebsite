@@ -74,7 +74,7 @@ export function projectViewerConfig(
     provenance: media.provenance
       ? {
           label: PROVENANCE_LABEL[media.provenance as MediaProvenance],
-          note: PROVENANCE_NOTE[media.provenance as MediaProvenance] ?? null,
+          note: media.provenanceNote ?? PROVENANCE_NOTE[media.provenance as MediaProvenance] ?? null,
         }
       : null,
     // The same published URL the 3D viewer loads, re-checked against the media policy.
